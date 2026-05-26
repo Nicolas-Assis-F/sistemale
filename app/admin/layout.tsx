@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { isAuthenticated } from '@/lib/auth';
-import { LayoutDashboard, Package, Tag, LogOut, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, Package, Tag, LogOut, ExternalLink, ShoppingCart } from 'lucide-react';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const authed = await isAuthenticated();
@@ -33,6 +33,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <NavLink href="/admin" icon={LayoutDashboard}>Dashboard</NavLink>
           <NavLink href="/admin/produtos" icon={Package}>Produtos</NavLink>
           <NavLink href="/admin/categorias" icon={Tag}>Categorias</NavLink>
+          <NavLink href="/admin/lista-compras" icon={ShoppingCart}>Lista de Compras</NavLink>
         </nav>
 
         {/* Footer sidebar */}

@@ -21,24 +21,62 @@ model Category {
 }
 
 model Product {
-  id                 String   @id @default(cuid())
-  sku                String   @unique
-  slug               String   @unique
+  id                 String     @id @default(cuid())
+  sku                String     @unique
+  slug               String     @unique
   name               String
   shortDesc          String
-  description        String   @db.Text
+  description        String     @db.Text
   specs              Json
   priceCents         Int
   originalPriceCents Int?
-  stock              Int      @default(0)
-  active             Boolean  @default(true)
-  featured           Boolean  @default(false)
+  stock              Int        @default(0)
+  active             Boolean    @default(true)
+  featured           Boolean    @default(false)
   images             String[]
   categoryId         String
-  category           Category @relation(fields: [categoryId], references: [id])
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  category           Category   @relation(fields: [categoryId], references: [id])
+  partItems          PartItem[]
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
 
   @@index([active, featured])
   @@index([categoryId])
+}
+
+model PartItem {
+  id             String             @id @default(cuid())
+  productId      String
+  product        Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name           String
+  location       String?
+  category       String             @default("Geral")
+  quantity       Int                @default(1)
+  unitPriceCents Int                @default(0)
+  notes          String?
+  listItems      PurchaseListItem[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([productId])
+  @@index([category])
+}
+
+model PurchaseList {
+  id        String             @id @default(cuid())
+  name      String
+  items     PurchaseListItem[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+}
+
+model PurchaseListItem {
+  id             String       @id @default(cuid())
+  purchaseListId String
+  purchaseList   PurchaseList @relation(fields: [purchaseListId], references: [id], onDelete: Cascade)
+  partItemId     String
+  partItem       PartItem     @relation(fields: [partItemId], references: [id], onDelete: Cascade)
+
+  @@unique([purchaseListId, partItemId])
+  @@index([purchaseListId])
 }
