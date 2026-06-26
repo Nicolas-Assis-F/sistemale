@@ -10,7 +10,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   if (!authed) return <>{children}</>;
 
-  const unreadCount = await prisma.contactSubmission.count({ where: { read: false } }).catch(() => 0);
+  const [unreadCount, inFabricationCount] = await Promise.all([
+    prisma.contactSubmission.count({ where: { read: false } }).catch(() => 0),
+    prisma.order.count({ where: { status: 'EM_FABRICACAO' } }).catch(() => 0),
+  ]);
 
   return (
     <div className="flex min-h-screen">
@@ -28,14 +31,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </Link>
           <p className="mt-1.5 text-xs font-medium text-sidebar-foreground/50">Painel Administrativo</p>
         </div>
-        <AdminNav unreadCount={unreadCount} />
+        <AdminNav unreadCount={unreadCount} inFabricationCount={inFabricationCount} />
       </aside>
 
       {/* Conteúdo */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top bar mobile */}
         <div className="flex h-14 items-center gap-3 border-b border-border bg-sidebar px-4 md:hidden">
-          <MobileSidebar unreadCount={unreadCount} />
+          <MobileSidebar unreadCount={unreadCount} inFabricationCount={inFabricationCount} />
           <Image
             src="/LOGO.png"
             alt="LE Torneadora"

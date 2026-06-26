@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Package, Tag, ShoppingCart, FileText, Wrench, Images,
-  MessageSquare, ExternalLink, LogOut, type LucideIcon,
+  MessageSquare, ExternalLink, LogOut, ClipboardList, Users, HardHat,
+  type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -20,11 +21,27 @@ interface NavGroup {
   items: NavItem[];
 }
 
-export function AdminNav({ unreadCount = 0, onNavigate }: { unreadCount?: number; onNavigate?: () => void }) {
+export function AdminNav({
+  unreadCount = 0,
+  inFabricationCount = 0,
+  onNavigate,
+}: {
+  unreadCount?: number;
+  inFabricationCount?: number;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
 
   const groups: NavGroup[] = [
     { items: [{ href: '/admin', icon: LayoutDashboard, label: 'Dashboard' }] },
+    {
+      title: 'Vendas / Produção',
+      items: [
+        { href: '/admin/pedidos', icon: ClipboardList, label: 'Pedidos', badge: inFabricationCount },
+        { href: '/admin/clientes', icon: Users, label: 'Clientes' },
+        { href: '/admin/funcionarios', icon: HardHat, label: 'Funcionários' },
+      ],
+    },
     {
       title: 'Catálogo',
       items: [

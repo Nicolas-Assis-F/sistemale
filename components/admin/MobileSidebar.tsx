@@ -8,7 +8,7 @@ import { Menu, X } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { AdminNav } from './AdminNav';
 
-export function MobileSidebar({ unreadCount = 0 }: { unreadCount?: number }) {
+export function MobileSidebar({ unreadCount = 0, inFabricationCount = 0 }: { unreadCount?: number; inFabricationCount?: number }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -41,7 +41,7 @@ export function MobileSidebar({ unreadCount = 0 }: { unreadCount?: number }) {
               <X className="h-5 w-5" />
             </DialogPrimitive.Close>
           </div>
-          <AdminNav unreadCount={unreadCount} onNavigate={() => setOpen(false)} />
+          <AdminNav unreadCount={unreadCount} inFabricationCount={inFabricationCount} onNavigate={() => setOpen(false)} />
         </DialogPrimitive.Popup>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

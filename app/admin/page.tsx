@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { buttonVariants } from '@/components/ui/button';
 import {
   Package, Tag, Star, Eye, PlusCircle, ArrowRight, AlertTriangle,
-  MessageSquare, Wrench, Images, Mail,
+  MessageSquare, Wrench, Images, Mail, ClipboardList, Factory,
 } from 'lucide-react';
 
 const LOW_STOCK_THRESHOLD = 5;
@@ -12,6 +12,7 @@ async function getDashboardData() {
   const [
     total, active, featured, categoriesCount, services, galleryCount,
     unreadMessages, lowStock, lowStockList, recentContacts, perCategory,
+    ordersInFab, ordersOpen,
   ] = await Promise.all([
     prisma.product.count(),
     prisma.product.count({ where: { active: true } }),
@@ -36,11 +37,14 @@ async function getDashboardData() {
       orderBy: { order: 'asc' },
       select: { id: true, name: true, _count: { select: { products: true } } },
     }),
+    prisma.order.count({ where: { status: 'EM_FABRICACAO' } }),
+    prisma.order.count({ where: { status: { in: ['ORCAMENTO', 'PEDIDO'] } } }),
   ]);
 
   return {
     total, active, featured, categoriesCount, services, galleryCount,
     unreadMessages, lowStock, lowStockList, recentContacts, perCategory,
+    ordersInFab, ordersOpen,
   };
 }
 
@@ -58,6 +62,8 @@ export default async function AdminDashboard() {
   ];
 
   const alerts = [
+    { show: d.ordersInFab > 0, label: 'pedidos em fabricação', value: d.ordersInFab, icon: Factory, href: '/admin/pedidos?status=EM_FABRICACAO', tone: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
+    { show: d.ordersOpen > 0, label: 'orçamentos/pedidos em aberto', value: d.ordersOpen, icon: ClipboardList, href: '/admin/pedidos', tone: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
     { show: d.unreadMessages > 0, label: 'mensagens não lidas', value: d.unreadMessages, icon: MessageSquare, href: '/admin/mensagens', tone: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
     { show: d.lowStock > 0, label: 'produtos com estoque baixo', value: d.lowStock, icon: AlertTriangle, href: '/admin/produtos', tone: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
     { show: d.featured === 0, label: 'nenhum produto em destaque', value: '!', icon: Star, href: '/admin/produtos', tone: 'bg-destructive/10 text-destructive border-destructive/20' },
@@ -199,7 +205,10 @@ export default async function AdminDashboard() {
       <div>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Ações Rápidas</h2>
         <div className="flex flex-wrap gap-3">
-          <Link href="/admin/produtos/novo" className={buttonVariants({ size: 'sm' }) + ' gap-2'}>
+          <Link href="/admin/pedidos/novo" className={buttonVariants({ size: 'sm' }) + ' gap-2'}>
+            <PlusCircle className="h-4 w-4" /> Novo Pedido
+          </Link>
+          <Link href="/admin/produtos/novo" className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' gap-2'}>
             <PlusCircle className="h-4 w-4" /> Novo Produto
           </Link>
           <Link href="/admin/servicos" className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' gap-2'}>

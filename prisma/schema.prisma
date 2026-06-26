@@ -21,24 +21,25 @@ model Category {
 }
 
 model Product {
-  id                 String     @id @default(cuid())
-  sku                String     @unique
-  slug               String     @unique
+  id                 String      @id @default(cuid())
+  sku                String      @unique
+  slug               String      @unique
   name               String
   shortDesc          String
-  description        String     @db.Text
+  description        String      @db.Text
   specs              Json
   priceCents         Int
   originalPriceCents Int?
-  stock              Int        @default(0)
-  active             Boolean    @default(true)
-  featured           Boolean    @default(false)
+  stock              Int         @default(0)
+  active             Boolean     @default(true)
+  featured           Boolean     @default(false)
   images             String[]
   categoryId         String
-  category           Category   @relation(fields: [categoryId], references: [id])
+  category           Category    @relation(fields: [categoryId], references: [id])
   partItems          PartItem[]
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
+  orderItems         OrderItem[]
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
 
   @@index([active, featured])
   @@index([categoryId])
@@ -132,4 +133,85 @@ model ContactSubmission {
   createdAt DateTime @default(now())
 
   @@index([read, createdAt])
+}
+
+// ─── Vendas / Produção ─────────────────────────────────────────────────────────
+
+enum OrderStatus {
+  ORCAMENTO
+  PEDIDO
+  EM_FABRICACAO
+  CONCLUIDO
+  ENTREGUE
+  CANCELADO
+}
+
+/// Clientes (reutilizáveis entre pedidos)
+model Customer {
+  id        String   @id @default(cuid())
+  code      String   @unique // CU2606-00001
+  name      String
+  doc       String? // CNPJ/CPF
+  email     String?
+  phone     String?
+  address   String?
+  city      String?
+  state     String?
+  zip       String?
+  contact   String? // pessoa de contato
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Funcionários responsáveis pela fabricação (cadastro simples, sem login)
+model Employee {
+  id        String   @id @default(cuid())
+  name      String
+  role      String?
+  active    Boolean  @default(true)
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active])
+}
+
+/// Pedido / Orçamento (entidade única com fluxo de status)
+model Order {
+  id            String      @id @default(cuid())
+  number        String      @unique // SO2606-0001
+  status        OrderStatus @default(ORCAMENTO)
+  customerId    String
+  customer      Customer    @relation(fields: [customerId], references: [id])
+  clientRef     String? // Ref. Cliente
+  employeeId    String?
+  employee      Employee?   @relation(fields: [employeeId], references: [id])
+  paymentTerms  String? // Promissoria
+  paymentMethod String? // boleto
+  deliveryDate  DateTime?
+  notes         String?     @db.Text
+  items         OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([status])
+  @@index([customerId])
+}
+
+/// Item de um pedido — do catálogo (productId) ou livre
+model OrderItem {
+  id             String   @id @default(cuid())
+  orderId        String
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId      String?
+  product        Product? @relation(fields: [productId], references: [id])
+  name           String // designação
+  description    String? // 2ª linha
+  quantity       Int      @default(1)
+  unitPriceCents Int      @default(0)
+  icmsPercent    Int      @default(0)
+  position       Int      @default(0)
+
+  @@index([orderId])
 }
