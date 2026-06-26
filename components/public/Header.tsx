@@ -1,9 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { Menu, MessageCircle } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { getCachedNavCategories } from '@/lib/cache';
+import { NAV_LINKS } from '@/lib/site-content';
 import { SearchBar } from './SearchBar';
-import { buttonVariants } from '@/components/ui/button';
+import { MobileNav } from './MobileNav';
 
 const phone = process.env.NEXT_PUBLIC_COMPANY_PHONE ?? '';
 
@@ -11,13 +12,13 @@ export async function Header() {
   const categories = await getCachedNavCategories().catch(() => []);
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-primary/20 shadow-sm">
-      <div className="container mx-auto px-4 flex h-16 items-center gap-4">
+    <header className="sticky top-0 z-40 w-full border-b border-border bg-white/90 supports-backdrop-filter:backdrop-blur-md shadow-card">
+      <div className="container mx-auto flex h-16 items-center gap-4 px-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center shrink-0">
+        <Link href="/" className="flex shrink-0 items-center">
           <Image
             src="/LOGO.png"
-            alt="L & E Torneadora"
+            alt="LE Torneadora"
             width={160}
             height={48}
             className="h-10 w-auto object-contain"
@@ -25,21 +26,21 @@ export async function Header() {
           />
         </Link>
 
-        {/* Nav categorias */}
-        <nav className="hidden md:flex items-center gap-1 flex-1">
-          {categories.map((cat) => (
+        {/* Nav institucional (desktop) */}
+        <nav className="hidden flex-1 items-center justify-center gap-0.5 lg:flex">
+          {NAV_LINKS.map((l) => (
             <Link
-              key={cat.id}
-              href={`/categoria/${cat.slug}`}
-              className="text-sm font-medium px-3 py-2 rounded-md hover:bg-primary/8 hover:text-primary transition-colors"
+              key={l.href}
+              href={l.href}
+              className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-primary/8 hover:text-primary"
             >
-              {cat.name}
+              {l.label}
             </Link>
           ))}
         </nav>
 
-        {/* Search */}
-        <div className="flex-1 md:flex-none md:w-64 lg:w-80">
+        {/* Busca */}
+        <div className="flex-1 lg:flex-none lg:w-56 xl:w-72">
           <SearchBar />
         </div>
 
@@ -49,17 +50,15 @@ export async function Header() {
             href={`https://wa.me/${phone}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors shrink-0"
+            className="hidden shrink-0 items-center gap-1.5 rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-green-700 sm:flex"
           >
             <MessageCircle className="h-4 w-4" />
-            <span className="hidden lg:inline">WhatsApp</span>
+            <span className="hidden xl:inline">WhatsApp</span>
           </a>
         )}
 
-        {/* Mobile menu */}
-        <button type="button" aria-label="Abrir menu" className={buttonVariants({ variant: 'ghost', size: 'icon' }) + ' md:hidden'}>
-          <Menu className="h-5 w-5" />
-        </button>
+        {/* Menu mobile */}
+        <MobileNav categories={categories} phone={phone} />
       </div>
     </header>
   );

@@ -1,4 +1,11 @@
 import { PrismaClient } from '@prisma/client';
+import {
+  DEFAULT_HOME,
+  DEFAULT_SOBRE,
+  DEFAULT_SERVICOS,
+  DEFAULT_CONTATO,
+  DEFAULT_SERVICE_ITEMS,
+} from '../lib/site-content';
 
 const prisma = new PrismaClient();
 
@@ -164,7 +171,31 @@ Compatível com a maioria dos motores monofásicos de 1 a 3 CV.`,
     },
   });
 
-  console.log('✅ Seed concluído com 3 categorias e 4 produtos de exemplo.');
+  // Conteúdo institucional (SiteContent key/JSON)
+  const contentEntries: { key: string; value: object }[] = [
+    { key: 'home', value: DEFAULT_HOME },
+    { key: 'sobre', value: DEFAULT_SOBRE },
+    { key: 'servicos', value: DEFAULT_SERVICOS },
+    { key: 'contato', value: DEFAULT_CONTATO },
+  ];
+  for (const entry of contentEntries) {
+    await prisma.siteContent.upsert({
+      where: { key: entry.key },
+      update: {},
+      create: entry,
+    });
+  }
+
+  // Itens de serviço de exemplo
+  for (const item of DEFAULT_SERVICE_ITEMS) {
+    await prisma.serviceItem.upsert({
+      where: { id: `seed-${item.order}` },
+      update: {},
+      create: { id: `seed-${item.order}`, ...item, active: true },
+    });
+  }
+
+  console.log('✅ Seed concluído: categorias, produtos, conteúdo institucional e serviços.');
 }
 
 main()

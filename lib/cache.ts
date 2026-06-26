@@ -61,6 +61,32 @@ const _getCachedProduct = unstable_cache(
 // (evita a query dupla de generateMetadata + page component)
 export const getProduct = cache((slug: string) => _getCachedProduct(slug));
 
+// ─── Conteúdo institucional / Serviços / Galeria ───────────────────────────────
+
+export const getCachedSiteContent = unstable_cache(
+  (key: string) => prisma.siteContent.findUnique({ where: { key } }),
+  ['site-content'],
+  { tags: ['site-content'], revalidate: 300 }
+);
+
+export const getCachedServices = unstable_cache(
+  () => prisma.serviceItem.findMany({ where: { active: true }, orderBy: { order: 'asc' } }),
+  ['services'],
+  { tags: ['services'], revalidate: 300 }
+);
+
+export const getCachedGalleryItems = unstable_cache(
+  () => prisma.galleryItem.findMany({ where: { active: true }, orderBy: { order: 'asc' } }),
+  ['gallery'],
+  { tags: ['gallery'], revalidate: 300 }
+);
+
+export const getCachedGalleryPreview = unstable_cache(
+  () => prisma.galleryItem.findMany({ where: { active: true }, orderBy: { order: 'asc' }, take: 6 }),
+  ['gallery-preview'],
+  { tags: ['gallery'], revalidate: 300 }
+);
+
 // ─── Busca ────────────────────────────────────────────────────────────────────
 
 // Cache de 30s para evitar queries repetidas a cada keystroke

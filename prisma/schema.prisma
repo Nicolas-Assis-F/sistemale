@@ -80,3 +80,56 @@ model PurchaseListItem {
   @@unique([purchaseListId, partItemId])
   @@index([purchaseListId])
 }
+
+// ─── Site institucional (editável pelo admin) ──────────────────────────────────
+
+/// Conteúdo editável das seções institucionais (key: "home" | "sobre" | "servicos" | "contato")
+model SiteContent {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+/// Itens repetentes exibidos na página de Serviços
+model ServiceItem {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  icon        String?
+  order       Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([active, order])
+}
+
+/// Fotos de obras / projetos / equipamentos exibidas na Galeria
+model GalleryItem {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String
+  category    String?
+  order       Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([active, order])
+}
+
+/// Mensagens recebidas pelo formulário de contato
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([read, createdAt])
+}
