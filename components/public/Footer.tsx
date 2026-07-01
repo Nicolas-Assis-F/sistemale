@@ -1,11 +1,10 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { Phone, Mail, MapPin, MessageCircle, Building2, Clock } from 'lucide-react';
 import { getCachedNavCategories } from '@/lib/cache';
 import { NAV_LINKS } from '@/lib/site-content';
+import { Brand } from '@/components/Brand';
 
 export async function Footer() {
-  const companyName = process.env.NEXT_PUBLIC_COMPANY_NAME ?? 'LE Torneadora';
   const phone = process.env.NEXT_PUBLIC_COMPANY_PHONE ?? '';
   const email = process.env.NEXT_PUBLIC_COMPANY_EMAIL ?? '';
   const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent('Olá! Vim do site e gostaria de mais informações.')}`;
@@ -16,13 +15,7 @@ export async function Footer() {
       <div className="container mx-auto grid grid-cols-1 gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
         {/* Marca */}
         <div className="space-y-4">
-          <Image
-            src="/LOGO.png"
-            alt={companyName}
-            width={150}
-            height={45}
-            className="h-10 w-auto object-contain brightness-0 invert"
-          />
+          <Brand variant="dark" />
           <p className="text-sm leading-relaxed text-white/70">
             Fabricamos todos os equipamentos para poços artesianos — máquinas de 40m a 100m,
             cabeçote hidráulico, roscas e hastes de perfuração.

@@ -133,17 +133,6 @@ export default async function ProductPage({ params }: PageProps) {
         </div>
       )}
 
-      {/* WhatsApp flutuante (mobile) */}
-      <div className="fixed bottom-6 right-6 z-40 lg:hidden">
-        <WhatsAppButton
-          sku={product.sku}
-          productName={product.name}
-          size="large"
-          className="rounded-full w-auto px-5 py-3 shadow-xl"
-        >
-          Quero esse produto
-        </WhatsAppButton>
-      </div>
     </div>
   );
 }

@@ -1,11 +1,11 @@
 'use client';
 
-import Image from 'next/image';
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Brand } from '@/components/Brand';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -40,14 +40,7 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo centralizada */}
         <div className="flex justify-center mb-8">
-          <Image
-            src="/LOGO.png"
-            alt="L & E Torneadora"
-            width={180}
-            height={54}
-            className="h-14 w-auto object-contain brightness-0 invert"
-            priority
-          />
+          <Brand variant="dark" priority iconClassName="h-11 w-11" />
         </div>
 
         <div className="bg-card border border-border rounded-2xl shadow-lg p-8">

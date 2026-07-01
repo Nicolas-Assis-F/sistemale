@@ -17,8 +17,13 @@ export interface HomeContent {
   heroTitle: string;
   heroHighlight: string;
   heroSubtitle: string;
+  heroImage?: string; // URL opcional; sem imagem cai no gradiente + grid
   ctaTitle: string;
   ctaSubtitle: string;
+  trust: { icon?: string; title: string }[]; // chips de destaque no hero
+  stats: { label: string; value: string }[]; // faixa de números
+  testimonials: { quote: string; name: string; role?: string }[]; // depoimentos
+  guarantees: { icon?: string; title: string; description: string }[]; // certificações/garantia
 }
 
 export interface SobreContent {
@@ -55,6 +60,24 @@ export const DEFAULT_HOME: HomeContent = {
   ctaTitle: 'Precisa de ajuda para escolher?',
   ctaSubtitle:
     'Nossa equipe técnica está pronta para indicar a peça certa para o seu poço artesiano.',
+  trust: [
+    { icon: 'Zap', title: 'Pronta entrega' },
+    { icon: 'Factory', title: 'Fabricação própria' },
+    { icon: 'Headphones', title: 'Suporte técnico' },
+  ],
+  stats: [
+    { value: '2021', label: 'Desde' },
+    { value: '40–100m', label: 'Profundidade' },
+    { value: 'Própria', label: 'Fabricação' },
+    { value: 'Brasil', label: 'Atendimento' },
+  ],
+  testimonials: [], // vazio por padrão — a seção só aparece após cadastrar no admin
+  guarantees: [
+    { icon: 'Factory', title: 'Fabricação própria', description: 'Tornearia e usinagem internas, com controle de qualidade em cada peça.' },
+    { icon: 'ShieldCheck', title: 'Garantia de fábrica', description: 'Equipamentos garantidos contra defeitos de fabricação.' },
+    { icon: 'Truck', title: 'Entrega para todo o Brasil', description: 'Pronta entrega e embalagem segura para qualquer estado.' },
+    { icon: 'Headphones', title: 'Suporte técnico', description: 'Acompanhamento de quem conhece o equipamento de ponta a ponta.' },
+  ],
 };
 
 export const DEFAULT_SOBRE: SobreContent = {

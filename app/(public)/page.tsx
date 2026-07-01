@@ -2,76 +2,97 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Phone } from 'lucide-react';
 import { getCachedHomeData, getCachedServices, getCachedGalleryPreview, getCachedSiteContent } from '@/lib/cache';
-import { DEFAULT_HOME, type HomeContent } from '@/lib/site-content';
-import { buttonVariants } from '@/components/ui/button';
+import { DEFAULT_HOME, DEFAULT_SERVICOS, type HomeContent, type ServicosContent } from '@/lib/site-content';
 import { ProductCard } from '@/components/public/ProductCard';
 import { CategoryCard } from '@/components/public/CategoryCard';
 import { WhatsAppButton } from '@/components/public/WhatsAppButton';
+import { Reveal } from '@/components/public/Reveal';
+import { PageHero } from '@/components/public/sections/PageHero';
 import { SectionHeading } from '@/components/public/sections/SectionHeading';
 import { ServiceCard } from '@/components/public/sections/ServiceCard';
-import { TrustBand } from '@/components/public/sections/TrustBand';
+import { StatBand } from '@/components/public/sections/StatBand';
+import { ProcessSteps } from '@/components/public/sections/ProcessSteps';
+import { Testimonials } from '@/components/public/sections/Testimonials';
+import { Guarantees } from '@/components/public/sections/Guarantees';
 import { CTASection } from '@/components/public/sections/CTASection';
+import { resolveIcon } from '@/components/public/sections/icon-map';
 
 export default async function HomePage() {
-  const [{ categories, featured }, services, gallery, contentRow] = await Promise.all([
+  const [{ categories, featured }, services, gallery, contentRow, servicosRow] = await Promise.all([
     getCachedHomeData().catch(() => ({ categories: [], featured: [] })),
     getCachedServices().catch(() => []),
     getCachedGalleryPreview().catch(() => []),
     getCachedSiteContent('home').catch(() => null),
+    getCachedSiteContent('servicos').catch(() => null),
   ]);
 
   const c = { ...DEFAULT_HOME, ...((contentRow?.value as Partial<HomeContent>) ?? {}) };
+  const steps = { ...DEFAULT_SERVICOS, ...((servicosRow?.value as Partial<ServicosContent>) ?? {}) }.steps;
   const phone = process.env.NEXT_PUBLIC_COMPANY_PHONE ?? '';
   const topServices = services.slice(0, 6);
 
   return (
     <div className="flex flex-col">
       {/* Hero */}
-      <section className="relative overflow-hidden bg-linear-to-br from-brand-900 via-brand-700 to-brand-500 text-white">
-        <div className="absolute inset-0 pointer-events-none" aria-hidden>
-          <div className="absolute -top-32 -right-32 w-125 h-125 rounded-full bg-white/5 blur-3xl" />
-          <div className="absolute -bottom-32 -left-32 w-100 h-100 rounded-full bg-brand-accent/10 blur-3xl" />
-          <div className="absolute top-1/2 left-1/2 w-200 h-200 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/5 blur-3xl" />
-        </div>
-
-        <div className="relative container mx-auto max-w-4xl px-4 py-20 text-center sm:py-28">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-white/55 sm:text-sm">
-            {c.heroEyebrow}
-          </p>
-          <h1 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-            {c.heroTitle}
-            <br />
-            <span className="text-brand-accent">{c.heroHighlight}</span>
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg">
-            {c.heroSubtitle}
-          </p>
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <WhatsAppButton className="px-8 py-3 text-sm font-semibold sm:w-auto">
-              Falar no WhatsApp
-            </WhatsAppButton>
+      <PageHero
+        eyebrow={c.heroEyebrow}
+        title={c.heroTitle}
+        highlight={c.heroHighlight}
+        subtitle={c.heroSubtitle}
+        image={c.heroImage}
+        align="left"
+        size="large"
+      >
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <WhatsAppButton className="h-12 px-7 text-sm font-semibold">Falar no WhatsApp</WhatsAppButton>
             <Link
               href="/busca"
-              className={buttonVariants({ variant: 'outline', size: 'lg' }) + ' border-white/25 bg-white/10 text-white hover:border-white/40 hover:bg-white/20 hover:text-white'}
+              className="inline-flex h-12 items-center justify-center rounded-lg border border-white/25 bg-white/10 px-7 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:border-white/40 hover:bg-white/20"
             >
-              Ver Catálogo Completo <ArrowRight className="ml-2 h-4 w-4" />
+              Ver catálogo completo <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
+
           {phone && (
-            <p className="flex items-center justify-center gap-1.5 pt-6 text-xs text-white/40">
-              <Phone className="h-3 w-3" />+{phone}
-            </p>
+            <a
+              href={`tel:+${phone}`}
+              className="inline-flex items-center gap-2 text-sm font-medium text-white/85 transition-colors hover:text-white"
+            >
+              <Phone className="h-4 w-4" /> +{phone}
+            </a>
+          )}
+
+          {c.trust?.length > 0 && (
+            <ul className="flex flex-wrap gap-x-6 gap-y-2 pt-1">
+              {c.trust.map((t) => {
+                const Icon = resolveIcon(t.icon);
+                return (
+                  <li key={t.title} className="inline-flex items-center gap-2 text-sm text-white/75">
+                    <Icon className="h-4 w-4 text-brand-accent" /> {t.title}
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
-      </section>
+      </PageHero>
 
-      {/* Trust */}
-      <TrustBand />
+      {/* Números (faixa elevada, sobrepondo o hero) */}
+      {c.stats?.length > 0 && (
+        <div className="relative z-10 -mt-10 px-4">
+          <div className="container mx-auto">
+            <Reveal>
+              <StatBand stats={c.stats} />
+            </Reveal>
+          </div>
+        </div>
+      )}
 
       {/* Serviços (teaser) */}
       {topServices.length > 0 && (
         <section className="section bg-muted/50 px-4">
-          <div className="container mx-auto">
+          <Reveal className="container mx-auto">
             <SectionHeading
               eyebrow="O que fazemos"
               title="Soluções para perfuração de poços"
@@ -82,16 +103,21 @@ export default async function HomePage() {
                 <ServiceCard key={s.id} title={s.title} description={s.description} icon={s.icon} />
               ))}
             </div>
-          </div>
+          </Reveal>
         </section>
       )}
 
+      {/* Como trabalhamos */}
+      <Reveal>
+        <ProcessSteps steps={steps} />
+      </Reveal>
+
       {/* Categorias */}
       {categories.length > 0 && (
-        <section className="py-14 px-4">
-          <div className="container mx-auto">
+        <section className="section bg-muted/50 px-4">
+          <Reveal className="container mx-auto">
             <SectionHeading eyebrow="Navegue por" title="Categorias" />
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {categories.map((cat) => (
                 <CategoryCard
                   key={cat.id}
@@ -103,20 +129,20 @@ export default async function HomePage() {
                 />
               ))}
             </div>
-          </div>
+          </Reveal>
         </section>
       )}
 
       {/* Destaques */}
       {featured.length > 0 && (
-        <section className="py-14 px-4 bg-muted/50">
-          <div className="container mx-auto">
+        <section className="section px-4">
+          <Reveal className="container mx-auto">
             <SectionHeading
               eyebrow="Selecionados para você"
               title="Produtos em Destaque"
               link={{ href: '/busca', label: 'Ver todos' }}
             />
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {featured.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -132,14 +158,19 @@ export default async function HomePage() {
                 />
               ))}
             </div>
-          </div>
+          </Reveal>
         </section>
       )}
 
+      {/* Depoimentos */}
+      <Reveal>
+        <Testimonials testimonials={c.testimonials} />
+      </Reveal>
+
       {/* Galeria (teaser) */}
       {gallery.length > 0 && (
-        <section className="py-14 px-4">
-          <div className="container mx-auto">
+        <section className="section bg-muted/50 px-4">
+          <Reveal className="container mx-auto">
             <SectionHeading
               eyebrow="Nosso trabalho"
               title="Galeria de Projetos"
@@ -150,7 +181,7 @@ export default async function HomePage() {
                 <Link
                   key={item.id}
                   href="/galeria"
-                  className="group relative aspect-square overflow-hidden rounded-xl bg-muted"
+                  className="group relative aspect-square overflow-hidden rounded-xl bg-muted shadow-card"
                 >
                   <Image
                     src={item.imageUrl}
@@ -159,12 +190,20 @@ export default async function HomePage() {
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
                   />
+                  <div className="absolute inset-0 flex items-end bg-linear-to-t from-black/70 via-black/0 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+                    <span className="line-clamp-2 p-3 text-xs font-medium text-white">{item.title}</span>
+                  </div>
                 </Link>
               ))}
             </div>
-          </div>
+          </Reveal>
         </section>
       )}
+
+      {/* Certificações & Garantia */}
+      <Reveal>
+        <Guarantees items={c.guarantees} />
+      </Reveal>
 
       {/* CTA final */}
       <CTASection title={c.ctaTitle} subtitle={c.ctaSubtitle} />

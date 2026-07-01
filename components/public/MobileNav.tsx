@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
 import { Menu, X, MessageCircle } from 'lucide-react';
 import { NAV_LINKS } from '@/lib/site-content';
 import { buttonVariants } from '@/components/ui/button';
+import { Brand } from '@/components/Brand';
 import { SearchBar } from './SearchBar';
 
 interface Props {
@@ -21,17 +21,17 @@ export function MobileNav({ categories, phone }: Props) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
       <DialogPrimitive.Trigger
-        className={buttonVariants({ variant: 'ghost', size: 'icon' }) + ' md:hidden'}
+        className={buttonVariants({ variant: 'ghost', size: 'icon' }) + ' lg:hidden'}
         aria-label="Abrir menu"
       >
         <Menu className="h-5 w-5" />
       </DialogPrimitive.Trigger>
 
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/40 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 md:hidden" />
-        <DialogPrimitive.Popup className="fixed inset-y-0 right-0 z-50 flex w-80 max-w-[85vw] flex-col bg-background shadow-raised outline-none data-open:animate-in data-open:slide-in-from-right data-closed:animate-out data-closed:slide-out-to-right md:hidden">
+        <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/40 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 lg:hidden" />
+        <DialogPrimitive.Popup className="fixed inset-y-0 right-0 z-50 flex w-80 max-w-[85vw] flex-col bg-background shadow-raised outline-none data-open:animate-in data-open:slide-in-from-right data-closed:animate-out data-closed:slide-out-to-right lg:hidden">
           <div className="flex items-center justify-between border-b border-border px-4 h-16">
-            <Image src="/LOGO.png" alt="LE Torneadora" width={130} height={40} className="h-9 w-auto object-contain" />
+            <Brand />
             <DialogPrimitive.Close
               className={buttonVariants({ variant: 'ghost', size: 'icon' })}
               aria-label="Fechar menu"

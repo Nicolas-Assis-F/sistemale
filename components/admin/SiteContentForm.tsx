@@ -5,6 +5,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { ImageUploader } from '@/components/admin/ImageUploader';
 
 type Json = Record<string, unknown>;
 
@@ -122,12 +123,51 @@ export function SiteContentForm({ contentKey, defaultValues, action }: Props) {
 
       {contentKey === 'home' && (
         <>
+          <Field label="Imagem do hero" hint="Foto de fundo do topo da página. Sem imagem, usa o gradiente da marca.">
+            <ImageUploader
+              value={str('heroImage') ? [str('heroImage')] : []}
+              onChange={(urls) => set('heroImage', urls[urls.length - 1] ?? '')}
+            />
+          </Field>
           <Field label="Título da chamada final (CTA)">
             <Input value={str('ctaTitle')} onChange={(e) => set('ctaTitle', e.target.value)} />
           </Field>
           <Field label="Subtítulo da CTA">
             <Textarea rows={2} value={str('ctaSubtitle')} onChange={(e) => set('ctaSubtitle', e.target.value)} />
           </Field>
+
+          <ArrayEditor
+            k="trust"
+            title="Destaques do hero (chips)"
+            blank={{ icon: '', title: '' }}
+            fields={[{ name: 'icon', label: 'Ícone (ex: Zap, Truck, Factory)' }, { name: 'title', label: 'Texto' }]}
+          />
+          <ArrayEditor
+            k="stats"
+            title="Números / Estatísticas"
+            blank={{ value: '', label: '' }}
+            fields={[{ name: 'value', label: 'Valor (ex: 2021)' }, { name: 'label', label: 'Rótulo (ex: Desde)' }]}
+          />
+          <ArrayEditor
+            k="testimonials"
+            title="Depoimentos de clientes"
+            blank={{ quote: '', name: '', role: '' }}
+            fields={[
+              { name: 'quote', label: 'Depoimento', area: true },
+              { name: 'name', label: 'Nome' },
+              { name: 'role', label: 'Empresa / cidade' },
+            ]}
+          />
+          <ArrayEditor
+            k="guarantees"
+            title="Certificações & Garantia"
+            blank={{ icon: '', title: '', description: '' }}
+            fields={[
+              { name: 'icon', label: 'Ícone (ex: ShieldCheck)' },
+              { name: 'title', label: 'Título' },
+              { name: 'description', label: 'Descrição', area: true },
+            ]}
+          />
         </>
       )}
 

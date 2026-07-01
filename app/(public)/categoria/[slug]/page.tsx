@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getCachedCategory, getCachedCategoryProducts } from '@/lib/cache';
 import { ProductCard } from '@/components/public/ProductCard';
-import { WhatsAppButton } from '@/components/public/WhatsAppButton';
 
 type SortOption = 'nome' | 'preco-asc' | 'preco-desc';
 
@@ -96,13 +95,6 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           ))}
         </div>
       )}
-
-      {/* Botão WhatsApp flutuante */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <WhatsAppButton size="large" className="rounded-full w-auto px-5 py-3 shadow-xl">
-          WhatsApp
-        </WhatsAppButton>
-      </div>
     </div>
   );
 }
