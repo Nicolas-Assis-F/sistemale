@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { cn } from '@/lib/utils';
+import { m } from 'motion/react';
 
 interface RevealProps {
   children: React.ReactNode;
@@ -12,48 +11,19 @@ interface RevealProps {
 
 /**
  * Revela o conteúdo com um fade + subida sutil quando entra na viewport.
- * Respeita `prefers-reduced-motion` e degrada para "visível" sem IntersectionObserver.
+ * Usa `motion` (via LazyMotion/`m`, ver MotionProvider) e respeita
+ * `prefers-reduced-motion` através do `MotionConfig` do provider.
  */
 export function Reveal({ children, className, delay = 0 }: RevealProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReduced || !('IntersectionObserver' in window)) {
-      setShown(true);
-      return;
-    }
-
-    const obs = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setShown(true);
-            obs.disconnect();
-          }
-        }
-      },
-      { threshold: 0.12, rootMargin: '0px 0px -10% 0px' },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
   return (
-    <div
-      ref={ref}
-      style={delay ? { transitionDelay: `${delay}ms` } : undefined}
-      className={cn(
-        'transition-all duration-700 ease-out motion-reduce:transition-none motion-reduce:opacity-100',
-        shown ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0',
-        className,
-      )}
+    <m.div
+      className={className}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '0px 0px -10% 0px' }}
+      transition={{ duration: 0.5, delay: delay / 1000, ease: 'easeOut' }}
     >
       {children}
-    </div>
+    </m.div>
   );
 }

@@ -2,11 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
-
-function parsePrice(value?: string): number {
-  if (!value || value.trim() === '') return 0;
-  return Math.round(parseFloat(value.replace(',', '.')) * 100);
-}
+import { parseCurrencyToCents } from '@/lib/format';
+import type { PartItem } from '@prisma/client';
 
 export type PartData = {
   name: string;
@@ -17,37 +14,62 @@ export type PartData = {
   notes?: string;
 };
 
-export async function createPartItem(productId: string, data: PartData) {
-  await prisma.partItem.create({
-    data: {
-      productId,
-      name: data.name,
-      location: data.location || null,
-      category: data.category,
-      quantity: data.quantity,
-      unitPriceCents: parsePrice(data.unitPriceReais),
-      notes: data.notes || null,
-    },
-  });
-  revalidatePath(`/admin/produtos/${productId}`);
+export async function createPartItem(
+  productId: string,
+  data: PartData,
+): Promise<{ error: string } | PartItem> {
+  try {
+    const created = await prisma.partItem.create({
+      data: {
+        productId,
+        name: data.name,
+        location: data.location || null,
+        category: data.category,
+        quantity: data.quantity,
+        unitPriceCents: parseCurrencyToCents(data.unitPriceReais ?? ''),
+        notes: data.notes || null,
+      },
+    });
+    revalidatePath(`/admin/produtos/${productId}`);
+    return created;
+  } catch {
+    return { error: 'Não foi possível salvar a peça. Tente novamente.' };
+  }
 }
 
-export async function updatePartItem(id: string, productId: string, data: PartData) {
-  await prisma.partItem.update({
-    where: { id },
-    data: {
-      name: data.name,
-      location: data.location || null,
-      category: data.category,
-      quantity: data.quantity,
-      unitPriceCents: parsePrice(data.unitPriceReais),
-      notes: data.notes || null,
-    },
-  });
-  revalidatePath(`/admin/produtos/${productId}`);
+export async function updatePartItem(
+  id: string,
+  productId: string,
+  data: PartData,
+): Promise<{ error: string } | PartItem> {
+  try {
+    const updated = await prisma.partItem.update({
+      where: { id },
+      data: {
+        name: data.name,
+        location: data.location || null,
+        category: data.category,
+        quantity: data.quantity,
+        unitPriceCents: parseCurrencyToCents(data.unitPriceReais ?? ''),
+        notes: data.notes || null,
+      },
+    });
+    revalidatePath(`/admin/produtos/${productId}`);
+    return updated;
+  } catch {
+    return { error: 'Não foi possível salvar a peça. Tente novamente.' };
+  }
 }
 
-export async function deletePartItem(id: string, productId: string) {
-  await prisma.partItem.delete({ where: { id } });
+export async function deletePartItem(
+  id: string,
+  productId: string,
+): Promise<{ error: string } | { ok: true }> {
+  try {
+    await prisma.partItem.delete({ where: { id } });
+  } catch {
+    return { error: 'Não foi possível remover a peça. Tente novamente.' };
+  }
   revalidatePath(`/admin/produtos/${productId}`);
+  return { ok: true as const };
 }

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { buttonVariants } from '@/components/ui/button';
 import {
   Package, Tag, Star, Eye, PlusCircle, ArrowRight, AlertTriangle,
-  MessageSquare, Wrench, Images, Mail, ClipboardList, Factory,
+  MessageSquare, Wrench, Images, Mail, ClipboardList, Factory, CheckCircle2,
 } from 'lucide-react';
 
 const LOW_STOCK_THRESHOLD = 5;
@@ -163,7 +163,10 @@ export default async function AdminDashboard() {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">Tudo em ordem 👍</p>
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              Nenhum produto com estoque baixo
+            </p>
           )}
         </div>
       </div>

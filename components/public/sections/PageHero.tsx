@@ -1,4 +1,7 @@
+'use client';
+
 import Image from 'next/image';
+import { motion } from 'motion/react';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -34,8 +37,16 @@ export function PageHero({ eyebrow, title, highlight, subtitle, children, size =
           <div className="absolute inset-0 bg-linear-to-br from-brand-900 via-brand-700 to-brand-500" />
           <div className="absolute inset-0 bg-grid" aria-hidden />
           <div className="absolute inset-0 pointer-events-none" aria-hidden>
-            <div className="absolute -top-32 -right-32 h-125 w-125 rounded-full bg-white/5 blur-3xl" />
-            <div className="absolute -bottom-40 -left-32 h-100 w-100 rounded-full bg-brand-accent/10 blur-3xl" />
+            <motion.div
+              className="absolute -top-32 -right-32 h-125 w-125 rounded-full bg-white/5 blur-3xl"
+              animate={{ x: [0, -16, 0], y: [0, 12, 0], scale: [1, 1.05, 1] }}
+              transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <motion.div
+              className="absolute -bottom-40 -left-32 h-100 w-100 rounded-full bg-brand-accent/10 blur-3xl"
+              animate={{ x: [0, 14, 0], y: [0, -10, 0], scale: [1, 1.08, 1] }}
+              transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+            />
           </div>
         </>
       )}

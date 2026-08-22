@@ -7,6 +7,7 @@ import { ProductCard } from '@/components/public/ProductCard';
 import { CategoryCard } from '@/components/public/CategoryCard';
 import { WhatsAppButton } from '@/components/public/WhatsAppButton';
 import { Reveal } from '@/components/public/Reveal';
+import { RevealGroup } from '@/components/public/RevealGroup';
 import { PageHero } from '@/components/public/sections/PageHero';
 import { SectionHeading } from '@/components/public/sections/SectionHeading';
 import { ServiceCard } from '@/components/public/sections/ServiceCard';
@@ -92,18 +93,18 @@ export default async function HomePage() {
       {/* Serviços (teaser) */}
       {topServices.length > 0 && (
         <section className="section bg-muted/50 px-4">
-          <Reveal className="container mx-auto">
+          <div className="container mx-auto">
             <SectionHeading
               eyebrow="O que fazemos"
               title="Soluções para perfuração de poços"
               link={{ href: '/servicos', label: 'Ver todos os serviços' }}
             />
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <RevealGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {topServices.map((s) => (
                 <ServiceCard key={s.id} title={s.title} description={s.description} icon={s.icon} />
               ))}
-            </div>
-          </Reveal>
+            </RevealGroup>
+          </div>
         </section>
       )}
 
@@ -115,9 +116,9 @@ export default async function HomePage() {
       {/* Categorias */}
       {categories.length > 0 && (
         <section className="section bg-muted/50 px-4">
-          <Reveal className="container mx-auto">
+          <div className="container mx-auto">
             <SectionHeading eyebrow="Navegue por" title="Categorias" />
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <RevealGroup className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {categories.map((cat) => (
                 <CategoryCard
                   key={cat.id}
@@ -128,21 +129,21 @@ export default async function HomePage() {
                   productCount={cat._count.products}
                 />
               ))}
-            </div>
-          </Reveal>
+            </RevealGroup>
+          </div>
         </section>
       )}
 
       {/* Destaques */}
       {featured.length > 0 && (
         <section className="section px-4">
-          <Reveal className="container mx-auto">
+          <div className="container mx-auto">
             <SectionHeading
               eyebrow="Selecionados para você"
               title="Produtos em Destaque"
               link={{ href: '/busca', label: 'Ver todos' }}
             />
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            <RevealGroup className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {featured.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -157,8 +158,8 @@ export default async function HomePage() {
                   sku={product.sku}
                 />
               ))}
-            </div>
-          </Reveal>
+            </RevealGroup>
+          </div>
         </section>
       )}
 
@@ -170,13 +171,13 @@ export default async function HomePage() {
       {/* Galeria (teaser) */}
       {gallery.length > 0 && (
         <section className="section bg-muted/50 px-4">
-          <Reveal className="container mx-auto">
+          <div className="container mx-auto">
             <SectionHeading
               eyebrow="Nosso trabalho"
               title="Galeria de Projetos"
               link={{ href: '/galeria', label: 'Ver galeria' }}
             />
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            <RevealGroup className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
               {gallery.map((item) => (
                 <Link
                   key={item.id}
@@ -195,8 +196,8 @@ export default async function HomePage() {
                   </div>
                 </Link>
               ))}
-            </div>
-          </Reveal>
+            </RevealGroup>
+          </div>
         </section>
       )}
 

@@ -49,7 +49,16 @@ export async function updateCustomer(id: string, formData: FormData) {
   redirect('/admin/clientes');
 }
 
-export async function deleteCustomer(id: string) {
-  await prisma.customer.delete({ where: { id } });
+export async function deleteCustomer(id: string): Promise<{ error: string } | { ok: true }> {
+  const orderCount = await prisma.order.count({ where: { customerId: id } });
+  if (orderCount > 0) {
+    return { error: `Não é possível excluir: existem ${orderCount} pedido(s) vinculados a este cliente.` };
+  }
+  try {
+    await prisma.customer.delete({ where: { id } });
+  } catch {
+    return { error: 'Não foi possível excluir o cliente. Tente novamente.' };
+  }
   revalidatePath('/admin/clientes');
+  return { ok: true as const };
 }

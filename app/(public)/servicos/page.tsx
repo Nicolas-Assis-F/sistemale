@@ -3,6 +3,7 @@ import { getCachedServices, getCachedSiteContent } from '@/lib/cache';
 import { DEFAULT_SERVICOS, type ServicosContent } from '@/lib/site-content';
 import { PageHero } from '@/components/public/sections/PageHero';
 import { ServiceCard } from '@/components/public/sections/ServiceCard';
+import { RevealGroup } from '@/components/public/RevealGroup';
 import { ProcessSteps } from '@/components/public/sections/ProcessSteps';
 import { CTASection } from '@/components/public/sections/CTASection';
 
@@ -26,11 +27,11 @@ export default async function ServicosPage() {
       {services.length > 0 && (
         <section className="section px-4">
           <div className="container mx-auto">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <RevealGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {services.map((s) => (
                 <ServiceCard key={s.id} title={s.title} description={s.description} icon={s.icon} />
               ))}
-            </div>
+            </RevealGroup>
           </div>
         </section>
       )}

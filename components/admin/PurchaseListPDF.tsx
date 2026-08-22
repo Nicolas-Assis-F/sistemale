@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from '@react-pdf/renderer';
 import path from 'path';
+import { formatCurrency } from '@/lib/format';
 
 // Brand colors (approximated from the oklch CSS variables)
 const COLORS = {
@@ -291,15 +292,6 @@ type PurchaseListPDFProps = {
   };
 };
 
-function formatBRL(cents: number): string {
-  if (cents === 0) return 'A cotar';
-  return (cents / 100).toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 2,
-  });
-}
-
 export function PurchaseListPDF({ list }: PurchaseListPDFProps) {
   const logoPath = path.join(process.cwd(), 'public', 'LOGO.png');
 
@@ -418,7 +410,7 @@ export function PurchaseListPDF({ list }: PurchaseListPDFProps) {
                   >
                     {item.partItem.unitPriceCents === 0
                       ? 'A cotar'
-                      : formatBRL(item.partItem.unitPriceCents)}
+                      : formatCurrency(item.partItem.unitPriceCents)}
                   </Text>
                   <Text
                     style={[
@@ -428,7 +420,7 @@ export function PurchaseListPDF({ list }: PurchaseListPDFProps) {
                   >
                     {item.partItem.unitPriceCents === 0
                       ? '—'
-                      : formatBRL(item.partItem.unitPriceCents * item.partItem.quantity)}
+                      : formatCurrency(item.partItem.unitPriceCents * item.partItem.quantity)}
                   </Text>
                 </View>
               ))}
@@ -443,7 +435,7 @@ export function PurchaseListPDF({ list }: PurchaseListPDFProps) {
                 </Text>
                 <Text style={[styles.subtotalCell, styles.colUnitPrice]} />
                 <Text style={[styles.subtotalCell, styles.colTotal]}>
-                  {subtotal > 0 ? formatBRL(subtotal) : '—'}
+                  {subtotal > 0 ? formatCurrency(subtotal) : '—'}
                 </Text>
               </View>
             </View>
@@ -459,7 +451,7 @@ export function PurchaseListPDF({ list }: PurchaseListPDFProps) {
               <View key={cat} style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>{cat}</Text>
                 <Text style={styles.summaryValue}>
-                  {data.totalCents > 0 ? formatBRL(data.totalCents) : 'A cotar'}
+                  {data.totalCents > 0 ? formatCurrency(data.totalCents) : 'A cotar'}
                 </Text>
               </View>
             ))}
@@ -469,7 +461,7 @@ export function PurchaseListPDF({ list }: PurchaseListPDFProps) {
           <View style={styles.grandTotalCard}>
             <Text style={styles.grandTotalLabel}>Total Geral</Text>
             <Text style={styles.grandTotalValue}>
-              {totalCents > 0 ? formatBRL(totalCents) : '—'}
+              {totalCents > 0 ? formatCurrency(totalCents) : '—'}
             </Text>
             {uncotedCount > 0 && (
               <Text style={styles.grandTotalSub}>

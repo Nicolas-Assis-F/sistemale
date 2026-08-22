@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { Header } from '@/components/public/Header';
 import { Footer } from '@/components/public/Footer';
 import { FloatingWhatsApp } from '@/components/public/FloatingWhatsApp';
+import { MotionProvider } from '@/components/public/MotionProvider';
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -9,7 +10,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <Suspense fallback={<div className="h-16 border-b bg-background" />}>
         <Header />
       </Suspense>
-      <main className="flex-1">{children}</main>
+      <main className="flex-1">
+        <MotionProvider>{children}</MotionProvider>
+      </main>
       <Footer />
       <FloatingWhatsApp />
     </>

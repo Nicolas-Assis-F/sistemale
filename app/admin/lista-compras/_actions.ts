@@ -21,9 +21,14 @@ export async function createPurchaseList(name: string, itemIds: string[]) {
   redirect(`/admin/lista-compras/${list.id}`);
 }
 
-export async function deletePurchaseList(id: string) {
-  await prisma.purchaseList.delete({ where: { id } });
+export async function deletePurchaseList(id: string): Promise<{ error: string } | { ok: true }> {
+  try {
+    await prisma.purchaseList.delete({ where: { id } });
+  } catch {
+    return { error: 'Não foi possível excluir a lista. Tente novamente.' };
+  }
   revalidatePath('/admin/lista-compras');
+  return { ok: true as const };
 }
 
 export async function renamePurchaseList(id: string, name: string) {

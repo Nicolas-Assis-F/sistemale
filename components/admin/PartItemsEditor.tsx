@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { createPartItem, updatePartItem, deletePartItem } from '@/app/admin/produtos/_part-actions';
+import { formatCurrency, centsToCurrencyInput } from '@/lib/format';
+import { useDeleteAction } from './use-delete-action';
 
 const partSchema = z.object({
   name: z.string().min(1, 'Obrigatório'),
@@ -32,16 +34,6 @@ type PartItem = {
   notes: string | null;
 };
 
-function formatPrice(cents: number): string {
-  if (cents === 0) return '';
-  return (cents / 100).toFixed(2).replace('.', ',');
-}
-
-function displayPrice(cents: number): string {
-  if (cents === 0) return '—';
-  return `R$ ${(cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-}
-
 const SUGGESTED_CATEGORIES = [
   'Borracha', 'Parafuso', 'Rolamento', 'Vedação', 'Anel', 'Pino',
   'Mola', 'Engrenagem', 'Correia', 'Filtro', 'Óleo', 'Elétrico', 'Geral',
@@ -57,6 +49,7 @@ export function PartItemsEditor({
   const [items, setItems] = useState<PartItem[]>(initialItems);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<PartFormValues>({
@@ -73,18 +66,20 @@ export function PartItemsEditor({
 
   function openAdd() {
     setEditingId(null);
+    setFormError(null);
     form.reset({ name: '', location: '', category: 'Geral', quantity: 1, unitPriceReais: '', notes: '' });
     setShowForm(true);
   }
 
   function openEdit(item: PartItem) {
     setEditingId(item.id);
+    setFormError(null);
     form.reset({
       name: item.name,
       location: item.location ?? '',
       category: item.category,
       quantity: item.quantity,
-      unitPriceReais: formatPrice(item.unitPriceCents),
+      unitPriceReais: centsToCurrencyInput(item.unitPriceCents),
       notes: item.notes ?? '',
     });
     setShowForm(true);
@@ -93,59 +88,34 @@ export function PartItemsEditor({
   function closeForm() {
     setShowForm(false);
     setEditingId(null);
+    setFormError(null);
     form.reset();
   }
 
   function onSubmit(data: PartFormValues) {
+    setFormError(null);
     startTransition(async () => {
       if (editingId) {
-        await updatePartItem(editingId, productId, data);
-        setItems((prev) =>
-          prev.map((item) =>
-            item.id === editingId
-              ? {
-                  ...item,
-                  name: data.name,
-                  location: data.location || null,
-                  category: data.category,
-                  quantity: data.quantity,
-                  unitPriceCents: data.unitPriceReais
-                    ? Math.round(parseFloat(data.unitPriceReais.replace(',', '.')) * 100)
-                    : 0,
-                  notes: data.notes || null,
-                }
-              : item,
-          ),
-        );
+        const updated = await updatePartItem(editingId, productId, data);
+        if ('error' in updated) {
+          setFormError(updated.error);
+          return;
+        }
+        setItems((prev) => prev.map((item) => (item.id === editingId ? updated : item)));
       } else {
         const created = await createPartItem(productId, data);
-        // Optimistically add with a temp id — server revalidation will correct it
-        void created;
-        setItems((prev) => [
-          ...prev,
-          {
-            id: `temp-${Date.now()}`,
-            name: data.name,
-            location: data.location || null,
-            category: data.category,
-            quantity: data.quantity,
-            unitPriceCents: data.unitPriceReais
-              ? Math.round(parseFloat(data.unitPriceReais.replace(',', '.')) * 100)
-              : 0,
-            notes: data.notes || null,
-          },
-        ]);
+        if ('error' in created) {
+          setFormError(created.error);
+          return;
+        }
+        setItems((prev) => [...prev, created]);
       }
       closeForm();
     });
   }
 
-  function onDelete(item: PartItem) {
-    if (!confirm(`Remover "${item.name}"?`)) return;
-    startTransition(async () => {
-      await deletePartItem(item.id, productId);
-      setItems((prev) => prev.filter((i) => i.id !== item.id));
-    });
+  function handleItemDeleted(id: string) {
+    setItems((prev) => prev.filter((i) => i.id !== id));
   }
 
   const totalCents = items.reduce((sum, i) => sum + i.unitPriceCents * i.quantity, 0);
@@ -252,6 +222,8 @@ export function PartItemsEditor({
               </div>
             </div>
 
+            {formError && <p className="text-sm text-destructive">{formError}</p>}
+
             <div className="flex gap-2 justify-end">
               <Button type="button" variant="ghost" size="sm" onClick={closeForm}>
                 <X className="h-4 w-4 mr-1" />
@@ -283,58 +255,13 @@ export function PartItemsEditor({
             </thead>
             <tbody className="divide-y">
               {items.map((item) => (
-                <tr key={item.id} className="hover:bg-muted/20 transition-colors">
-                  <td className="px-3 py-2.5">
-                    <span className="font-medium">{item.name}</span>
-                    {item.notes && (
-                      <p className="text-xs text-muted-foreground mt-0.5">{item.notes}</p>
-                    )}
-                  </td>
-                  <td className="px-3 py-2.5 text-muted-foreground hidden md:table-cell">
-                    {item.location || '—'}
-                  </td>
-                  <td className="px-3 py-2.5">
-                    <Badge variant="secondary" className="text-xs font-normal">
-                      {item.category}
-                    </Badge>
-                  </td>
-                  <td className="px-3 py-2.5 text-right tabular-nums">{item.quantity}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums hidden sm:table-cell">
-                    {item.unitPriceCents === 0 ? (
-                      <span className="text-muted-foreground text-xs italic">a cotar</span>
-                    ) : (
-                      displayPrice(item.unitPriceCents)
-                    )}
-                  </td>
-                  <td className="px-3 py-2.5 text-right tabular-nums hidden sm:table-cell">
-                    {item.unitPriceCents === 0 ? (
-                      <span className="text-muted-foreground text-xs italic">—</span>
-                    ) : (
-                      displayPrice(item.unitPriceCents * item.quantity)
-                    )}
-                  </td>
-                  <td className="px-3 py-2.5">
-                    <div className="flex items-center gap-1 justify-end">
-                      <button
-                        type="button"
-                        onClick={() => openEdit(item)}
-                        className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                        title="Editar"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onDelete(item)}
-                        disabled={isPending}
-                        className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                        title="Remover"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                <PartItemRow
+                  key={item.id}
+                  item={item}
+                  productId={productId}
+                  onEdit={openEdit}
+                  onDeleted={handleItemDeleted}
+                />
               ))}
             </tbody>
             <tfoot className="bg-muted/30 border-t">
@@ -352,7 +279,7 @@ export function PartItemsEditor({
                 </td>
                 <td className="hidden sm:table-cell" />
                 <td className="px-3 py-2.5 text-right tabular-nums font-medium hidden sm:table-cell">
-                  {totalCents > 0 ? displayPrice(totalCents) : '—'}
+                  {totalCents > 0 ? formatCurrency(totalCents) : '—'}
                 </td>
                 <td />
               </tr>
@@ -368,5 +295,75 @@ export function PartItemsEditor({
         </div>
       )}
     </div>
+  );
+}
+
+function PartItemRow({
+  item,
+  productId,
+  onEdit,
+  onDeleted,
+}: {
+  item: PartItem;
+  productId: string;
+  onEdit: (item: PartItem) => void;
+  onDeleted: (id: string) => void;
+}) {
+  const { run, isPending, error } = useDeleteAction(() => deletePartItem(item.id, productId));
+
+  return (
+    <tr className="hover:bg-muted/20 transition-colors">
+      <td className="px-3 py-2.5">
+        <span className="font-medium">{item.name}</span>
+        {item.notes && (
+          <p className="text-xs text-muted-foreground mt-0.5">{item.notes}</p>
+        )}
+      </td>
+      <td className="px-3 py-2.5 text-muted-foreground hidden md:table-cell">
+        {item.location || '—'}
+      </td>
+      <td className="px-3 py-2.5">
+        <Badge variant="secondary" className="text-xs font-normal">
+          {item.category}
+        </Badge>
+      </td>
+      <td className="px-3 py-2.5 text-right tabular-nums">{item.quantity}</td>
+      <td className="px-3 py-2.5 text-right tabular-nums hidden sm:table-cell">
+        {item.unitPriceCents === 0 ? (
+          <span className="text-muted-foreground text-xs italic">a cotar</span>
+        ) : (
+          formatCurrency(item.unitPriceCents)
+        )}
+      </td>
+      <td className="px-3 py-2.5 text-right tabular-nums hidden sm:table-cell">
+        {item.unitPriceCents === 0 ? (
+          <span className="text-muted-foreground text-xs italic">—</span>
+        ) : (
+          formatCurrency(item.unitPriceCents * item.quantity)
+        )}
+      </td>
+      <td className="px-3 py-2.5">
+        <div className="flex items-center gap-1 justify-end">
+          <button
+            type="button"
+            onClick={() => onEdit(item)}
+            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+            title="Editar"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => run(`Remover "${item.name}"?`, () => onDeleted(item.id))}
+            disabled={isPending}
+            className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+            title="Remover"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+        {error && <p className="text-xs text-destructive mt-1 text-right">{error}</p>}
+      </td>
+    </tr>
   );
 }

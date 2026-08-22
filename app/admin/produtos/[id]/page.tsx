@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
 import { prisma } from '@/lib/db';
+import { centsToCurrencyInput } from '@/lib/format';
 import { ProductForm } from '@/components/admin/ProductForm';
 import { PartItemsEditor } from '@/components/admin/PartItemsEditor';
 import { updateProduct } from '../_actions';
@@ -26,10 +27,6 @@ export default async function EditProductPage({ params, searchParams }: PageProp
 
   const specs = product.specs as Record<string, string>;
   const specsArray = Object.entries(specs).map(([key, value]) => ({ key, value }));
-
-  function formatPriceReais(cents: number): string {
-    return (cents / 100).toFixed(2).replace('.', ',');
-  }
 
   const activeTab = tab === 'pecas' ? 'pecas' : 'dados';
 
@@ -86,9 +83,9 @@ export default async function EditProductPage({ params, searchParams }: PageProp
             categoryId: product.categoryId,
             shortDesc: product.shortDesc,
             description: product.description,
-            priceReais: formatPriceReais(product.priceCents),
+            priceReais: centsToCurrencyInput(product.priceCents),
             originalPriceReais: product.originalPriceCents
-              ? formatPriceReais(product.originalPriceCents)
+              ? centsToCurrencyInput(product.originalPriceCents)
               : '',
             stock: product.stock,
             active: product.active,

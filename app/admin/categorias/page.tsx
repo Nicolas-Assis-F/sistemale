@@ -4,6 +4,7 @@ import { buttonVariants } from '@/components/ui/button';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
+import { ConfirmDeleteButton } from '@/components/admin/ConfirmDeleteButton';
 import { deleteCategory } from './_actions';
 
 export default async function CategoriesPage() {
@@ -50,19 +51,11 @@ export default async function CategoriesPage() {
                     >
                       Editar
                     </Link>
-                    <form
-                      action={async () => {
-                        'use server';
-                        await deleteCategory(cat.id);
-                      }}
-                    >
-                      <button
-                        type="submit"
-                        className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' text-destructive hover:text-destructive'}
-                      >
-                        Excluir
-                      </button>
-                    </form>
+                    <ConfirmDeleteButton
+                      action={() => deleteCategory(cat.id)}
+                      confirmMessage={`Excluir "${cat.name}"? Esta ação não pode ser desfeita.`}
+                      label="Excluir"
+                    />
                   </div>
                 </TableCell>
               </TableRow>

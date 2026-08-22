@@ -58,7 +58,12 @@ export async function updateGalleryItem(id: string, formData: FormData) {
   redirect('/admin/galeria');
 }
 
-export async function deleteGalleryItem(id: string) {
-  await prisma.galleryItem.delete({ where: { id } });
+export async function deleteGalleryItem(id: string): Promise<{ error: string } | { ok: true }> {
+  try {
+    await prisma.galleryItem.delete({ where: { id } });
+  } catch {
+    return { error: 'Não foi possível excluir a foto. Tente novamente.' };
+  }
   revalidate();
+  return { ok: true as const };
 }

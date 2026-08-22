@@ -5,11 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { slugify } from '@/lib/slugify';
-
-function parsePrice(value: string): number {
-  // Aceita "1299,90" ou "1299.90"
-  return Math.round(parseFloat(value.replace(',', '.')) * 100);
-}
+import { parseCurrencyToCents } from '@/lib/format';
 
 const productSchema = z.object({
   name: z.string().min(1),
@@ -37,7 +33,7 @@ export async function createProduct(formData: FormData) {
 
   const data = parsed.data;
   const originalPriceCents =
-    data.originalPriceReais ? parsePrice(data.originalPriceReais) : null;
+    data.originalPriceReais ? parseCurrencyToCents(data.originalPriceReais) : null;
 
   await prisma.product.create({
     data: {
@@ -47,7 +43,7 @@ export async function createProduct(formData: FormData) {
       categoryId: data.categoryId,
       shortDesc: data.shortDesc,
       description: data.description,
-      priceCents: parsePrice(data.priceReais),
+      priceCents: parseCurrencyToCents(data.priceReais),
       originalPriceCents,
       stock: data.stock,
       active: data.active,
@@ -70,7 +66,7 @@ export async function updateProduct(id: string, formData: FormData) {
 
   const data = parsed.data;
   const originalPriceCents =
-    data.originalPriceReais ? parsePrice(data.originalPriceReais) : null;
+    data.originalPriceReais ? parseCurrencyToCents(data.originalPriceReais) : null;
 
   await prisma.product.update({
     where: { id },
@@ -81,7 +77,7 @@ export async function updateProduct(id: string, formData: FormData) {
       categoryId: data.categoryId,
       shortDesc: data.shortDesc,
       description: data.description,
-      priceCents: parsePrice(data.priceReais),
+      priceCents: parseCurrencyToCents(data.priceReais),
       originalPriceCents,
       stock: data.stock,
       active: data.active,
@@ -97,9 +93,18 @@ export async function updateProduct(id: string, formData: FormData) {
   redirect('/admin/produtos');
 }
 
-export async function deleteProduct(id: string) {
-  await prisma.product.delete({ where: { id } });
+export async function deleteProduct(id: string): Promise<{ error: string } | { ok: true }> {
+  const orderItemCount = await prisma.orderItem.count({ where: { productId: id } });
+  if (orderItemCount > 0) {
+    return { error: `Este produto está vinculado a ${orderItemCount} pedido(s) já registrados.` };
+  }
+  try {
+    await prisma.product.delete({ where: { id } });
+  } catch {
+    return { error: 'Não foi possível excluir o produto. Tente novamente.' };
+  }
   revalidateTag('products', 'max');
   revalidatePath('/');
   revalidatePath('/admin/produtos');
+  return { ok: true as const };
 }

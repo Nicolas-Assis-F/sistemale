@@ -59,9 +59,18 @@ export async function updateCategory(id: string, formData: FormData) {
   redirect('/admin/categorias');
 }
 
-export async function deleteCategory(id: string) {
-  await prisma.category.delete({ where: { id } });
+export async function deleteCategory(id: string): Promise<{ error: string } | { ok: true }> {
+  const productCount = await prisma.product.count({ where: { categoryId: id } });
+  if (productCount > 0) {
+    return { error: `Não é possível excluir: existem ${productCount} produto(s) vinculados a esta categoria.` };
+  }
+  try {
+    await prisma.category.delete({ where: { id } });
+  } catch {
+    return { error: 'Não foi possível excluir a categoria. Tente novamente.' };
+  }
   revalidateTag('categories', 'max');
   revalidatePath('/');
   revalidatePath('/admin/categorias');
+  return { ok: true as const };
 }

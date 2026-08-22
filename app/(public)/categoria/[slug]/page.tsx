@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getCachedCategory, getCachedCategoryProducts } from '@/lib/cache';
 import { ProductCard } from '@/components/public/ProductCard';
+import { RevealGroup } from '@/components/public/RevealGroup';
 
 type SortOption = 'nome' | 'preco-asc' | 'preco-desc';
 
@@ -78,7 +79,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           Nenhum produto nesta categoria no momento.
         </p>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <RevealGroup className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {products.map((product) => (
             <ProductCard
               key={product.id}
@@ -93,7 +94,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
               sku={product.sku}
             />
           ))}
-        </div>
+        </RevealGroup>
       )}
     </div>
   );

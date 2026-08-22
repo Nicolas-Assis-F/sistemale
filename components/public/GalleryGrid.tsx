@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { RevealGroup } from './RevealGroup';
 
 export interface GalleryGridItem {
   id: string;
@@ -27,7 +28,7 @@ export function GalleryGrid({ items }: { items: GalleryGridItem[] }) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <RevealGroup className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {items.map((item, i) => (
           <button
             key={item.id}
@@ -48,7 +49,7 @@ export function GalleryGrid({ items }: { items: GalleryGridItem[] }) {
             </div>
           </button>
         ))}
-      </div>
+      </RevealGroup>
 
       <Dialog open={isOpen} onOpenChange={(o) => !o && setOpenIndex(null)}>
         <DialogContent className="max-w-4xl border-none bg-black/95 p-2">

@@ -4,6 +4,7 @@ import { buttonVariants } from '@/components/ui/button';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
+import { ConfirmDeleteButton } from '@/components/admin/ConfirmDeleteButton';
 import { deleteService } from './_actions';
 
 export default async function AdminServicesPage() {
@@ -44,9 +45,11 @@ export default async function AdminServicesPage() {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Link href={`/admin/servicos/${s.id}`} className={buttonVariants({ variant: 'ghost', size: 'sm' })}>Editar</Link>
-                    <form action={async () => { 'use server'; await deleteService(s.id); }}>
-                      <button type="submit" className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' text-destructive hover:text-destructive'}>Excluir</button>
-                    </form>
+                    <ConfirmDeleteButton
+                      action={() => deleteService(s.id)}
+                      confirmMessage={`Excluir "${s.title}"? Esta ação não pode ser desfeita.`}
+                      label="Excluir"
+                    />
                   </div>
                 </TableCell>
               </TableRow>

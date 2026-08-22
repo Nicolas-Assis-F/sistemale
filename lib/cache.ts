@@ -61,6 +61,17 @@ const _getCachedProduct = unstable_cache(
 // (evita a query dupla de generateMetadata + page component)
 export const getProduct = cache((slug: string) => _getCachedProduct(slug));
 
+export const getCachedRelatedProducts = unstable_cache(
+  (categoryId: string, excludeId: string) =>
+    prisma.product.findMany({
+      where: { categoryId, active: true, id: { not: excludeId } },
+      take: 6,
+      orderBy: { updatedAt: 'desc' },
+    }),
+  ['related-products'],
+  { tags: ['products'], revalidate: 60 },
+);
+
 // ─── Conteúdo institucional / Serviços / Galeria ───────────────────────────────
 
 export const getCachedSiteContent = unstable_cache(
@@ -85,6 +96,20 @@ export const getCachedGalleryPreview = unstable_cache(
   () => prisma.galleryItem.findMany({ where: { active: true }, orderBy: { order: 'asc' }, take: 6 }),
   ['gallery-preview'],
   { tags: ['gallery'], revalidate: 300 }
+);
+
+// ─── Sitemap ──────────────────────────────────────────────────────────────────
+
+export const getCachedSitemapData = unstable_cache(
+  async () => {
+    const [products, categories] = await Promise.all([
+      prisma.product.findMany({ where: { active: true }, select: { slug: true, updatedAt: true } }),
+      prisma.category.findMany({ select: { slug: true, updatedAt: true } }),
+    ]);
+    return { products, categories };
+  },
+  ['sitemap'],
+  { tags: ['products', 'categories'], revalidate: 3600 },
 );
 
 // ─── Busca ────────────────────────────────────────────────────────────────────

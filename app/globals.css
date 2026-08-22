@@ -202,4 +202,11 @@
     -webkit-mask-image: radial-gradient(ellipse at center, black 35%, transparent 78%);
     mask-image: radial-gradient(ellipse at center, black 35%, transparent 78%);
   }
+
+  /* Textura de grade sutil para placas técnicas pequenas (fallback de foto em cards) */
+  .bg-grid-panel {
+    background-image: linear-gradient(oklch(1 0 0 / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(1 0 0 / 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
 }

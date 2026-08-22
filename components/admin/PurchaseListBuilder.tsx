@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { createPurchaseList } from '@/app/admin/lista-compras/_actions';
+import { formatCurrency } from '@/lib/format';
 import { ShoppingCart, Save } from 'lucide-react';
 
 type PartItem = {
@@ -24,15 +25,6 @@ type Product = {
   sku: string;
   partItems: PartItem[];
 };
-
-function displayPrice(cents: number): string {
-  if (cents === 0) return '';
-  return (cents / 100).toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 2,
-  });
-}
 
 export function PurchaseListBuilder({ products }: { products: Product[] }) {
   const [listName, setListName] = useState('');
@@ -317,14 +309,14 @@ export function PurchaseListBuilder({ products }: { products: Product[] }) {
                           {item.unitPriceCents === 0 ? (
                             <span className="text-muted-foreground italic text-xs">a cotar</span>
                           ) : (
-                            displayPrice(item.unitPriceCents)
+                            formatCurrency(item.unitPriceCents)
                           )}
                         </td>
                         <td className="px-3 py-2.5 text-right tabular-nums hidden sm:table-cell">
                           {item.unitPriceCents === 0 ? (
                             <span className="text-muted-foreground italic text-xs">—</span>
                           ) : (
-                            displayPrice(item.unitPriceCents * item.quantity)
+                            formatCurrency(item.unitPriceCents * item.quantity)
                           )}
                         </td>
                       </tr>
@@ -349,7 +341,7 @@ export function PurchaseListBuilder({ products }: { products: Product[] }) {
                 {selectedItemIds.size === 1 ? 'item selecionado' : 'itens selecionados'}
                 {totalCents > 0 && (
                   <span className="ml-2 font-semibold tabular-nums">
-                    · {displayPrice(totalCents)}
+                    · {formatCurrency(totalCents)}
                     {uncotedCount > 0 && (
                       <span className="text-muted-foreground font-normal ml-1 text-xs">
                         + {uncotedCount} a cotar

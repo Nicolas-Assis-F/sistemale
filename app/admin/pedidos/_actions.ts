@@ -100,13 +100,20 @@ export async function createOrder(formData: FormData) {
   const customer = await resolveCustomerId(d);
   if ('error' in customer) return { error: customer.error };
 
+  let items: ReturnType<typeof buildItems>;
+  try {
+    items = buildItems(d.items);
+  } catch {
+    return { error: { items: ['Erro ao processar os itens do pedido'] } };
+  }
+
   const number = await generateOrderNumber();
   const order = await prisma.order.create({
     data: {
       number,
       customerId: customer.id,
       ...buildScalarData(d),
-      items: { create: buildItems(d.items) },
+      items: { create: items },
     },
   });
 
@@ -124,12 +131,19 @@ export async function updateOrder(id: string, formData: FormData) {
   const customer = await resolveCustomerId(d);
   if ('error' in customer) return { error: customer.error };
 
+  let items: ReturnType<typeof buildItems>;
+  try {
+    items = buildItems(d.items);
+  } catch {
+    return { error: { items: ['Erro ao processar os itens do pedido'] } };
+  }
+
   await prisma.order.update({
     where: { id },
     data: {
       customerId: customer.id,
       ...buildScalarData(d),
-      items: { deleteMany: {}, create: buildItems(d.items) },
+      items: { deleteMany: {}, create: items },
     },
   });
 
@@ -147,7 +161,11 @@ export async function updateOrderStatus(id: string, status: OrderStatus) {
 }
 
 export async function deleteOrder(id: string) {
-  await prisma.order.delete({ where: { id } });
+  try {
+    await prisma.order.delete({ where: { id } });
+  } catch {
+    return { error: 'Não foi possível excluir o pedido. Tente novamente.' };
+  }
   revalidatePath('/admin/pedidos');
   revalidatePath('/admin');
   redirect('/admin/pedidos');

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
 import path from 'path';
+import { formatCurrency } from '@/lib/format';
 
 const COLORS = {
   primary: '#1e3a5f',
@@ -91,10 +92,6 @@ export type OrderPDFData = {
   items: OrderItem[];
 };
 
-function formatBRL(cents: number): string {
-  return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
-}
-
 function formatDate(d: Date): string {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
@@ -163,9 +160,9 @@ export function OrderPDF({ order, mode }: { order: OrderPDFData; mode: 'comercia
             {isComercial ? (
               <>
                 <Text style={[styles.tableCell, styles.colIcms]}>{it.icmsPercent}%</Text>
-                <Text style={[styles.tableCell, styles.colUnit]}>{formatBRL(it.unitPriceCents)}</Text>
+                <Text style={[styles.tableCell, styles.colUnit]}>{formatCurrency(it.unitPriceCents)}</Text>
                 <Text style={[styles.tableCell, styles.colQty]}>{it.quantity}</Text>
-                <Text style={[styles.tableCell, styles.colTotal]}>{formatBRL(it.quantity * it.unitPriceCents)}</Text>
+                <Text style={[styles.tableCell, styles.colTotal]}>{formatCurrency(it.quantity * it.unitPriceCents)}</Text>
               </>
             ) : (
               <Text style={[styles.tableCell, styles.colQtyWide]}>{it.quantity}</Text>
@@ -179,11 +176,11 @@ export function OrderPDF({ order, mode }: { order: OrderPDFData; mode: 'comercia
             <View style={styles.totalsBox}>
               <View style={styles.totalsLine}>
                 <Text style={styles.totalsLabel}>Total (sem imposto)</Text>
-                <Text style={styles.totalsValue}>{formatBRL(total)}</Text>
+                <Text style={styles.totalsValue}>{formatCurrency(total)}</Text>
               </View>
               <View style={[styles.totalsLine, { marginTop: 4, borderTopWidth: 0.5, borderTopColor: COLORS.primary, paddingTop: 4 }]}>
                 <Text style={styles.grandLabel}>Total</Text>
-                <Text style={styles.grandValue}>{formatBRL(total)}</Text>
+                <Text style={styles.grandValue}>{formatCurrency(total)}</Text>
               </View>
             </View>
           </View>

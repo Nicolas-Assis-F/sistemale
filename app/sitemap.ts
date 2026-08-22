@@ -1,20 +1,10 @@
 import type { MetadataRoute } from 'next';
-import { prisma } from '@/lib/db';
-
-export const dynamic = 'force-dynamic';
+import { getCachedSitemapData } from '@/lib/cache';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 
-  const [products, categories] = await Promise.all([
-    prisma.product.findMany({
-      where: { active: true },
-      select: { slug: true, updatedAt: true },
-    }),
-    prisma.category.findMany({
-      select: { slug: true, updatedAt: true },
-    }),
-  ]);
+  const { products, categories } = await getCachedSitemapData();
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {

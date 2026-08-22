@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Mail, Phone, MessageCircle, Trash2, Calendar } from 'lucide-react';
+import { Mail, Phone, MessageCircle, Calendar } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { buttonVariants } from '@/components/ui/button';
+import { ConfirmDeleteButton } from '@/components/admin/ConfirmDeleteButton';
 import { markRead, deleteSubmission } from '../_actions';
 
 export default async function MessageDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -64,11 +65,11 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
               Marcar como não lida
             </button>
           </form>
-          <form action={async () => { 'use server'; await deleteSubmission(id); }}>
-            <button type="submit" className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' gap-2 text-destructive hover:text-destructive'}>
-              <Trash2 className="h-4 w-4" /> Excluir
-            </button>
-          </form>
+          <ConfirmDeleteButton
+            action={() => deleteSubmission(id)}
+            confirmMessage="Excluir esta mensagem? Esta ação não pode ser desfeita."
+            label="Excluir"
+          />
         </div>
       </div>
     </div>

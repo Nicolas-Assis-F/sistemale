@@ -34,7 +34,16 @@ export async function updateEmployee(id: string, formData: FormData) {
   redirect('/admin/funcionarios');
 }
 
-export async function deleteEmployee(id: string) {
-  await prisma.employee.delete({ where: { id } });
+export async function deleteEmployee(id: string): Promise<{ error: string } | { ok: true }> {
+  const orderCount = await prisma.order.count({ where: { employeeId: id } });
+  if (orderCount > 0) {
+    return { error: `Não é possível excluir: existem ${orderCount} pedido(s) vinculados a este funcionário.` };
+  }
+  try {
+    await prisma.employee.delete({ where: { id } });
+  } catch {
+    return { error: 'Não foi possível excluir o funcionário. Tente novamente.' };
+  }
   revalidatePath('/admin/funcionarios');
+  return { ok: true as const };
 }

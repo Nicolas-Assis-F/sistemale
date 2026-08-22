@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getCachedSearchResults } from '@/lib/cache';
 import { ProductCard } from '@/components/public/ProductCard';
+import { RevealGroup } from '@/components/public/RevealGroup';
 
 interface PageProps {
   searchParams: Promise<{ q?: string }>;
@@ -34,7 +35,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
           <p className="text-sm mt-2">Tente um termo diferente ou entre em contato pelo WhatsApp.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <RevealGroup className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {products.map((product) => (
             <ProductCard
               key={product.id}
@@ -49,7 +50,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
               sku={product.sku}
             />
           ))}
-        </div>
+        </RevealGroup>
       )}
     </div>
   );

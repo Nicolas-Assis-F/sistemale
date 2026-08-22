@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { Package, Tag } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 import { WhatsAppButton } from './WhatsAppButton';
+import { IconTile } from './IconTile';
+import { MotionCardShell } from './MotionCardShell';
 
 interface ProductCardProps {
   id: string;
@@ -32,7 +34,7 @@ export function ProductCard({
     : 0;
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-raised">
+    <MotionCardShell className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-all duration-300 hover:border-primary/30 hover:shadow-raised">
       {/* Imagem */}
       <Link href={`/produto/${slug}`} className="relative block aspect-square overflow-hidden bg-muted">
         {images[0] ? (
@@ -44,10 +46,7 @@ export function ProductCard({
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground/30">
-            <Package className="h-10 w-10" />
-            <span className="text-xs">Sem foto</span>
-          </div>
+          <IconTile icon={Package} label="Sem registro fotográfico" />
         )}
         {hasPromo && (
           <div className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white shadow-sm">
@@ -96,6 +95,6 @@ export function ProductCard({
           </WhatsAppButton>
         </div>
       </div>
-    </div>
+    </MotionCardShell>
   );
 }

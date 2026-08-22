@@ -43,7 +43,12 @@ export async function updateService(id: string, formData: FormData) {
   redirect('/admin/servicos');
 }
 
-export async function deleteService(id: string) {
-  await prisma.serviceItem.delete({ where: { id } });
+export async function deleteService(id: string): Promise<{ error: string } | { ok: true }> {
+  try {
+    await prisma.serviceItem.delete({ where: { id } });
+  } catch {
+    return { error: 'Não foi possível excluir o serviço. Tente novamente.' };
+  }
   revalidate();
+  return { ok: true as const };
 }

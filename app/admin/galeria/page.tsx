@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { prisma } from '@/lib/db';
 import { buttonVariants } from '@/components/ui/button';
+import { ConfirmDeleteButton } from '@/components/admin/ConfirmDeleteButton';
 import { deleteGalleryItem } from './_actions';
 
 export default async function AdminGalleryPage() {
@@ -32,9 +33,11 @@ export default async function AdminGalleryPage() {
                 {item.category && <p className="text-xs text-muted-foreground">{item.category}</p>}
                 <div className="flex gap-2">
                   <Link href={`/admin/galeria/${item.id}`} className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' flex-1'}>Editar</Link>
-                  <form action={async () => { 'use server'; await deleteGalleryItem(item.id); }}>
-                    <button type="submit" className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' text-destructive hover:text-destructive'}>Excluir</button>
-                  </form>
+                  <ConfirmDeleteButton
+                    action={() => deleteGalleryItem(item.id)}
+                    confirmMessage={`Excluir "${item.title}"? Esta ação não pode ser desfeita.`}
+                    label="Excluir"
+                  />
                 </div>
               </div>
             </div>

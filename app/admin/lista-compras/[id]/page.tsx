@@ -3,19 +3,11 @@ import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { prisma } from '@/lib/db';
+import { formatCurrency } from '@/lib/format';
 import { FileText, ShoppingCart } from 'lucide-react';
 
 interface PageProps {
   params: Promise<{ id: string }>;
-}
-
-function displayPrice(cents: number): string {
-  if (cents === 0) return '—';
-  return cents.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 2,
-  });
 }
 
 export default async function PurchaseListDetailPage({ params }: PageProps) {
@@ -134,14 +126,14 @@ export default async function PurchaseListDetailPage({ params }: PageProps) {
                         {item.partItem.unitPriceCents === 0 ? (
                           <span className="text-muted-foreground italic text-xs">a cotar</span>
                         ) : (
-                          displayPrice(item.partItem.unitPriceCents)
+                          formatCurrency(item.partItem.unitPriceCents)
                         )}
                       </td>
                       <td className="px-4 py-2.5 text-right tabular-nums hidden sm:table-cell">
                         {item.partItem.unitPriceCents === 0 ? (
                           <span className="text-muted-foreground italic text-xs">—</span>
                         ) : (
-                          displayPrice(item.partItem.unitPriceCents * item.partItem.quantity)
+                          formatCurrency(item.partItem.unitPriceCents * item.partItem.quantity)
                         )}
                       </td>
                     </tr>
@@ -157,7 +149,7 @@ export default async function PurchaseListDetailPage({ params }: PageProps) {
                     </td>
                     <td className="hidden sm:table-cell" />
                     <td className="px-4 py-2.5 text-right tabular-nums font-medium hidden sm:table-cell">
-                      {subtotal > 0 ? displayPrice(subtotal) : '—'}
+                      {subtotal > 0 ? formatCurrency(subtotal) : '—'}
                     </td>
                   </tr>
                 </tfoot>
@@ -178,7 +170,7 @@ export default async function PurchaseListDetailPage({ params }: PageProps) {
           )}
         </span>
         <span className="text-lg font-bold tabular-nums">
-          {totalCents > 0 ? displayPrice(totalCents) : '—'}
+          {totalCents > 0 ? formatCurrency(totalCents) : '—'}
         </span>
       </div>
     </div>

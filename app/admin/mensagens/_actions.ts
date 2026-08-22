@@ -11,7 +11,11 @@ export async function markRead(id: string, read: boolean) {
 }
 
 export async function deleteSubmission(id: string) {
-  await prisma.contactSubmission.delete({ where: { id } });
+  try {
+    await prisma.contactSubmission.delete({ where: { id } });
+  } catch {
+    return { error: 'Não foi possível excluir a mensagem. Tente novamente.' };
+  }
   revalidatePath('/admin');
   revalidatePath('/admin/mensagens');
   redirect('/admin/mensagens');

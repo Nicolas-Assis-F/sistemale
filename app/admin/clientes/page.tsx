@@ -4,6 +4,7 @@ import { buttonVariants } from '@/components/ui/button';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
+import { ConfirmDeleteButton } from '@/components/admin/ConfirmDeleteButton';
 import { deleteCustomer } from './_actions';
 
 export default async function CustomersPage() {
@@ -45,9 +46,11 @@ export default async function CustomersPage() {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Link href={`/admin/clientes/${c.id}`} className={buttonVariants({ variant: 'ghost', size: 'sm' })}>Editar</Link>
-                    <form action={async () => { 'use server'; await deleteCustomer(c.id); }}>
-                      <button type="submit" className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' text-destructive hover:text-destructive'}>Excluir</button>
-                    </form>
+                    <ConfirmDeleteButton
+                      action={() => deleteCustomer(c.id)}
+                      confirmMessage={`Excluir "${c.name}"? Esta ação não pode ser desfeita.`}
+                      label="Excluir"
+                    />
                   </div>
                 </TableCell>
               </TableRow>
