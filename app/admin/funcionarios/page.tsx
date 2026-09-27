@@ -1,3 +1,7 @@
+import { formatCurrency } from '@/lib/format';
+import { PAY_TYPE_LABELS } from '@/lib/finance-categories';
+import { formatBps } from '@/lib/finance-labels';
+import { centsToCurrencyInput } from '@/lib/format';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
@@ -31,6 +35,7 @@ export default async function EmployeesPage({ searchParams }: { searchParams: Pr
           id: row.id,
           title: <Link href={adminListHref('funcionarios', q, { editar: row.id })} className="hover:text-le-blue">{row.name}</Link>,
           details: [{ label: 'Função', value: row.role || '—' },
+              { label: 'Remuneração', value: [PAY_TYPE_LABELS[row.payType], row.salaryCents ? formatCurrency(row.salaryCents) : null, row.payType !== 'SALARIO' && row.commissionBps ? `${formatBps(row.commissionBps)} de comissão` : null].filter(Boolean).join(' · ') },
               { label: 'Status', value: row.active ? 'Ativo' : 'Inativo' }],
           actions: <><Link href={adminListHref('funcionarios', q, { editar: row.id })} className={buttonVariants({ variant: 'outline', size: 'sm' })}>Editar</Link><ConfirmDeleteButton action={deleteEmployee.bind(null, row.id)} confirmMessage={`Excluir "${row.name}"? Esta ação não pode ser desfeita.`} label="Excluir" /></>,
         }))} />
@@ -41,7 +46,7 @@ export default async function EmployeesPage({ searchParams }: { searchParams: Pr
           active: selected.active,
           phone: selected.phone ?? '',
           pixKey: selected.pixKey ?? '',
-          commission: selected.commissionBps ? String(selected.commissionBps / 100).replace('.', ',') : '',
+          commission: selected.commissionBps ? String(selected.commissionBps / 100).replace('.', ',') : '', payType: selected.payType, salary: selected.salaryCents ? centsToCurrencyInput(selected.salaryCents) : '', payDay: String(selected.payDay),
         } : undefined} />
       </EntitySheet>}
     </div>

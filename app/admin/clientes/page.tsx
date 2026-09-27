@@ -1,3 +1,4 @@
+import { CustomerHistory } from '@/components/admin/CustomerHistory';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
@@ -41,6 +42,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
           name: selected.name, doc: selected.doc ?? '', email: selected.email ?? '', phone: selected.phone ?? '',
           address: selected.address ?? '', city: selected.city ?? '', state: selected.state ?? '', zip: selected.zip ?? '', contact: selected.contact ?? '',
         } : undefined} />
+        {selected && <CustomerHistory customerId={selected.id} />}
       </EntitySheet>}
     </div>
   );

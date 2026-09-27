@@ -138,3 +138,17 @@ function revalidateProductViews() {
   revalidatePath('/vitrine', 'layout');
   revalidatePath('/admin/produtos');
 }
+
+/** Edição inline do preço na listagem (0 = sob cotação). */
+export async function updateProductPrice(id: string, priceReais: string): Promise<{ error: string } | { ok: true; priceCents: number }> {
+  if (!(await isAuthenticated())) return { error: 'Sessão expirada. Entre novamente no painel.' };
+  const cents = parseImportPrice(priceReais.trim() === '' ? '0' : priceReais);
+  if (cents === null || cents < 0) return { error: 'Preço inválido. Use 12.500,00 ou 0 para sob cotação.' };
+  try {
+    await prisma.product.update({ where: { id }, data: { priceCents: cents } });
+  } catch {
+    return { error: 'Não foi possível salvar o preço.' };
+  }
+  revalidateProductViews();
+  return { ok: true, priceCents: cents };
+}

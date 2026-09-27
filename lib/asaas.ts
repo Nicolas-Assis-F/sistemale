@@ -168,6 +168,8 @@ export async function createAsaasCustomer(c: {
       mobilePhone: c.mobilePhone?.replace(/\D/g, '') || undefined,
       postalCode: c.postalCode?.replace(/\D/g, '') || undefined,
       externalReference: c.externalReference,
+      // Mantém os avisos automáticos do Asaas (criação, vencimento próximo, atraso)
+      notificationDisabled: false,
     }),
   });
 }
@@ -180,6 +182,9 @@ export async function createAsaasPayment(p: {
   description: string;
   externalReference: string;
   installmentCount?: number;
+  /** Multa por atraso (%) e juros de mora ao mês (%) — cobrados pelo Asaas após o vencimento. */
+  finePercent?: number;
+  interestPercent?: number;
 }) {
   const installments = p.installmentCount && p.installmentCount > 1 ? p.installmentCount : undefined;
   return asaasFetch<AsaasPayment>('/payments', {
@@ -190,6 +195,8 @@ export async function createAsaasPayment(p: {
       dueDate: p.dueDate,
       description: p.description.slice(0, 500),
       externalReference: p.externalReference,
+      ...(p.finePercent ? { fine: { value: p.finePercent, type: 'PERCENTAGE' } } : {}),
+      ...(p.interestPercent ? { interest: { value: p.interestPercent } } : {}),
       ...(installments
         ? { installmentCount: installments, totalValue: toReais(p.amountCents) }
         : { value: toReais(p.amountCents) }),

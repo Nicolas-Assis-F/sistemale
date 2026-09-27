@@ -31,7 +31,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         customer: true,
         employee: { select: { name: true } },
         items: { orderBy: { position: 'asc' } },
-        payments: { orderBy: { createdAt: 'desc' } },
+        payments: { orderBy: [{ dueDate: 'asc' }, { createdAt: 'asc' }] },
         commissions: { include: { employee: { select: { name: true } } }, orderBy: { createdAt: 'asc' } },
         events: { orderBy: { createdAt: 'desc' }, take: 50 },
       },
@@ -177,7 +177,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               id: p.id, provider: p.provider, method: p.method, status: p.status, amountCents: p.amountCents, netCents: p.netCents,
               dueDate: p.dueDate?.toISOString() ?? null, paidAt: p.paidAt?.toISOString() ?? null,
               invoiceUrl: p.invoiceUrl, bankSlipUrl: p.bankSlipUrl, pixPayload: p.pixPayload, pixQrImage: p.pixQrImage,
-              installmentCount: p.installmentCount, createdAt: p.createdAt.toISOString(),
+              installmentCount: p.installmentCount, planLabel: p.planLabel, finePercent: p.finePercent, interestPercent: p.interestPercent, createdAt: p.createdAt.toISOString(),
             }))}
           />
           <CommissionPanel

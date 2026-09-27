@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { parsePercentToBps } from '@/lib/finance-labels';
+import { parseCurrencyToCents } from '@/lib/format';
 import { requireAdmin } from '@/lib/auth';
 
 const employeeSchema = z.object({
@@ -14,6 +15,9 @@ const employeeSchema = z.object({
   phone: z.string().max(30).optional().or(z.literal('')),
   pixKey: z.string().max(140).optional().or(z.literal('')),
   commission: z.string().optional().or(z.literal('')),
+  payType: z.enum(['SALARIO', 'COMISSAO', 'SALARIO_COMISSAO']).default('SALARIO'),
+  salary: z.string().optional().or(z.literal('')),
+  payDay: z.coerce.number().int().min(1).max(28).default(5),
 });
 
 function toData(data: z.infer<typeof employeeSchema>) {
@@ -24,7 +28,11 @@ function toData(data: z.infer<typeof employeeSchema>) {
     active: data.active,
     phone: data.phone || null,
     pixKey: data.pixKey || null,
-    commissionBps: bps ?? 0,
+    // Assalariado puro não guarda percentual (evita comissão acidental)
+    commissionBps: data.payType === 'SALARIO' ? 0 : (bps ?? 0),
+    payType: data.payType,
+    salaryCents: data.payType === 'COMISSAO' ? 0 : parseCurrencyToCents(data.salary ?? ''),
+    payDay: data.payDay,
   };
 }
 

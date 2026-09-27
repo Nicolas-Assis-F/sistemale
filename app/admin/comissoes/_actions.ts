@@ -8,11 +8,13 @@ import { requireAdmin } from '@/lib/auth';
 import { formatCurrency } from '@/lib/format';
 import { COMMISSION_ROLE_LABELS, formatBps, parsePercentToBps } from '@/lib/finance-labels';
 import { computeCommission, logOrderEvent, recalcOrder } from '@/lib/orders/ledger';
+import { earnsCommission } from '@/lib/finance-categories';
 
 type Result = { ok: true; message?: string } | { error: string };
 
 function refresh(orderId?: string) {
   if (orderId) revalidatePath(`/admin/pedidos/${orderId}`);
+  revalidatePath('/admin/financeiro');
   revalidatePath('/admin/comissoes');
   revalidatePath('/admin/funcionarios');
 }
@@ -33,10 +35,11 @@ export async function addOrderCommission(orderId: string, formData: FormData): P
 
   const [order, employee] = await Promise.all([
     prisma.order.findUnique({ where: { id: orderId }, select: { totalCents: true, status: true } }),
-    prisma.employee.findUnique({ where: { id: parsed.data.employeeId }, select: { name: true } }),
+    prisma.employee.findUnique({ where: { id: parsed.data.employeeId }, select: { name: true, payType: true } }),
   ]);
   if (!order || !employee) return { error: 'Pedido ou funcionário não encontrado.' };
   if (order.status === 'CANCELADO') return { error: 'Pedido cancelado não gera comissão.' };
+  if (!earnsCommission(employee.payType)) return { error: `${employee.name} recebe só salário. Altere a remuneração no cadastro para incluir comissão.` };
 
   try {
     await prisma.commission.create({
@@ -101,6 +104,17 @@ export async function payEmployeeCommissions(employeeId: string, formData: FormD
   await prisma.$transaction(async (tx) => {
     const payout = await tx.commissionPayout.create({
       data: { employeeId, amountCents, paidAt, method: parsed.data.method || null, notes: parsed.data.notes || null },
+    });
+    // Todo pagamento de comissão entra no financeiro como despesa paga
+    const employee = await tx.employee.findUniqueOrThrow({ where: { id: employeeId }, select: { name: true } });
+    await tx.financeEntry.create({
+      data: {
+        type: 'DESPESA', category: 'COMISSOES', status: 'PAGO',
+        description: `Comissões — ${employee.name} (${due.length} pedido(s))`,
+        amountCents, dueDate: paidAt, paidAt, competence: parsed.data.paidAt.slice(0, 7),
+        method: parsed.data.method || null, notes: parsed.data.notes || null,
+        employeeId, payoutId: payout.id,
+      },
     });
     await tx.commission.updateMany({
       where: { id: { in: due.map((c) => c.id) }, status: 'LIBERADA' },

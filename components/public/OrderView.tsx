@@ -20,7 +20,7 @@ export const ORDER_VIEW_SELECT = {
   payments: {
     where: { status: { not: 'CANCELADO' } },
     orderBy: { dueDate: 'asc' },
-    select: { id: true, method: true, status: true, amountCents: true, dueDate: true, paidAt: true, invoiceUrl: true, bankSlipUrl: true, pixPayload: true, pixQrImage: true },
+    select: { id: true, method: true, status: true, amountCents: true, dueDate: true, paidAt: true, invoiceUrl: true, bankSlipUrl: true, pixPayload: true, pixQrImage: true, planLabel: true, finePercent: true, interestPercent: true },
   },
 } satisfies Prisma.OrderSelect;
 
@@ -80,9 +80,10 @@ export function OrderView({ order, backLink }: { order: OrderViewData; backLink?
             <div key={p.id} className="rounded-3xl border border-le-line bg-le-subtle p-5 sm:p-6">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
+                  {p.planLabel && <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-le-blue">{p.planLabel}</p>}
                   <p className="font-heading text-2xl font-semibold tracking-tight">{formatCurrency(p.amountCents)}</p>
                   <p className="mt-1 text-xs text-le-muted">
-                    {PAYMENT_METHOD_LABELS[p.method]} · vence {fmt(p.dueDate)}{p.status === 'VENCIDO' ? ' · vencido' : ''}
+                    {PAYMENT_METHOD_LABELS[p.method]} · vence {fmt(p.dueDate)}{p.status === 'VENCIDO' ? ' · vencido' : ''}{p.finePercent ? ` · após o vencimento: multa ${p.finePercent}% + juros ${p.interestPercent}% ao mês` : ''}
                   </p>
                 </div>
                 {p.invoiceUrl && (

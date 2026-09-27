@@ -8,10 +8,9 @@ import { requireAdmin } from '@/lib/auth';
 import { formatCurrency, parseCurrencyToCents } from '@/lib/format';
 import { PAYMENT_METHOD_LABELS } from '@/lib/finance-labels';
 import { ensurePublicToken, logOrderEvent, recalcOrder } from '@/lib/orders/ledger';
-import {
-  AsaasError, METHOD_TO_BILLING, asaasConfigIssue, createAsaasCustomer, createAsaasPayment,
-  deleteAsaasPayment, getAsaasPayment, getAsaasPixQrCode, isValidCpfCnpj, mapAsaasStatus, toCents,
-} from '@/lib/asaas';
+import { AsaasError, asaasConfigIssue, deleteAsaasPayment, getAsaasPayment, isValidCpfCnpj } from '@/lib/asaas';
+import { ensureAsaasCustomer, issueAsaasCharge } from '@/lib/orders/asaas-charge';
+import { BILLING_RULES, buildPlan, evaluateEligibility, type CustomerCredit } from '@/lib/billing/plan';
 import { applyAsaasPayment } from '@/lib/orders/asaas-sync';
 import { notifyChargeCreated } from '@/lib/orders/notify';
 
@@ -52,70 +51,156 @@ export async function createAsaasCharge(orderId: string, formData: FormData): Pr
     return { error: 'O cliente precisa de CPF/CNPJ válido para gerar cobrança. Atualize o cadastro do cliente.' };
   }
 
-  // 1) Registro local antes da chamada externa: o id dele vai como externalReference
-  const payment = await prisma.payment.create({
-    data: {
-      orderId,
-      provider: 'ASAAS',
-      method: d.method as PaymentMethod,
-      amountCents,
-      dueDate: new Date(`${d.dueDate}T12:00:00`),
-      description: d.description || `Pedido ${order.number}`,
-      installmentCount: d.installments > 1 ? d.installments : null,
-    },
-  });
-
-  let remote: Awaited<ReturnType<typeof createAsaasPayment>>;
+  const hasLateFees = d.method === 'BOLETO' || d.method === 'CLIENTE_ESCOLHE';
+  let payment: Awaited<ReturnType<typeof issueAsaasCharge>>;
   try {
-    let asaasCustomerId = c.asaasCustomerId;
-    if (!asaasCustomerId) {
-      const created = await createAsaasCustomer({
-        name: c.name, cpfCnpj: c.doc, email: c.email, mobilePhone: c.phone, postalCode: c.zip, externalReference: c.id,
-      });
-      asaasCustomerId = created.id;
-      await prisma.customer.update({ where: { id: c.id }, data: { asaasCustomerId } });
-    }
-    remote = await createAsaasPayment({
-      customer: asaasCustomerId,
-      billingType: METHOD_TO_BILLING[d.method as PaymentMethod]!,
+    payment = await issueAsaasCharge({
+      orderId,
+      asaasCustomerId: await ensureAsaasCustomer(c),
+      method: d.method as PaymentMethod,
       amountCents,
       dueDate: d.dueDate,
       description: d.description || `Pedido ${order.number} — L&E Torneadora`,
-      externalReference: payment.id,
       installmentCount: d.installments,
+      // Multa/juros por atraso só fazem sentido em boleto (ou quando o cliente escolhe)
+      finePercent: hasLateFees ? BILLING_RULES.finePercent : undefined,
+      interestPercent: hasLateFees ? BILLING_RULES.interestPercent : undefined,
     });
   } catch (error) {
-    // Nada foi criado no Asaas: descarta o registro local
-    await prisma.payment.delete({ where: { id: payment.id } }).catch(() => {});
     return { error: error instanceof AsaasError ? `Asaas: ${error.message}` : 'Não foi possível gerar a cobrança. Tente novamente.' };
   }
 
-  // A partir daqui a cobrança existe no Asaas: o registro local nunca é apagado
-  const pix = remote.billingType === 'PIX' ? await getAsaasPixQrCode(remote.id).catch(() => null) : null;
-  await prisma.payment.update({
-    where: { id: payment.id },
-    data: {
-      externalId: remote.id,
-      amountCents: toCents(remote.value), // em parcelamento: valor da 1ª parcela
-      status: mapAsaasStatus(remote.status, remote.deleted),
-      invoiceUrl: remote.invoiceUrl ?? null,
-      bankSlipUrl: remote.bankSlipUrl ?? null,
-      pixPayload: pix?.payload ?? null,
-      pixQrImage: pix?.encodedImage ?? null,
-      lastSyncedAt: new Date(),
-    },
-  });
   await logOrderEvent(
     prisma, orderId, 'PAYMENT',
     `Cobrança Asaas gerada: ${PAYMENT_METHOD_LABELS[d.method as PaymentMethod]} · ${formatCurrency(amountCents)}${d.installments > 1 ? ` em ${d.installments}x` : ''} · vence ${d.dueDate.split('-').reverse().join('/')}`,
-    'admin', { paymentId: payment.id, externalId: remote.id },
+    'admin', { paymentId: payment.id, externalId: payment.externalId },
   );
-  // Demais parcelas chegam pelo webhook PAYMENT_CREATED (mesmo externalReference)
+  // Demais parcelas (parcelamento nativo) chegam pelo webhook PAYMENT_CREATED
   await recalcOrder(orderId, 'admin');
   await ensurePublicToken(orderId);
-  await notifyChargeCreated(orderId, toCents(remote.value), d.dueDate);
+  await notifyChargeCreated(orderId, payment.amountCents, d.dueDate);
   refresh(orderId);
   return { ok: true, message: 'Cobrança gerada no Asaas e cliente avisado por e-mail.' };
+}
+
+const planSchema = z.object({
+  down: z.string().min(1, 'Informe a entrada'),
+  installments: z.coerce.number().int().min(1).max(5),
+  downMethod: z.enum(['PIX', 'CLIENTE_ESCOLHE', 'BOLETO']),
+  downDueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Informe o vencimento da entrada'),
+  firstInstallmentDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Informe o vencimento da 1ª parcela'),
+  override: z.string().optional(),
+  notes: z.string().max(300).optional().or(z.literal('')),
+});
+
+/**
+ * Parcelamento negociado: entrada (≥ 45%) + até 5 boletos mensais, cada um uma
+ * cobrança própria no Asaas com multa e juros por atraso. Regras em lib/billing/plan.ts.
+ */
+export async function createPaymentPlan(orderId: string, formData: FormData): Promise<Result> {
+  await requireAdmin();
+  const issue = asaasConfigIssue();
+  if (issue) return { error: `Asaas desligado: ${issue}.` };
+  const parsed = planSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Dados inválidos.' };
+  const d = parsed.data;
+
+  const order = await prisma.order.findUnique({ where: { id: orderId }, include: { customer: true } });
+  if (!order) return { error: 'Pedido não encontrado.' };
+  if (order.status === 'CANCELADO') return { error: 'Pedido cancelado não pode ser cobrado.' };
+  const c = order.customer;
+  if (!c.doc || !isValidCpfCnpj(c.doc)) return { error: 'O cliente precisa de CPF/CNPJ válido. Atualize o cadastro.' };
+
+  // Saldo = total − pago − o que já está em cobrança aberta
+  const openCharges = await prisma.payment.aggregate({ where: { orderId, status: { in: ['PENDENTE', 'VENCIDO'] } }, _sum: { amountCents: true } });
+  const balance = order.totalCents - order.paidCents - (openCharges._sum.amountCents ?? 0);
+  if (balance <= 0) return { error: 'Não há saldo a parcelar (já pago ou com cobranças em aberto). Cancele as cobranças abertas antes.' };
+
+  const credit = await getCustomerCredit(c.id);
+  const elig = evaluateEligibility(balance, credit);
+  if (d.installments > elig.maxInstallments) return { error: `Para este valor o máximo é ${elig.maxInstallments}x.` };
+  if (!elig.eligible && d.override !== 'true') return { error: `Parcelamento não recomendado: ${elig.reasons[0]} Marque "liberar mesmo assim" para seguir.` };
+
+  const { lines, error } = buildPlan({
+    balanceCents: balance, downCents: parseCurrencyToCents(d.down), installments: d.installments,
+    downDueDate: d.downDueDate, firstInstallmentDate: d.firstInstallmentDate,
+  });
+  if (error) return { error };
+
+  const plan = await prisma.paymentPlan.create({
+    data: {
+      orderId, totalCents: balance, downPaymentCents: lines[0].amountCents, installments: d.installments,
+      finePercent: BILLING_RULES.finePercent, interestPercent: BILLING_RULES.interestPercent, notes: d.notes || null,
+    },
+  });
+
+  const asaasCustomerId = await ensureAsaasCustomer(c).catch((e) => e as Error);
+  if (asaasCustomerId instanceof Error) {
+    await prisma.paymentPlan.delete({ where: { id: plan.id } });
+    return { error: asaasCustomerId instanceof AsaasError ? `Asaas: ${asaasCustomerId.message}` : 'Falha ao cadastrar o cliente no Asaas.' };
+  }
+
+  // Emite em sequência; se o Asaas falhar no meio, o que já foi emitido fica registrado
+  const issued: string[] = [];
+  let failure = '';
+  for (const line of lines) {
+    try {
+      await issueAsaasCharge({
+        orderId, asaasCustomerId,
+        method: line.kind === 'ENTRADA' ? (d.downMethod as PaymentMethod) : 'BOLETO',
+        amountCents: line.amountCents,
+        dueDate: line.dueDate,
+        description: `Pedido ${order.number} — ${line.label}`,
+        finePercent: BILLING_RULES.finePercent,
+        interestPercent: BILLING_RULES.interestPercent,
+        planId: plan.id,
+        planLabel: line.label,
+      });
+      issued.push(`${line.label} ${formatCurrency(line.amountCents)}`);
+    } catch (e) {
+      failure = e instanceof AsaasError ? e.message : 'erro de comunicação';
+      break;
+    }
+  }
+
+  if (!issued.length) {
+    await prisma.paymentPlan.delete({ where: { id: plan.id } });
+    return { error: `Asaas: ${failure}` };
+  }
+  await logOrderEvent(
+    prisma, orderId, 'PAYMENT',
+    `Parcelamento criado: entrada ${formatCurrency(lines[0].amountCents)} + ${d.installments}x no boleto (multa ${BILLING_RULES.finePercent}%, juros ${BILLING_RULES.interestPercent}% a.m.)${failure ? ` — INCOMPLETO: ${failure}` : ''}`,
+    'admin', { planId: plan.id, issued },
+  );
+  await recalcOrder(orderId, 'admin');
+  await ensurePublicToken(orderId);
+  await notifyChargeCreated(orderId, lines[0].amountCents, lines[0].dueDate);
+  refresh(orderId);
+  return failure
+    ? { error: `Emitidas ${issued.length} de ${lines.length} cobranças. Asaas recusou a próxima: ${failure}. Emita o restante manualmente.` }
+    : { ok: true, message: `Parcelamento emitido: ${lines.length} cobranças no Asaas. Cliente avisado.` };
+}
+
+/** Histórico de crédito do cliente (base da análise de parcelamento). */
+async function getCustomerCredit(customerId: string): Promise<CustomerCredit> {
+  const [paidOrders, paid, overdue] = await Promise.all([
+    prisma.order.count({ where: { customerId, paymentStatus: 'PAGO' } }),
+    prisma.payment.aggregate({ where: { order: { customerId }, status: { in: ['RECEBIDO', 'CONFIRMADO'] } }, _sum: { amountCents: true } }),
+    prisma.payment.count({ where: { order: { customerId, status: { not: 'CANCELADO' } }, OR: [{ status: 'VENCIDO' }, { status: 'PENDENTE', dueDate: { lt: new Date() } }] } }),
+  ]);
+  return { paidOrders, paidCents: paid._sum.amountCents ?? 0, overdueCount: overdue };
+}
+
+/** Dados para o simulador no painel do pedido. */
+export async function getPlanContext(orderId: string): Promise<{ balanceCents: number; credit: CustomerCredit } | { error: string }> {
+  await requireAdmin();
+  const order = await prisma.order.findUnique({ where: { id: orderId }, select: { customerId: true, totalCents: true, paidCents: true } });
+  if (!order) return { error: 'Pedido não encontrado.' };
+  const openCharges = await prisma.payment.aggregate({ where: { orderId, status: { in: ['PENDENTE', 'VENCIDO'] } }, _sum: { amountCents: true } });
+  return {
+    balanceCents: Math.max(0, order.totalCents - order.paidCents - (openCharges._sum.amountCents ?? 0)),
+    credit: await getCustomerCredit(order.customerId),
+  };
 }
 
 const manualSchema = z.object({

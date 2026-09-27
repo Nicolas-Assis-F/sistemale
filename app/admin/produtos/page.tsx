@@ -15,6 +15,7 @@ import { DeleteProductButton } from "@/components/admin/DeleteProductButton";
 import { StatCard } from "@/components/admin/StatCard";
 import { ProductFilters } from "@/components/admin/ProductFilters";
 import { ProductFlagToggle } from "@/components/admin/ProductFlagToggle";
+import { ProductPriceInline } from "@/components/admin/ProductPriceInline";
 import { ProductSheet } from "@/components/admin/ProductSheet";
 import { createProduct, updateProduct } from "./_actions";
 import {
@@ -175,7 +176,7 @@ export default async function ProductsPage({
                 <TableHead className="pl-6">Produto</TableHead>{" "}
                 <TableHead>Referência</TableHead>
                 <TableHead>Linha</TableHead>
-                <TableHead>Condição</TableHead>
+                <TableHead>Preço <span className="font-normal normal-case text-le-muted">(clique p/ editar)</span></TableHead>
                 <TableHead>Vitrine</TableHead>
                 <TableHead className="w-16 text-center">Destaque</TableHead>
                 <TableHead className="text-right pr-6">Ações</TableHead>
@@ -226,10 +227,8 @@ export default async function ProductsPage({
                   <TableCell data-label="Linha" className="text-xs text-le-muted">
                     {p.category.name}
                   </TableCell>
-                  <TableCell data-label="Condição" className="text-xs text-le-muted">
-                    {p.priceCents > 0
-                      ? formatCurrency(p.priceCents)
-                      : "Sob cotação"}
+                  <TableCell data-label="Preço">
+                    <ProductPriceInline id={p.id} name={p.name} priceCents={p.priceCents} />
                   </TableCell>
                   <TableCell data-label="Vitrine">
                     <ProductFlagToggle

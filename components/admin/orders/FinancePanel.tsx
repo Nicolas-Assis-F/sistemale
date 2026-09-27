@@ -18,6 +18,7 @@ import {
 } from '@/app/admin/pedidos/_payment-actions';
 import { cn } from '@/lib/utils';
 import { toast } from '../toast';
+import { PaymentPlanDialog } from './PaymentPlanDialog';
 
 export interface PaymentRow {
   id: string;
@@ -33,6 +34,9 @@ export interface PaymentRow {
   pixPayload: string | null;
   pixQrImage: string | null;
   installmentCount: number | null;
+  planLabel?: string | null;
+  finePercent?: number | null;
+  interestPercent?: number | null;
   createdAt: string;
 }
 
@@ -54,7 +58,7 @@ const inputCls = 'h-10 w-full rounded-xl border border-le-line bg-white px-3 tex
 type Result = { ok: true; message?: string } | { error: string };
 
 export function FinancePanel({ orderId, orderCancelled, totalCents, paidCents, paymentStatus, payments, asaas, customerDocOk }: Props) {
-  const [dialog, setDialog] = useState<'asaas' | 'manual' | null>(null);
+  const [dialog, setDialog] = useState<'asaas' | 'manual' | 'plan' | null>(null);
   const [pending, start] = useTransition();
   const [busyId, setBusyId] = useState<string | null>(null);
   const balance = Math.max(0, totalCents - paidCents);
@@ -120,6 +124,14 @@ export function FinancePanel({ orderId, orderCancelled, totalCents, paidCents, p
             >
               <Plus className="h-3.5 w-3.5" /> Lançar recebimento
             </button>
+            <button
+              onClick={() => setDialog('plan')}
+              disabled={!asaas.enabled || balance - openCents <= 0}
+              title={balance - openCents <= 0 ? 'Sem saldo livre: cancele as cobranças em aberto para renegociar' : undefined}
+              className="col-span-2 flex h-10 items-center justify-center gap-1.5 rounded-xl border border-dashed border-le-blue-border text-xs font-semibold text-le-blue transition-colors hover:bg-le-tint disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              <CreditCard className="h-3.5 w-3.5" /> Parcelar com entrada (boletos)
+            </button>
           </div>
         )}
         {!asaas.enabled && (
@@ -137,10 +149,11 @@ export function FinancePanel({ orderId, orderCancelled, totalCents, paidCents, p
           <li key={p.id} className={cn('px-5 py-3.5', p.status === 'CANCELADO' && 'opacity-55')}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-sm font-semibold">{formatCurrency(p.amountCents)}</p>
+                <p className="text-sm font-semibold">{p.planLabel && <span className="mr-1.5 rounded-md bg-le-tint px-1.5 py-0.5 text-[11px] font-semibold text-le-blue">{p.planLabel}</span>}{formatCurrency(p.amountCents)}</p>
                 <p className="mt-0.5 text-[11px] text-le-muted">
                   {PAYMENT_METHOD_LABELS[p.method]} · {p.provider === 'ASAAS' ? 'Asaas' : 'Manual'}
                   {p.installmentCount ? ` · parcelado ${p.installmentCount}x` : ''}
+                  {p.finePercent ? ` · multa ${p.finePercent}% + juros ${p.interestPercent}% a.m.` : ''}
                 </p>
                 <p className="text-[11px] text-le-muted">
                   {p.paidAt ? `Pago em ${fmtDate(p.paidAt)}` : `Vence ${fmtDate(p.dueDate)}`}
@@ -221,6 +234,7 @@ export function FinancePanel({ orderId, orderCancelled, totalCents, paidCents, p
           />
         </DialogContent>
       </Dialog>
+      <PaymentPlanDialog orderId={orderId} open={dialog === 'plan'} onOpenChange={(o) => setDialog(o ? 'plan' : null)} />
     </section>
   );
 }

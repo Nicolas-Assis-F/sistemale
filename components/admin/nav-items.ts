@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Package, Tag, ShoppingCart, FileText, Wrench, Images,
-  MessageSquare, ClipboardList, Users, HardHat, BadgePercent,
+  MessageSquare, ClipboardList, Users, HardHat, BadgePercent, Landmark,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -9,7 +9,7 @@ export interface AdminNavItem {
   icon: LucideIcon;
   label: string;
   /** Chave do contador exibido como badge (preenchido pelo layout). */
-  badgeKey?: 'unread' | 'inFabrication' | 'commissionsDue';
+  badgeKey?: 'unread' | 'inFabrication' | 'commissionsDue' | 'financeOverdue';
 }
 
 export interface AdminNavGroup {
@@ -18,7 +18,12 @@ export interface AdminNavGroup {
 }
 
 export const ADMIN_NAV: AdminNavGroup[] = [
-  { items: [{ href: '/admin', icon: LayoutDashboard, label: 'Visão geral' }] },
+  {
+    items: [
+      { href: '/admin', icon: LayoutDashboard, label: 'Visão geral' },
+      { href: '/admin/financeiro', icon: Landmark, label: 'Financeiro', badgeKey: 'financeOverdue' },
+    ],
+  },
   {
     title: 'Operação',
     items: [

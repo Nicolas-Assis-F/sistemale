@@ -1,3 +1,4 @@
+import { centsToCurrencyInput } from '@/lib/format';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
@@ -27,7 +28,7 @@ export default async function EditEmployeePage({ params }: { params: Promise<{ i
           active: employee.active,
           phone: employee.phone ?? '',
           pixKey: employee.pixKey ?? '',
-          commission: employee.commissionBps ? String(employee.commissionBps / 100).replace('.', ',') : '',
+          commission: employee.commissionBps ? String(employee.commissionBps / 100).replace('.', ',') : '', payType: employee.payType, salary: employee.salaryCents ? centsToCurrencyInput(employee.salaryCents) : '', payDay: String(employee.payDay),
         }}
       />
     </div>

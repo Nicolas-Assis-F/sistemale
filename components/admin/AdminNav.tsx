@@ -10,16 +10,18 @@ export function AdminNav({
   unreadCount = 0,
   inFabricationCount = 0,
   commissionsDueCount = 0,
+  financeOverdueCount = 0,
   onNavigate,
 }: {
   unreadCount?: number;
   inFabricationCount?: number;
   commissionsDueCount?: number;
+  financeOverdueCount?: number;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
 
-  const counts = { unread: unreadCount, inFabrication: inFabricationCount, commissionsDue: commissionsDueCount };
+  const counts = { unread: unreadCount, inFabrication: inFabricationCount, commissionsDue: commissionsDueCount, financeOverdue: financeOverdueCount };
   const groups = ADMIN_NAV.map((g) => ({
     ...g,
     items: g.items.map((i) => ({ ...i, badge: i.badgeKey ? counts[i.badgeKey] : 0 })),

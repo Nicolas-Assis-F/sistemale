@@ -215,8 +215,9 @@ export async function deleteOrder(id: string) {
  */
 async function syncResponsibleCommission(orderId: string, employeeId: string | null) {
   if (!employeeId) return;
-  const employee = await prisma.employee.findUnique({ where: { id: employeeId }, select: { name: true, commissionBps: true } });
-  if (!employee?.commissionBps) return;
+  const employee = await prisma.employee.findUnique({ where: { id: employeeId }, select: { name: true, commissionBps: true, payType: true } });
+  // Assalariado (sem comissão) não gera comissão automática
+  if (!employee?.commissionBps || employee.payType === 'SALARIO') return;
   const exists = await prisma.commission.findUnique({
     where: { orderId_employeeId_role: { orderId, employeeId, role: 'PRODUCAO' } },
   });
