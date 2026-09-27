@@ -1,67 +1,48 @@
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { buttonVariants } from '@/components/ui/button';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
+import { AdminFilters } from '@/components/admin/AdminFilters';
+import { AdminRecords } from '@/components/admin/AdminRecords';
+import { EntitySheet } from '@/components/admin/EntitySheet';
+import { ServiceItemForm } from '@/components/admin/ServiceItemForm';
 import { ConfirmDeleteButton } from '@/components/admin/ConfirmDeleteButton';
-import { deleteService } from './_actions';
+import { adminListHref, type AdminListParams } from '@/lib/admin-list';
+import { createService, updateService, deleteService } from './_actions';
 
-export default async function AdminServicesPage() {
-  const services = await prisma.serviceItem.findMany({ orderBy: { order: 'asc' } });
-
+export default async function ServicesPage({ searchParams }: { searchParams: Promise<AdminListParams> }) {
+  const { q = '', novo, editar } = await searchParams;
+  const [rows, selected] = await Promise.all([
+    prisma.serviceItem.findMany({ where: q ? { OR: [{ title: { contains: q, mode: 'insensitive' } }, { description: { contains: q, mode: 'insensitive' } }] } : {}, orderBy: { order: 'asc' } }),
+    editar ? prisma.serviceItem.findUnique({ where: { id: editar } }) : Promise.resolve(null),
+  ]);
+  if (editar && !selected) notFound();
+  const closeHref = adminListHref('servicos', q);
+  const createHref = adminListHref('servicos', q, { novo: '1' });
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Serviços</h1>
-          <p className="text-sm text-muted-foreground">{services.length} serviços · exibidos na página /servicos</p>
-        </div>
-        <Link href="/admin/servicos/novo" className={buttonVariants()}>+ Novo Serviço</Link>
+    <div className="le-admin-page">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div><p className="le-kicker">Gestão / Serviços</p><h1 className="le-admin-title">Serviços</h1><p className="mt-2 text-sm text-le-muted">{rows.length} registro(s){q ? ' encontrados' : ' cadastrados'}</p></div>
+        <Link data-entity-create href={createHref} className={buttonVariants()}>+ Novo serviço</Link>
       </div>
-
-      <div className="overflow-hidden rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Título</TableHead>
-              <TableHead className="hidden md:table-cell">Descrição</TableHead>
-              <TableHead className="text-right">Ordem</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {services.map((s) => (
-              <TableRow key={s.id}>
-                <TableCell className="font-medium">{s.title}</TableCell>
-                <TableCell className="hidden max-w-md truncate text-sm text-muted-foreground md:table-cell">{s.description}</TableCell>
-                <TableCell className="text-right">{s.order}</TableCell>
-                <TableCell>
-                  <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${s.active ? 'bg-emerald-500/15 text-emerald-600' : 'bg-muted text-muted-foreground'}`}>
-                    {s.active ? 'Ativo' : 'Inativo'}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Link href={`/admin/servicos/${s.id}`} className={buttonVariants({ variant: 'ghost', size: 'sm' })}>Editar</Link>
-                    <ConfirmDeleteButton
-                      action={() => deleteService(s.id)}
-                      confirmMessage={`Excluir "${s.title}"? Esta ação não pode ser desfeita.`}
-                      label="Excluir"
-                    />
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-            {services.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">Nenhum serviço cadastrado.</TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <AdminFilters placeholder="Buscar serviços" />
+      <AdminRecords createHref={createHref} createLabel="Cadastrar serviço" empty={q ? 'Nenhum resultado. Tente outro termo de busca.' : 'Nenhum registro ainda. Comece pelo primeiro cadastro.'}
+        rows={rows.map((row) => ({
+          id: row.id,
+          title: <Link href={adminListHref('servicos', q, { editar: row.id })} className="hover:text-le-blue">{row.title}</Link>,
+          details: [{ label: 'Ordem', value: row.order },
+              { label: 'Status', value: row.active ? 'Ativo' : 'Inativo' }],
+          actions: <><Link href={adminListHref('servicos', q, { editar: row.id })} className={buttonVariants({ variant: 'outline', size: 'sm' })}>Editar</Link><ConfirmDeleteButton action={deleteService.bind(null, row.id)} confirmMessage={`Excluir "${row.title}"? Esta ação não pode ser desfeita.`} label="Excluir" /></>,
+        }))} />
+      {(novo === '1' || selected) && <EntitySheet key={selected?.id ?? 'new'} title={selected ? 'Editar serviço' : 'Cadastrar serviço'} closeHref={closeHref}>
+        <ServiceItemForm action={selected ? updateService.bind(null, selected.id) : createService} defaultValues={selected ? {
+          title: selected.title,
+          description: selected.description,
+          icon: selected.icon ?? '',
+          order: selected.order,
+          active: selected.active,
+        } : undefined} />
+      </EntitySheet>}
     </div>
   );
 }

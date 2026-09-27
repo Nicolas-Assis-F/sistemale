@@ -13,14 +13,14 @@ export default async function EditGalleryItemPage({ params }: { params: Promise<
   const updateWithId = updateGalleryItem.bind(null, id);
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center gap-4">
+    <div className="le-admin-page">
+      <div className="flex flex-wrap items-center gap-4">
         <Link href="/admin/galeria" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>← Voltar</Link>
-        <h1 className="text-2xl font-bold">Editar Foto</h1>
+        <p className="le-kicker">Gestão / Galeria</p><h1 className="le-admin-title">Editar foto</h1>
       </div>
       <GalleryItemForm
         action={updateWithId}
-        submitLabel="Salvar Alterações"
+        submitLabel="Salvar alterações"
         defaultValues={{
           title: item.title,
           description: item.description ?? '',

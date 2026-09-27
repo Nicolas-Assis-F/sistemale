@@ -13,7 +13,7 @@ export function FloatingWhatsApp() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Falar no WhatsApp"
-      className="fixed right-5 bottom-[calc(1.25rem+env(safe-area-inset-bottom))] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-lg shadow-green-900/25 transition-transform hover:scale-105 hover:bg-green-700 active:scale-95 lg:hidden"
+      className="fixed right-5 bottom-[calc(1.25rem+env(safe-area-inset-bottom))] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-lg shadow-green-900/25 transition-transform hover:scale-105 hover:bg-green-700 active:scale-95 lg:hidden in-data-[sticky-cta=on]:hidden"
     >
       <MessageCircle className="h-7 w-7" />
     </a>

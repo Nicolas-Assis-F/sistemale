@@ -1,5 +1,6 @@
 'use client';
 
+import { useAdminForm } from './use-admin-form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -29,17 +30,13 @@ interface Props {
   submitLabel?: string;
 }
 
-export function GalleryItemForm({ defaultValues, action, submitLabel = 'Salvar' }: Props) {
+export function GalleryItemForm({ defaultValues, action, submitLabel = 'Salvar alterações' }: Props) {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { title: '', description: '', imageUrl: '', category: '', order: 0, active: true, ...defaultValues },
   });
 
-  async function onSubmit(values: FormValues) {
-    const fd = new FormData();
-    Object.entries(values).forEach(([k, v]) => fd.append(k, String(v ?? '')));
-    await action(fd);
-  }
+  const onSubmit = useAdminForm(form, action);
 
   return (
     <Form {...form}>
@@ -134,7 +131,7 @@ export function GalleryItemForm({ defaultValues, action, submitLabel = 'Salvar' 
           />
         </div>
 
-        <Button type="submit" disabled={form.formState.isSubmitting}>
+        <Button className="sticky bottom-0 w-full sm:w-auto" type="submit" loading={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? 'Salvando...' : submitLabel}
         </Button>
       </form>

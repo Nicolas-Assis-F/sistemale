@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAdminForm } from './use-admin-form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -33,7 +34,7 @@ interface Props {
   submitLabel?: string;
 }
 
-export function CategoryForm({ defaultValues, action, submitLabel = 'Salvar' }: Props) {
+export function CategoryForm({ defaultValues, action, submitLabel = 'Salvar alterações' }: Props) {
   const [slugEdited, setSlugEdited] = useState(!!defaultValues?.slug);
 
   const form = useForm<FormValues>({
@@ -55,11 +56,7 @@ export function CategoryForm({ defaultValues, action, submitLabel = 'Salvar' }: 
     }
   }, [nameValue, slugEdited, form]);
 
-  async function onSubmit(values: FormValues) {
-    const fd = new FormData();
-    Object.entries(values).forEach(([k, v]) => fd.append(k, String(v ?? '')));
-    await action(fd);
-  }
+  const onSubmit = useAdminForm(form, action);
 
   return (
     <Form {...form}>
@@ -146,7 +143,7 @@ export function CategoryForm({ defaultValues, action, submitLabel = 'Salvar' }: 
           />
         </div>
 
-        <Button type="submit" disabled={form.formState.isSubmitting}>
+        <Button className="sticky bottom-0 w-full sm:w-auto" type="submit" loading={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? 'Salvando...' : submitLabel}
         </Button>
       </form>

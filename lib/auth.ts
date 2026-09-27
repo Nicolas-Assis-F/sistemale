@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import type { NextRequest } from 'next/server';
 
 const COOKIE_NAME = 'admin_auth';
@@ -44,7 +45,7 @@ export async function setAuthCookie() {
   const store = await cookies();
   store.set(COOKIE_NAME, signed, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production' && process.env.AUTH_COOKIE_SECURE !== 'false',
     sameSite: 'strict',
     maxAge: COOKIE_MAX_AGE,
     path: '/',
@@ -67,4 +68,13 @@ export async function isAuthenticated(): Promise<boolean> {
   const value = store.get(COOKIE_NAME)?.value;
   if (!value) return false;
   return verifySignedCookieValue(value);
+}
+
+/**
+ * Guarda para Server Actions do painel. Server Actions são endpoints POST
+ * públicos: o proxy protege as páginas, mas cada action precisa validar a
+ * sessão por conta própria. Sem sessão → volta ao login.
+ */
+export async function requireAdmin() {
+  if (!(await isAuthenticated())) redirect('/admin/login');
 }

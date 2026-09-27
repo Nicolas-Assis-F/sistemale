@@ -15,7 +15,7 @@ export function IconBadge({ icon: Icon, className }: Props) {
   return (
     <div
       className={cn(
-        'relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-brand-500/20 bg-linear-to-br from-brand-500/12 to-brand-accent/10 transition-all group-hover:ring-2 group-hover:ring-brand-accent/50',
+        'relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-brand-500/20 bg-linear-to-br from-brand-500/12 to-brand-accent/10 transition-[transform,opacity] group-hover:ring-2 group-hover:ring-brand-accent/50',
         className,
       )}
     >

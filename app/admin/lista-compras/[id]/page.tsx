@@ -54,15 +54,15 @@ export default async function PurchaseListDetailPage({ params }: PageProps) {
   const uncotedCount = list.items.filter((i) => i.partItem.unitPriceCents === 0).length;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="le-admin-page">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <Link href="/admin/lista-compras" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
             ← Voltar
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">{list.name}</h1>
+            <h1 className="le-admin-title">{list.name}</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               {list.items.length} {list.items.length === 1 ? 'item' : 'itens'} •{' '}
               Criada em {list.createdAt.toLocaleDateString('pt-BR')}
@@ -93,7 +93,7 @@ export default async function PurchaseListDetailPage({ params }: PageProps) {
                 <span className="font-semibold">{product.name}</span>
                 <span className="text-xs text-muted-foreground">SKU: {product.sku}</span>
               </div>
-              <table className="w-full text-sm">
+              <table className="le-responsive-table w-full text-sm">
                 <thead className="bg-muted/20">
                   <tr>
                     <th className="text-left px-4 py-2.5 font-medium">Componente</th>
@@ -107,29 +107,29 @@ export default async function PurchaseListDetailPage({ params }: PageProps) {
                 <tbody className="divide-y">
                   {items.map((item) => (
                     <tr key={item.id} className="hover:bg-muted/10">
-                      <td className="px-4 py-2.5">
+                      <td data-label="Componente" className="px-4 py-2.5">
                         <span className="font-medium">{item.partItem.name}</span>
                         {item.partItem.notes && (
                           <p className="text-xs text-muted-foreground">{item.partItem.notes}</p>
                         )}
                       </td>
-                      <td className="px-4 py-2.5 text-muted-foreground hidden md:table-cell">
+                      <td data-label="Localização" className="px-4 py-2.5 text-muted-foreground hidden md:table-cell">
                         {item.partItem.location || '—'}
                       </td>
-                      <td className="px-4 py-2.5">
+                      <td data-label="Categoria" className="px-4 py-2.5">
                         <Badge variant="secondary" className="text-xs font-normal">
                           {item.partItem.category}
                         </Badge>
                       </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums">{item.partItem.quantity}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums hidden sm:table-cell">
+                      <td data-label="Qtd" className="px-4 py-2.5 text-right tabular-nums">{item.partItem.quantity}</td>
+                      <td data-label="Preço Unit." className="px-4 py-2.5 text-right tabular-nums hidden sm:table-cell">
                         {item.partItem.unitPriceCents === 0 ? (
                           <span className="text-muted-foreground italic text-xs">a cotar</span>
                         ) : (
                           formatCurrency(item.partItem.unitPriceCents)
                         )}
                       </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums hidden sm:table-cell">
+                      <td data-label="Total" className="px-4 py-2.5 text-right tabular-nums hidden sm:table-cell">
                         {item.partItem.unitPriceCents === 0 ? (
                           <span className="text-muted-foreground italic text-xs">—</span>
                         ) : (
@@ -144,11 +144,11 @@ export default async function PurchaseListDetailPage({ params }: PageProps) {
                     <td colSpan={3} className="px-4 py-2.5 text-sm font-medium">
                       Subtotal
                     </td>
-                    <td className="px-4 py-2.5 text-right tabular-nums font-medium">
+                    <td data-label="Componente" className="px-4 py-2.5 text-right tabular-nums font-medium">
                       {items.reduce((s, i) => s + i.partItem.quantity, 0)}
                     </td>
                     <td className="hidden sm:table-cell" />
-                    <td className="px-4 py-2.5 text-right tabular-nums font-medium hidden sm:table-cell">
+                    <td data-label="Localização" className="px-4 py-2.5 text-right tabular-nums font-medium hidden sm:table-cell">
                       {subtotal > 0 ? formatCurrency(subtotal) : '—'}
                     </td>
                   </tr>

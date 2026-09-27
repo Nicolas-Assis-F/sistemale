@@ -13,17 +13,17 @@ export default async function EditCustomerPage({ params }: { params: Promise<{ i
   const updateWithId = updateCustomer.bind(null, id);
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center gap-4">
+    <div className="le-admin-page">
+      <div className="flex flex-wrap items-center gap-4">
         <Link href="/admin/clientes" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>← Voltar</Link>
         <div>
-          <h1 className="text-2xl font-bold">Editar Cliente</h1>
+          <p className="le-kicker">Gestão / Clientes</p><h1 className="le-admin-title">Editar cliente</h1>
           <p className="font-mono text-xs text-muted-foreground">{c.code}</p>
         </div>
       </div>
       <CustomerForm
         action={updateWithId}
-        submitLabel="Salvar Alterações"
+        submitLabel="Salvar alterações"
         defaultValues={{
           name: c.name, doc: c.doc ?? '', email: c.email ?? '', phone: c.phone ?? '',
           address: c.address ?? '', city: c.city ?? '', state: c.state ?? '', zip: c.zip ?? '', contact: c.contact ?? '',

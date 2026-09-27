@@ -1,20 +1,24 @@
+import { AdminFilters } from '@/components/admin/AdminFilters';
 import Link from 'next/link';
 import { Mail, MailOpen } from 'lucide-react';
 import { prisma } from '@/lib/db';
 
-export default async function AdminMessagesPage() {
-  const messages = await prisma.contactSubmission.findMany({ orderBy: { createdAt: 'desc' } });
+export default async function AdminMessagesPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
+  const { q = '', status } = await searchParams;
+  const messages = await prisma.contactSubmission.findMany({ where: { ...(q ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { subject: { contains: q, mode: 'insensitive' } }, { email: { contains: q, mode: 'insensitive' } }] } : {}), ...(status === 'nao-lidas' ? { read: false } : status === 'lidas' ? { read: true } : {}) }, orderBy: { createdAt: 'desc' } });
   const unread = messages.filter((m) => !m.read).length;
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="le-admin-page">
       <div>
-        <h1 className="text-2xl font-bold">Mensagens</h1>
+        <p className="le-kicker">Atendimento</p>
+        <h1 className="le-admin-title">Mensagens</h1>
         <p className="text-sm text-muted-foreground">
           {messages.length} mensagens · {unread} não lida{unread !== 1 ? 's' : ''}
         </p>
       </div>
 
+      <AdminFilters placeholder="Buscar por nome, e-mail ou assunto" filters={[{ name: 'status', label: 'Leitura', options: [{ value: '', label: 'Todas' }, { value: 'nao-lidas', label: 'Não lidas' }, { value: 'lidas', label: 'Lidas' }] }]} />
       {messages.length > 0 ? (
         <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card shadow-card">
           {messages.map((m) => (
@@ -43,7 +47,8 @@ export default async function AdminMessagesPage() {
       ) : (
         <div className="rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
           <Mail className="mx-auto mb-2 h-10 w-10 opacity-40" />
-          <p className="text-sm">Nenhuma mensagem recebida ainda.</p>
+          <p className="text-sm">Nenhuma mensagem encontrada. Ajuste os filtros ou aguarde um novo contato.</p>
+          <Link href="/admin/mensagens" className="mt-3 inline-block text-sm text-le-blue">Ver todas as mensagens</Link>
         </div>
       )}
     </div>

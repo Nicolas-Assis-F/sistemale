@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { parseCurrencyToCents } from '@/lib/format';
 import type { PartItem } from '@prisma/client';
+import { requireAdmin } from '@/lib/auth';
 
 export type PartData = {
   name: string;
@@ -18,6 +19,7 @@ export async function createPartItem(
   productId: string,
   data: PartData,
 ): Promise<{ error: string } | PartItem> {
+  await requireAdmin();
   try {
     const created = await prisma.partItem.create({
       data: {
@@ -42,6 +44,7 @@ export async function updatePartItem(
   productId: string,
   data: PartData,
 ): Promise<{ error: string } | PartItem> {
+  await requireAdmin();
   try {
     const updated = await prisma.partItem.update({
       where: { id },
@@ -65,6 +68,7 @@ export async function deletePartItem(
   id: string,
   productId: string,
 ): Promise<{ error: string } | { ok: true }> {
+  await requireAdmin();
   try {
     await prisma.partItem.delete({ where: { id } });
   } catch {

@@ -4,7 +4,7 @@ interface Args {
 }
 
 export function buildWhatsAppUrl({ sku, productName }: Args = {}): string {
-  const phone = process.env.NEXT_PUBLIC_COMPANY_PHONE!;
+  const phone = (process.env.NEXT_PUBLIC_COMPANY_PHONE || "5562986018386").replace(/\D/g, "");
   let text: string;
 
   if (sku && productName) {

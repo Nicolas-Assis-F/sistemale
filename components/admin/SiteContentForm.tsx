@@ -206,7 +206,7 @@ export function SiteContentForm({ contentKey, defaultValues, action }: Props) {
         </Field>
       )}
 
-      <Button type="submit" disabled={saving}>{saving ? 'Salvando...' : 'Salvar Conteúdo'}</Button>
+      <Button type="submit" loading={saving}>{saving ? 'Salvando...' : 'Salvar alterações'}</Button>
     </form>
   );
 }

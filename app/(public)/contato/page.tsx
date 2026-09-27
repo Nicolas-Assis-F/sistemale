@@ -77,7 +77,7 @@ export default async function ContatoPage() {
 
             {phone && (
               <a
-                href={`https://wa.me/${phone}?text=${encodeURIComponent('Olá! Vim do site e gostaria de mais informações.')}`}
+                href={`https://wa.me/${phone}?text=${encodeURIComponent('Olá Vim do site e gostaria de mais informações.')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700"
@@ -87,7 +87,7 @@ export default async function ContatoPage() {
               </a>
             )}
 
-            <div className="overflow-hidden rounded-2xl border border-border shadow-card">
+            <div className="overflow-hidden rounded-2xl border border-border/80 shadow-sharp">
               <iframe
                 title="Localização LE Torneadora"
                 src={mapsSrc}

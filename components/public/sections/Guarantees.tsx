@@ -21,8 +21,9 @@ export function Guarantees({ items }: Props) {
             return (
               <div
                 key={it.title}
-                className="group flex h-full flex-col items-center gap-3 rounded-2xl border border-border bg-card p-6 text-center shadow-card transition-shadow hover:shadow-raised"
+                className="group relative flex h-full flex-col items-center gap-3 overflow-hidden rounded-xl border border-border/80 bg-card p-6 text-center shadow-sharp transition-colors hover:border-primary/40"
               >
+                <span className="card-accent-top" aria-hidden />
                 <IconBadge icon={Icon} />
                 <h3 className="text-sm font-semibold">{it.title}</h3>
                 <p className="text-sm leading-relaxed text-muted-foreground">{it.description}</p>

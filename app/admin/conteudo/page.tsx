@@ -10,9 +10,9 @@ const SECTIONS = [
 
 export default function AdminContentPage() {
   return (
-    <div className="space-y-6 p-6">
+    <div className="le-admin-page">
       <div>
-        <h1 className="text-2xl font-bold">Conteúdo do site</h1>
+        <p className="le-kicker">Gestão / Conteudo</p><h1 className="le-admin-title">Conteúdo do site</h1>
         <p className="text-sm text-muted-foreground">Edite os textos das páginas institucionais sem mexer no código.</p>
       </div>
 

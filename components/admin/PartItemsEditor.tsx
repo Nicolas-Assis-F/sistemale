@@ -241,7 +241,7 @@ export function PartItemsEditor({
       {/* Table */}
       {items.length > 0 && (
         <div className="border rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
+          <table className="le-responsive-table w-full text-sm">
             <thead className="bg-muted/50">
               <tr>
                 <th className="text-left px-3 py-2.5 font-medium">Componente</th>
@@ -274,11 +274,11 @@ export function PartItemsEditor({
                     </span>
                   )}
                 </td>
-                <td className="px-3 py-2.5 text-right tabular-nums font-medium">
+                <td data-label="Componente" className="px-3 py-2.5 text-right tabular-nums font-medium">
                   {items.reduce((sum, i) => sum + i.quantity, 0)}
                 </td>
                 <td className="hidden sm:table-cell" />
-                <td className="px-3 py-2.5 text-right tabular-nums font-medium hidden sm:table-cell">
+                <td data-label="Localização" className="px-3 py-2.5 text-right tabular-nums font-medium hidden sm:table-cell">
                   {totalCents > 0 ? formatCurrency(totalCents) : '—'}
                 </td>
                 <td />

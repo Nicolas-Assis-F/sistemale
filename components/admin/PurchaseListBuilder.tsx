@@ -258,7 +258,7 @@ export function PurchaseListBuilder({ products }: { products: Product[] }) {
             </p>
           ) : (
             <div className="border rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
+              <table className="le-responsive-table w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
                     <th className="w-10 px-3 py-2.5" />
@@ -283,7 +283,7 @@ export function PurchaseListBuilder({ products }: { products: Product[] }) {
                         ].join(' ')}
                         onClick={() => toggleItem(item.id)}
                       >
-                        <td className="px-3 py-2.5 text-center">
+                        <td data-label="Componente" className="px-3 py-2.5 text-center">
                           <input
                             type="checkbox"
                             checked={checked}
@@ -292,27 +292,27 @@ export function PurchaseListBuilder({ products }: { products: Product[] }) {
                             className="h-4 w-4 rounded border-border"
                           />
                         </td>
-                        <td className="px-3 py-2.5 font-medium">{item.name}</td>
-                        <td className="px-3 py-2.5 text-muted-foreground hidden lg:table-cell text-xs">
+                        <td data-label="Máquina" className="px-3 py-2.5 font-medium">{item.name}</td>
+                        <td data-label="Localização" className="px-3 py-2.5 text-muted-foreground hidden lg:table-cell text-xs">
                           {item.productName}
                         </td>
-                        <td className="px-3 py-2.5 text-muted-foreground hidden md:table-cell">
+                        <td data-label="Categoria" className="px-3 py-2.5 text-muted-foreground hidden md:table-cell">
                           {item.location || '—'}
                         </td>
-                        <td className="px-3 py-2.5">
+                        <td data-label="Qtd" className="px-3 py-2.5">
                           <Badge variant="secondary" className="text-xs font-normal">
                             {item.category}
                           </Badge>
                         </td>
-                        <td className="px-3 py-2.5 text-right tabular-nums">{item.quantity}</td>
-                        <td className="px-3 py-2.5 text-right tabular-nums hidden sm:table-cell">
+                        <td data-label="Preço Unit." className="px-3 py-2.5 text-right tabular-nums">{item.quantity}</td>
+                        <td data-label="Total" className="px-3 py-2.5 text-right tabular-nums hidden sm:table-cell">
                           {item.unitPriceCents === 0 ? (
                             <span className="text-muted-foreground italic text-xs">a cotar</span>
                           ) : (
                             formatCurrency(item.unitPriceCents)
                           )}
                         </td>
-                        <td className="px-3 py-2.5 text-right tabular-nums hidden sm:table-cell">
+                        <td data-label="Componente" className="px-3 py-2.5 text-right tabular-nums hidden sm:table-cell">
                           {item.unitPriceCents === 0 ? (
                             <span className="text-muted-foreground italic text-xs">—</span>
                           ) : (

@@ -1,7 +1,7 @@
 'use client';
 
 import { Trash2 } from 'lucide-react';
-import { buttonVariants } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { useDeleteAction } from './use-delete-action';
 
 interface ConfirmDeleteButtonProps {
@@ -28,16 +28,16 @@ export function ConfirmDeleteButton({
 
   return (
     <div className="inline-flex flex-col items-start gap-1">
-      <button
+      <Button variant="ghost" size="sm"
         type="button"
-        disabled={isPending}
+        loading={isPending}
         onClick={() => run(confirmMessage, onSuccess)}
         title={label ? undefined : 'Excluir'}
         className={className ?? defaultClassName}
       >
         <Trash2 className="h-3.5 w-3.5" />
         {label}
-      </button>
+      </Button>
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );

@@ -1,5 +1,6 @@
 'use client';
 
+import { useAdminForm } from './use-admin-form';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -45,7 +46,7 @@ function TextField({ form, name, label, placeholder }: { form: UseFormReturn<For
   );
 }
 
-export function CustomerForm({ defaultValues, action, submitLabel = 'Salvar' }: Props) {
+export function CustomerForm({ defaultValues, action, submitLabel = 'Salvar alterações' }: Props) {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -54,11 +55,7 @@ export function CustomerForm({ defaultValues, action, submitLabel = 'Salvar' }: 
     },
   });
 
-  async function onSubmit(values: FormValues) {
-    const fd = new FormData();
-    Object.entries(values).forEach(([k, v]) => fd.append(k, String(v ?? '')));
-    await action(fd);
-  }
+  const onSubmit = useAdminForm(form, action);
 
   return (
     <Form {...form}>
@@ -76,7 +73,7 @@ export function CustomerForm({ defaultValues, action, submitLabel = 'Salvar' }: 
           <TextField form={form} name="state" label="UF" />
           <TextField form={form} name="zip" label="CEP" />
         </div>
-        <Button type="submit" disabled={form.formState.isSubmitting}>
+        <Button className="sticky bottom-0 w-full sm:w-auto" type="submit" loading={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? 'Salvando...' : submitLabel}
         </Button>
       </form>

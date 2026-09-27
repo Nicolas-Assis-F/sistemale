@@ -1,0 +1,330 @@
+{
+  "source": "Catálogo L&E Torneadora fornecido pelo cliente, setembro de 2026. Preços não informados; 0 representa sob consulta.",
+  "categories": [
+    {
+      "slug": "maquinas",
+      "name": "Máquinas",
+      "description": "A base da sua operação.",
+      "order": 0
+    },
+    {
+      "slug": "cabecotes",
+      "name": "Cabeçotes",
+      "description": "Força e controle hidráulico.",
+      "order": 1
+    },
+    {
+      "slug": "hastes",
+      "name": "Hastes",
+      "description": "Conexão até a profundidade.",
+      "order": 2
+    },
+    {
+      "slug": "conexoes",
+      "name": "Roscas e conexões",
+      "description": "Precisão em cada encaixe.",
+      "order": 3
+    },
+    {
+      "slug": "hidraulica",
+      "name": "Hidráulica",
+      "description": "Construído para sua aplicação.",
+      "order": 4
+    },
+    {
+      "slug": "martelos",
+      "name": "Martelos e bits",
+      "description": "Potência na perfuração.",
+      "order": 5
+    },
+    {
+      "slug": "brocas-pdc",
+      "name": "Brocas PDC",
+      "description": "Tecnologia de corte.",
+      "order": 6
+    }
+  ],
+  "products": [
+    {
+      "sku": "LE-AR100",
+      "slug": "ar-100",
+      "name": "Perfuratriz AR-100",
+      "categorySlug": "maquinas",
+      "shortDesc": "Acionamento hidráulico e motor a gasolina. Uma máquina completa para equipar sua operação.",
+      "description": "Acionamento hidráulico e motor a gasolina. Uma máquina completa para equipar sua operação. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "images": [
+        "/catalogo/ar-100.webp",
+        "/catalogo/ar-100-transporte.webp"
+      ],
+      "specs": {
+        "Motor": "18 hp · gasolina",
+        "Rotação máxima": "130 rpm",
+        "Torque": "1.500 N·m",
+        "Torre": "Viga I de 4″ · 3,5 m",
+        "Acionamento": "Motor hidráulico OMS 200",
+        "Redução": "2:1",
+        "Estabilização": "3 patolas",
+        "Instrumentação": "Medidores de pressão"
+      },
+      "priceCents": 0,
+      "stock": 0,
+      "featured": true,
+      "active": true
+    },
+    {
+      "sku": "LE-CAB80",
+      "slug": "cabecote-hidraulico-80m",
+      "name": "Cabeçote hidráulico 80 m",
+      "categorySlug": "cabecotes",
+      "shortDesc": "Motor OMS 200, redução 2:1 e torque de 1.500 N·m. Consulte a configuração indicada para sua operação.",
+      "description": "Motor OMS 200, redução 2:1 e torque de 1.500 N·m. Consulte a configuração indicada para sua operação. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "images": [
+        "/catalogo/cabecote-80m.webp"
+      ],
+      "specs": {
+        "Capacidade informada": "80 m",
+        "Motor hidráulico": "OMS 200",
+        "Torque": "1.500 N·m",
+        "Redução": "2:1",
+        "Rotação máxima": "130 rpm"
+      },
+      "priceCents": 0,
+      "stock": 0,
+      "featured": true,
+      "active": true
+    },
+    {
+      "sku": "LE-CAB120",
+      "slug": "cabecote-hidraulico-120m",
+      "name": "Cabeçote hidráulico 120 m",
+      "categorySlug": "cabecotes",
+      "shortDesc": "Motor OMS 250, redução 2:1 e torque de 2.500 N·m. Consulte a configuração indicada para sua operação.",
+      "description": "Motor OMS 250, redução 2:1 e torque de 2.500 N·m. Consulte a configuração indicada para sua operação. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "images": [
+        "/catalogo/cabecote-120m.webp"
+      ],
+      "specs": {
+        "Capacidade informada": "120 m",
+        "Motor hidráulico": "OMS 250",
+        "Torque": "2.500 N·m",
+        "Redução": "2:1"
+      },
+      "priceCents": 0,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-CAB250",
+      "slug": "cabecote-hidraulico-250m",
+      "name": "Cabeçote hidráulico 250 m",
+      "categorySlug": "cabecotes",
+      "shortDesc": "Motor OMS 400, redução 4:1 e torque de 3.500 N·m. Consulte a configuração indicada para sua operação.",
+      "description": "Motor OMS 400, redução 4:1 e torque de 3.500 N·m. Consulte a configuração indicada para sua operação. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "images": [
+        "/catalogo/cabecote-250m.webp"
+      ],
+      "specs": {
+        "Capacidade informada": "250 m",
+        "Motor hidráulico": "OMS 400",
+        "Torque": "3.500 N·m",
+        "Redução": "4:1"
+      },
+      "priceCents": 0,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-HASTE-REGULAR",
+      "slug": "haste-2-3-8-regular",
+      "name": "Haste 2 3/8″ Regular",
+      "categorySlug": "hastes",
+      "shortDesc": "Tubos sem costura, trefilados a frio. Ponteiras soldadas e tratadas, com pega para chave.",
+      "description": "Tubos sem costura, trefilados a frio. Ponteiras soldadas e tratadas, com pega para chave. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "images": [
+        "/catalogo/hastes.webp",
+        "/catalogo/haste-regular.webp",
+        "/catalogo/hastes-conjunto.webp"
+      ],
+      "specs": {
+        "Conexão": "2 3/8″ Regular",
+        "Comprimentos": "1,5 a 6 m",
+        "Material": "Aço Schedule ou 1045",
+        "Ponteiras": "Macho e fêmea"
+      },
+      "priceCents": 0,
+      "stock": 0,
+      "featured": true,
+      "active": true
+    },
+    {
+      "sku": "LE-HASTE-IF",
+      "slug": "haste-2-3-8-if",
+      "name": "Haste 2 3/8″ IF",
+      "categorySlug": "hastes",
+      "shortDesc": "Tubos sem costura, trefilados a frio. Ponteiras soldadas e tratadas, com pega para chave.",
+      "description": "Tubos sem costura, trefilados a frio. Ponteiras soldadas e tratadas, com pega para chave. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "images": [
+        "/catalogo/hastes.webp",
+        "/catalogo/haste-if.webp",
+        "/catalogo/hastes-conjunto.webp"
+      ],
+      "specs": {
+        "Conexão": "2 3/8″ IF",
+        "Comprimentos": "1,5 a 6 m",
+        "Material": "Aço Schedule ou 1045",
+        "Ponteiras": "Macho e fêmea"
+      },
+      "priceCents": 0,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-API-REGULAR",
+      "slug": "ponteira-api-regular",
+      "name": "Ponteira API 2 3/8″ Regular",
+      "categorySlug": "conexoes",
+      "shortDesc": "Tool joints em aço 1045, usinados em tornos CNC e tratados com têmpera a óleo.",
+      "description": "Tool joints em aço 1045, usinados em tornos CNC e tratados com têmpera a óleo. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "images": [
+        "/catalogo/ponteiras.webp"
+      ],
+      "specs": {
+        "Conexão": "API 2 3/8″ Regular",
+        "Diâmetro informado": "2 7/8″",
+        "Material": "Aço 1045",
+        "Usinagem": "Tornos CNC",
+        "Tratamento": "Têmpera a óleo"
+      },
+      "priceCents": 0,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-API-IF",
+      "slug": "ponteira-api-if",
+      "name": "Ponteira API 2 3/8″ IF",
+      "categorySlug": "conexoes",
+      "shortDesc": "Tool joints em aço 1045, usinados em tornos CNC e tratados com têmpera a óleo.",
+      "description": "Tool joints em aço 1045, usinados em tornos CNC e tratados com têmpera a óleo. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "images": [
+        "/catalogo/ponteiras.webp"
+      ],
+      "specs": {
+        "Conexão": "API 2 3/8″ IF",
+        "Diâmetro informado": "3 1/2″",
+        "Material": "Aço 1045",
+        "Usinagem": "Tornos CNC",
+        "Tratamento": "Têmpera a óleo"
+      },
+      "priceCents": 0,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-PISTAO",
+      "slug": "pistao-hidraulico",
+      "name": "Pistão sob encomenda",
+      "categorySlug": "hidraulica",
+      "shortDesc": "Dimensões, força e características definidas conforme a necessidade de uso.",
+      "description": "Dimensões, força e características definidas conforme a necessidade de uso. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "images": [
+        "/catalogo/pistao.webp"
+      ],
+      "specs": {
+        "Fabricação": "Sob encomenda",
+        "Para cotação": "Dimensões, força e aplicação"
+      },
+      "priceCents": 0,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-CIR110-M",
+      "slug": "martelo-cir110",
+      "name": "Martelo CIR110",
+      "categorySlug": "martelos",
+      "shortDesc": "Martelo de perfuração da linha CIR110. Informe a quantidade para consultar condições de fornecimento.",
+      "description": "Martelo de perfuração da linha CIR110. Informe a quantidade para consultar condições de fornecimento. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "images": [
+        "/catalogo/martelo-cir110.webp"
+      ],
+      "specs": {
+        "Modelo": "CIR110 Hammer"
+      },
+      "priceCents": 0,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-CIR110-B",
+      "slug": "bit-cir110",
+      "name": "Bit CIR110 · 110 mm",
+      "categorySlug": "martelos",
+      "shortDesc": "Bit de 110 mm da linha CIR110 para sua operação de perfuração.",
+      "description": "Bit de 110 mm da linha CIR110 para sua operação de perfuração. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "images": [
+        "/catalogo/bit-cir110.webp"
+      ],
+      "specs": {
+        "Modelo": "CIR110",
+        "Diâmetro": "110 mm"
+      },
+      "priceCents": 0,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-PDC3",
+      "slug": "broca-pdc-concava",
+      "name": "Broca PDC côncava",
+      "categorySlug": "brocas-pdc",
+      "shortDesc": "Três lâminas, cortadores PDC 1308 e proteção de calibre em carbeto.",
+      "description": "Três lâminas, cortadores PDC 1308 e proteção de calibre em carbeto. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "images": [
+        "/catalogo/pdc-concava.webp"
+      ],
+      "specs": {
+        "Diâmetros": "139 ou 152 mm",
+        "Conexão": "API 2 3/8″ REG, fêmea",
+        "Lâminas": "3",
+        "Cortadores": "PDC 1308",
+        "Proteção de calibre": "Carbeto",
+        "Sob cada lâmina": "1 cortador PDC 1304"
+      },
+      "priceCents": 0,
+      "stock": 0,
+      "featured": true,
+      "active": true
+    },
+    {
+      "sku": "LE-PDC5",
+      "slug": "broca-pdc-arqueada",
+      "name": "Broca PDC arqueada",
+      "categorySlug": "brocas-pdc",
+      "shortDesc": "Perfil de ângulo de arco com cinco lâminas longas e cortadores planos ou esféricos.",
+      "description": "Perfil de ângulo de arco com cinco lâminas longas e cortadores planos ou esféricos. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "images": [
+        "/catalogo/pdc-arqueada.webp"
+      ],
+      "specs": {
+        "Diâmetros": "127 ou 152 mm",
+        "Conexão": "API 2 3/8″ REG, fêmea",
+        "Lâminas": "5 longas",
+        "Cortadores por lâmina": "PDC 1308, planos ou esféricos",
+        "Proteção de calibre": "Carbeto"
+      },
+      "priceCents": 0,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    }
+  ]
+}

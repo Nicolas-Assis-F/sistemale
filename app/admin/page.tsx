@@ -1,229 +1,252 @@
-import Link from 'next/link';
-import { prisma } from '@/lib/db';
-import { buttonVariants } from '@/components/ui/button';
+import { FinancialOverview } from '@/components/admin/FinancialOverview';
+import { buttonVariants } from "@/components/ui/button";
+import Link from "next/link";
+import { prisma } from "@/lib/db";
+import { StatCard } from "@/components/admin/StatCard";
 import {
-  Package, Tag, Star, Eye, PlusCircle, ArrowRight, AlertTriangle,
-  MessageSquare, Wrench, Images, Mail, ClipboardList, Factory, CheckCircle2,
-} from 'lucide-react';
-
-const LOW_STOCK_THRESHOLD = 5;
-
-async function getDashboardData() {
-  const [
-    total, active, featured, categoriesCount, services, galleryCount,
-    unreadMessages, lowStock, lowStockList, recentContacts, perCategory,
-    ordersInFab, ordersOpen,
-  ] = await Promise.all([
-    prisma.product.count(),
-    prisma.product.count({ where: { active: true } }),
-    prisma.product.count({ where: { featured: true } }),
-    prisma.category.count(),
-    prisma.serviceItem.count({ where: { active: true } }),
-    prisma.galleryItem.count({ where: { active: true } }),
-    prisma.contactSubmission.count({ where: { read: false } }),
-    prisma.product.count({ where: { active: true, stock: { lte: LOW_STOCK_THRESHOLD } } }),
-    prisma.product.findMany({
-      where: { active: true, stock: { lte: LOW_STOCK_THRESHOLD } },
-      orderBy: { stock: 'asc' },
-      take: 6,
-      select: { id: true, name: true, sku: true, stock: true, priceCents: true },
-    }),
-    prisma.contactSubmission.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-      select: { id: true, name: true, subject: true, read: true, createdAt: true },
-    }),
-    prisma.category.findMany({
-      orderBy: { order: 'asc' },
-      select: { id: true, name: true, _count: { select: { products: true } } },
-    }),
-    prisma.order.count({ where: { status: 'EM_FABRICACAO' } }),
-    prisma.order.count({ where: { status: { in: ['ORCAMENTO', 'PEDIDO'] } } }),
-  ]);
-
-  return {
-    total, active, featured, categoriesCount, services, galleryCount,
-    unreadMessages, lowStock, lowStockList, recentContacts, perCategory,
-    ordersInFab, ordersOpen,
-  };
-}
-
-const CHART_COLORS = ['bg-chart-1', 'bg-chart-2', 'bg-chart-3', 'bg-chart-4', 'bg-chart-5'];
-
+  ArrowUpRight,
+  Plus,
+  Upload,
+  Image as ImageIcon,
+  CheckCircle2,
+  ClipboardList,
+} from "lucide-react";
 export default async function AdminDashboard() {
-  const d = await getDashboardData();
-  const maxCount = Math.max(1, ...d.perCategory.map((c) => c._count.products));
-
-  const stats = [
-    { label: 'Total de Produtos', value: d.total, icon: Package, href: '/admin/produtos', color: 'text-primary' },
-    { label: 'Produtos Ativos', value: d.active, icon: Eye, href: '/admin/produtos', color: 'text-emerald-600' },
-    { label: 'Em Destaque', value: d.featured, icon: Star, href: '/admin/produtos', color: 'text-amber-500' },
-    { label: 'Categorias', value: d.categoriesCount, icon: Tag, href: '/admin/categorias', color: 'text-violet-600' },
-  ];
-
-  const alerts = [
-    { show: d.ordersInFab > 0, label: 'pedidos em fabricação', value: d.ordersInFab, icon: Factory, href: '/admin/pedidos?status=EM_FABRICACAO', tone: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
-    { show: d.ordersOpen > 0, label: 'orçamentos/pedidos em aberto', value: d.ordersOpen, icon: ClipboardList, href: '/admin/pedidos', tone: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
-    { show: d.unreadMessages > 0, label: 'mensagens não lidas', value: d.unreadMessages, icon: MessageSquare, href: '/admin/mensagens', tone: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
-    { show: d.lowStock > 0, label: 'produtos com estoque baixo', value: d.lowStock, icon: AlertTriangle, href: '/admin/produtos', tone: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
-    { show: d.featured === 0, label: 'nenhum produto em destaque', value: '!', icon: Star, href: '/admin/produtos', tone: 'bg-destructive/10 text-destructive border-destructive/20' },
-  ].filter((a) => a.show);
-
+  const [total, active, ordersOpen, unread, categories, products, recent] =
+    await Promise.all([
+      prisma.product.count(),
+      prisma.product.count({ where: { active: true } }),
+      prisma.order.count({
+        where: { status: { in: ["ORCAMENTO", "PEDIDO", "EM_FABRICACAO"] } },
+      }),
+      prisma.contactSubmission.count({ where: { read: false } }),
+      prisma.category.findMany({
+        orderBy: { order: "asc" },
+        include: {
+          _count: { select: { products: { where: { active: true } } } },
+        },
+      }),
+      prisma.product.findMany({
+        where: { active: true },
+        select: { images: true, specs: true },
+      }),
+      prisma.order.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        include: { customer: { select: { name: true } } },
+      }),
+    ]);
+  const published = categories.filter((c) => c._count.products > 0);
+  const max = Math.max(...published.map((c) => c._count.products), 1);
+  const photos = products.filter((p) => p.images.length > 0).length;
+  const specs = products.filter(
+    (p) => Object.keys(p.specs as object).length > 0,
+  ).length;
   return (
-    <div className="space-y-8 p-6">
-      {/* Cabeçalho */}
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-[1500px] space-y-7 p-5 lg:p-10">
+      <div className="flex flex-wrap items-end justify-between gap-5">
         <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">Visão geral · LE Torneadora</p>
+          <p className="le-kicker">Visão geral</p>
+          <h1 className="mt-3 font-heading text-3xl font-medium tracking-[-.05em]">
+            Tudo pronto para ir mais fundo.
+          </h1>
+          <p className="mt-2 text-xs text-le-muted">
+            Acompanhe seu catálogo, suas solicitações e sua operação.
+          </p>
         </div>
-        <Link href="/" target="_blank" className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' gap-1.5'}>
-          Ver site <ArrowRight className="h-3.5 w-3.5" />
+        <Link
+          href="/admin/produtos/importar"
+          className={buttonVariants({ variant: "outline", size: "lg" })}
+        >
+          <Upload size={15} /> Importar produtos
         </Link>
       </div>
-
-      {/* Alertas */}
-      {alerts.length > 0 && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {alerts.map((a) => {
-            const Icon = a.icon;
-            return (
-              <Link key={a.label} href={a.href} className={`flex items-center gap-3 rounded-xl border p-4 transition-opacity hover:opacity-80 ${a.tone}`}>
-                <Icon className="h-5 w-5 shrink-0" />
-                <p className="text-sm font-medium">
-                  <span className="font-bold">{a.value}</span> {a.label}
-                </p>
-              </Link>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {stats.map(({ label, value, icon: Icon, href, color }) => (
-          <Link
-            key={label}
-            href={href}
-            className="group rounded-2xl border border-border bg-card p-5 shadow-card transition-all hover:border-primary/40 hover:shadow-raised"
-          >
-            <div className="mb-3 flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">{label}</span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
-                <Icon className={`h-4 w-4 ${color}`} />
-              </div>
-            </div>
-            <p className="text-3xl font-bold">{value}</p>
-          </Link>
-        ))}
+      <FinancialOverview />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label="Produtos publicados"
+          value={active}
+          detail={`${total} cadastros no total`}
+          href="/admin/produtos?status=ativo"
+        />
+        <StatCard
+          label="Linhas na vitrine"
+          value={published.length}
+          detail="Categorias com produtos publicados"
+          href="/admin/categorias"
+        />
+        <StatCard
+          label="Pedidos em andamento"
+          value={ordersOpen}
+          detail="Orçamentos, pedidos e fabricação"
+          href="/admin/pedidos"
+        />
+        <StatCard
+          label="Novas mensagens"
+          value={unread}
+          detail="Solicitações aguardando leitura"
+          href="/admin/mensagens"
+        />
       </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Produtos por categoria */}
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-card lg:col-span-2">
-          <h2 className="mb-4 text-sm font-semibold">Produtos por categoria</h2>
-          {d.perCategory.length > 0 ? (
-            <div className="space-y-3">
-              {d.perCategory.map((cat, i) => (
-                <div key={cat.id} className="flex items-center gap-3">
-                  <span className="w-32 shrink-0 truncate text-xs text-muted-foreground">{cat.name}</span>
-                  <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className={`h-full rounded-full ${CHART_COLORS[i % CHART_COLORS.length]}`}
-                      style={{ width: `${(cat._count.products / maxCount) * 100}%` }}
-                    />
-                  </div>
-                  <span className="w-6 shrink-0 text-right text-xs font-semibold">{cat._count.products}</span>
-                </div>
-              ))}
+      <div className="grid items-stretch gap-6 xl:grid-cols-[1.6fr_1fr]">
+        <section className="rounded-2xl border border-le-line bg-white p-6 lg:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-heading text-lg font-medium tracking-tight">
+                Seu catálogo, por linha
+              </h2>
+              <p className="mt-1 text-[11px] text-le-muted">
+                Distribuição dos produtos publicados
+              </p>
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Nenhuma categoria cadastrada.</p>
-          )}
-        </div>
-
-        {/* Estoque baixo */}
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
-          <div className="mb-4 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
-            <h2 className="text-sm font-semibold">Estoque baixo</h2>
+            <Link
+              href="/admin/categorias"
+              aria-label="Gerenciar categorias"
+              className="le-card-arrow"
+            >
+              <ArrowUpRight size={16} />
+            </Link>
           </div>
-          {d.lowStockList.length > 0 ? (
-            <ul className="space-y-2.5">
-              {d.lowStockList.map((p) => (
-                <li key={p.id} className="flex items-center justify-between gap-2">
-                  <Link href={`/admin/produtos/${p.id}`} className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium hover:text-primary">{p.name}</p>
-                    <p className="text-xs text-muted-foreground">{p.sku}</p>
-                  </Link>
-                  <span className={`shrink-0 rounded-md px-2 py-0.5 text-xs font-bold ${p.stock === 0 ? 'bg-destructive/15 text-destructive' : 'bg-amber-500/15 text-amber-600'}`}>
-                    {p.stock}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              Nenhum produto com estoque baixo
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Mensagens recentes */}
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Mail className="h-4 w-4 text-primary" />
-            <h2 className="text-sm font-semibold">Mensagens recentes</h2>
-          </div>
-          <Link href="/admin/mensagens" className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' gap-1 text-primary'}>
-            Ver todas <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-        {d.recentContacts.length > 0 ? (
-          <ul className="divide-y divide-border">
-            {d.recentContacts.map((m) => (
-              <li key={m.id} className="flex items-center justify-between gap-3 py-2.5">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">
-                    {m.name}
-                    {!m.read && <span className="ml-2 inline-block h-2 w-2 rounded-full bg-blue-500 align-middle" />}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">{m.subject || 'Sem assunto'}</p>
-                </div>
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  {m.createdAt.toLocaleDateString('pt-BR')}
+          <div className="mt-8 space-y-5">
+            {published.map((c) => (
+              <div
+                key={c.id}
+                className="grid grid-cols-[125px_1fr_20px] items-center gap-4"
+              >
+                <span className="truncate text-[11px] text-le-muted">
+                  {c.name}
                 </span>
-              </li>
+                <div className="h-3 overflow-hidden rounded bg-le-subtle">
+                  <div
+                    className="h-full rounded bg-le-blue"
+                    style={{ width: `${(c._count.products / max) * 100}%` }}
+                  />
+                </div>
+                <span className="text-right font-mono text-[11px] text-le-muted">
+                  {c._count.products}
+                </span>
+              </div>
             ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-muted-foreground">Nenhuma mensagem recebida ainda.</p>
-        )}
+          </div>
+        </section>
+        <section className="rounded-2xl bg-le-ink p-7 text-white">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15">
+            <CheckCircle2 size={19} className="text-le-blue-light" />
+          </span>
+          <h2 className="mt-6 font-heading text-xl tracking-tight">
+            Uma vitrine bem cuidada
+            <br />
+            vende confiança.
+          </h2>
+          <p className="mt-3 text-xs leading-6 text-white/70">
+            Complete as fichas para facilitar a escolha dos seus clientes.
+          </p>
+          <div className="mt-8 space-y-4">
+            {[
+              ["Com fotos", photos],
+              ["Com ficha técnica", specs],
+            ].map(([label, count]) => (
+              <div key={label}>
+                <div className="mb-2 flex justify-between text-[11px] text-white/65">
+                  <span>{label}</span>
+                  <span>
+                    {count} de {active}
+                  </span>
+                </div>
+                <div className="h-1.5 rounded bg-white/10">
+                  <div
+                    className="h-full rounded bg-le-yellow"
+                    style={{
+                      width: `${active ? (Number(count) / active) * 100 : 0}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <Link
+            href="/admin/produtos"
+            className="mt-8 flex items-center justify-between border-t border-white/15 pt-5 text-xs"
+          >
+            Gerenciar meu catálogo <ArrowUpRight size={16} />
+          </Link>
+        </section>
       </div>
-
-      {/* Ações rápidas */}
-      <div>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Ações Rápidas</h2>
-        <div className="flex flex-wrap gap-3">
-          <Link href="/admin/pedidos/novo" className={buttonVariants({ size: 'sm' }) + ' gap-2'}>
-            <PlusCircle className="h-4 w-4" /> Novo Pedido
-          </Link>
-          <Link href="/admin/produtos/novo" className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' gap-2'}>
-            <PlusCircle className="h-4 w-4" /> Novo Produto
-          </Link>
-          <Link href="/admin/servicos" className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' gap-2'}>
-            <Wrench className="h-4 w-4" /> Serviços ({d.services})
-          </Link>
-          <Link href="/admin/galeria" className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' gap-2'}>
-            <Images className="h-4 w-4" /> Galeria ({d.galleryCount})
-          </Link>
-          <Link href="/admin/conteudo" className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' gap-2'}>
-            <Package className="h-4 w-4" /> Editar Conteúdo
-          </Link>
-        </div>
+      <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
+        <section className="rounded-2xl border bg-white p-7">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-heading text-lg">Últimos pedidos</h2>
+            <Link href="/admin/pedidos" className="text-xs text-primary">
+              Ver todos →
+            </Link>
+          </div>
+          {recent.length ? (
+            <div className="mt-5 divide-y">
+              {recent.map((o) => (
+                <Link
+                  key={o.id}
+                  href={`/admin/pedidos/${o.id}`}
+                  className="flex flex-wrap items-center justify-between gap-3 py-4 text-xs"
+                >
+                  <div>
+                    <strong>{o.number}</strong>
+                    <p className="mt-1 text-muted-foreground">
+                      {o.customer.name}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-muted px-3 py-1.5">
+                    {o.status.replaceAll("_", " ").toLowerCase()}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="py-12 text-center">
+              <ClipboardList className="mx-auto text-le-muted" size={28} />
+              <p className="mt-4 text-sm text-muted-foreground">
+                Sua próxima venda começa aqui.
+              </p>
+              <Link
+                href="/admin/pedidos/novo"
+                className="mt-3 inline-block text-xs text-primary"
+              >
+                Criar primeiro orçamento →
+              </Link>
+            </div>
+          )}
+        </section>
+        <section className="rounded-2xl border bg-white p-7">
+          <h2 className="font-heading text-lg">Acesso rápido</h2>
+          <div className="mt-5 space-y-2">
+            {[
+              {
+                href: "/admin/produtos/novo",
+                label: "Cadastrar produto",
+                icon: Plus,
+              },
+              {
+                href: "/admin/produtos/importar",
+                label: "Importar uma planilha",
+                icon: Upload,
+              },
+              {
+                href: "/admin/galeria",
+                label: "Organizar a galeria",
+                icon: ImageIcon,
+              },
+            ].map(({ href, label, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                className="flex items-center gap-3 rounded-xl border border-le-line p-4 text-xs hover:bg-muted"
+              >
+                <Icon size={16} className="text-primary" />
+                {label}
+                <ArrowUpRight size={14} className="ml-auto text-le-muted" />
+              </Link>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );

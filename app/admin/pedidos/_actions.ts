@@ -5,7 +5,12 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { OrderStatus } from '@prisma/client';
 import { prisma } from '@/lib/db';
-import { generateOrderNumber, generateCustomerCode } from '@/lib/order-number';
+import { generateOrderNumber, generateCustomerCode, withUniqueRetry } from '@/lib/order-number';
+import { computeCommission, logOrderEvent, recalcOrder } from '@/lib/orders/ledger';
+import { ORDER_STATUS_LABELS } from '@/lib/order-status';
+import { formatBps } from '@/lib/finance-labels';
+import { notifyQuoteReady } from '@/lib/orders/notify';
+import { requireAdmin } from '@/lib/auth';
 
 const itemSchema = z.object({
   productId: z.string().nullish(),
@@ -46,11 +51,11 @@ async function resolveCustomerId(d: OrderData): Promise<{ id: string } | { error
   if (!d.customerName?.trim()) {
     return { error: { customerName: ['Selecione um cliente ou informe o nome'] } };
   }
-  const code = await generateCustomerCode();
-  const customer = await prisma.customer.create({
+  const name = d.customerName.trim();
+  const customer = await withUniqueRetry(async () => prisma.customer.create({
     data: {
-      code,
-      name: d.customerName.trim(),
+      code: await generateCustomerCode(),
+      name,
       doc: d.customerDoc || null,
       email: d.customerEmail || null,
       phone: d.customerPhone || null,
@@ -60,7 +65,7 @@ async function resolveCustomerId(d: OrderData): Promise<{ id: string } | { error
       zip: d.customerZip || null,
       contact: d.customerContact || null,
     },
-  });
+  }));
   return { id: customer.id };
 }
 
@@ -92,6 +97,7 @@ function buildItems(rawItems: unknown[]) {
 }
 
 export async function createOrder(formData: FormData) {
+  await requireAdmin();
   const parsed = orderSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
   const d = parsed.data;
@@ -107,15 +113,17 @@ export async function createOrder(formData: FormData) {
     return { error: { items: ['Erro ao processar os itens do pedido'] } };
   }
 
-  const number = await generateOrderNumber();
-  const order = await prisma.order.create({
+  const order = await withUniqueRetry(async () => prisma.order.create({
     data: {
-      number,
+      number: await generateOrderNumber(),
       customerId: customer.id,
       ...buildScalarData(d),
       items: { create: items },
     },
-  });
+  }));
+  await logOrderEvent(prisma, order.id, 'CREATED', `Pedido ${order.number} criado como ${ORDER_STATUS_LABELS[order.status]}`);
+  await syncResponsibleCommission(order.id, order.employeeId);
+  await recalcOrder(order.id, 'admin');
 
   revalidatePath('/admin/pedidos');
   revalidatePath('/admin');
@@ -123,6 +131,7 @@ export async function createOrder(formData: FormData) {
 }
 
 export async function updateOrder(id: string, formData: FormData) {
+  await requireAdmin();
   const parsed = orderSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
   const d = parsed.data;
@@ -138,14 +147,27 @@ export async function updateOrder(id: string, formData: FormData) {
     return { error: { items: ['Erro ao processar os itens do pedido'] } };
   }
 
+  const before = await prisma.order.findUnique({ where: { id }, select: { status: true, source: true, totalCents: true } });
+  const scalar = buildScalarData(d);
   await prisma.order.update({
     where: { id },
     data: {
       customerId: customer.id,
-      ...buildScalarData(d),
+      ...scalar,
       items: { deleteMany: {}, create: items },
     },
   });
+  await logOrderEvent(prisma, id, 'UPDATED', 'Pedido editado (itens e dados comerciais)');
+  if (before && before.status !== scalar.status) {
+    await logOrderEvent(prisma, id, 'STATUS', `Status: ${ORDER_STATUS_LABELS[before.status]} → ${ORDER_STATUS_LABELS[scalar.status]}`);
+  }
+  await syncResponsibleCommission(id, scalar.employeeId);
+  const after = await recalcOrder(id, 'admin');
+  // Orçamento pedido pelo site que acabou de receber preço: avisa o cliente
+  if (before?.source === 'SITE' && before.totalCents === 0 && after.totalCents > 0) {
+    await logOrderEvent(prisma, id, 'NOTE', 'Cliente avisado por e-mail: orçamento pronto');
+    await notifyQuoteReady(id, after.totalCents);
+  }
 
   revalidatePath('/admin/pedidos');
   revalidatePath(`/admin/pedidos/${id}`);
@@ -154,14 +176,30 @@ export async function updateOrder(id: string, formData: FormData) {
 }
 
 export async function updateOrderStatus(id: string, status: OrderStatus) {
+  await requireAdmin();
+  const before = await prisma.order.findUnique({ where: { id }, select: { status: true } });
+  if (!before || before.status === status) return;
   await prisma.order.update({ where: { id }, data: { status } });
+  await logOrderEvent(prisma, id, 'STATUS', `Status: ${ORDER_STATUS_LABELS[before.status]} → ${ORDER_STATUS_LABELS[status]}`);
+  await recalcOrder(id, 'admin'); // cancelar/reativar ajusta as comissões
+  revalidatePath('/admin/comissoes');
   revalidatePath('/admin/pedidos');
   revalidatePath(`/admin/pedidos/${id}`);
   revalidatePath('/admin');
 }
 
 export async function deleteOrder(id: string) {
+  await requireAdmin();
+  // Pedido com dinheiro envolvido não some: o histórico financeiro precisa ficar
+  const [payments, paidCommissions] = await Promise.all([
+    prisma.payment.count({ where: { orderId: id, status: { not: 'CANCELADO' } } }),
+    prisma.commission.count({ where: { orderId: id, status: 'PAGA' } }),
+  ]);
+  if (payments || paidCommissions) {
+    return { error: 'Este pedido tem cobranças ou comissões pagas. Altere o status para Cancelado em vez de excluir.' };
+  }
   try {
+    await prisma.payment.deleteMany({ where: { orderId: id } }); // só cobranças canceladas
     await prisma.order.delete({ where: { id } });
   } catch {
     return { error: 'Não foi possível excluir o pedido. Tente novamente.' };
@@ -169,4 +207,26 @@ export async function deleteOrder(id: string) {
   revalidatePath('/admin/pedidos');
   revalidatePath('/admin');
   redirect('/admin/pedidos');
+}
+
+/**
+ * O "Responsável" do pedido recebe comissão de produção automaticamente quando
+ * o cadastro dele tem percentual padrão > 0 (não sobrescreve ajustes manuais).
+ */
+async function syncResponsibleCommission(orderId: string, employeeId: string | null) {
+  if (!employeeId) return;
+  const employee = await prisma.employee.findUnique({ where: { id: employeeId }, select: { name: true, commissionBps: true } });
+  if (!employee?.commissionBps) return;
+  const exists = await prisma.commission.findUnique({
+    where: { orderId_employeeId_role: { orderId, employeeId, role: 'PRODUCAO' } },
+  });
+  if (exists) return;
+  const order = await prisma.order.findUniqueOrThrow({ where: { id: orderId }, select: { totalCents: true } });
+  await prisma.commission.create({
+    data: {
+      orderId, employeeId, role: 'PRODUCAO', bps: employee.commissionBps,
+      baseCents: order.totalCents, amountCents: computeCommission(order.totalCents, employee.commissionBps),
+    },
+  });
+  await logOrderEvent(prisma, orderId, 'COMMISSION', `Comissão de produção para ${employee.name}: ${formatBps(employee.commissionBps)} (padrão do cadastro)`);
 }

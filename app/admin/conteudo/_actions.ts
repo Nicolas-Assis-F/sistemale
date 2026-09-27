@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
+import { requireAdmin } from '@/lib/auth';
 
 const homeSchema = z.object({
   heroEyebrow: z.string(),
@@ -53,6 +54,7 @@ const PATHS: Record<string, string> = {
 };
 
 export async function saveSiteContent(key: string, formData: FormData) {
+  await requireAdmin();
   const schema = SCHEMAS[key];
   if (!schema) return { error: { _: ['Seção inválida'] } };
 

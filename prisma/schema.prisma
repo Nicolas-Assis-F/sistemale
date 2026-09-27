@@ -148,55 +148,218 @@ enum OrderStatus {
 
 /// Clientes (reutilizáveis entre pedidos)
 model Customer {
-  id        String   @id @default(cuid())
-  code      String   @unique // CU2606-00001
-  name      String
-  doc       String? // CNPJ/CPF
-  email     String?
-  phone     String?
-  address   String?
-  city      String?
-  state     String?
-  zip       String?
-  contact   String? // pessoa de contato
-  orders    Order[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(cuid())
+  code            String   @unique // CU2606-00001
+  name            String
+  doc             String? // CNPJ/CPF
+  email           String?
+  phone           String?
+  address         String?
+  city            String?
+  state           String?
+  zip             String?
+  contact         String? // pessoa de contato
+  asaasCustomerId String?  @unique // cus_... criado sob demanda na 1ª cobrança
+  user            User? // conta de acesso do cliente (Better Auth)
+  orders          Order[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
-/// Funcionários responsáveis pela fabricação (cadastro simples, sem login)
+/// Funcionários (fabricação e vendas) — sem login; base das comissões
 model Employee {
-  id        String   @id @default(cuid())
-  name      String
-  role      String?
-  active    Boolean  @default(true)
-  orders    Order[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String             @id @default(cuid())
+  name          String
+  role          String?
+  active        Boolean            @default(true)
+  phone         String?
+  pixKey        String? // para pagar a comissão
+  /// Comissão padrão em pontos-base (250 = 2,5%) — sugerida ao vincular a um pedido
+  commissionBps Int                @default(0)
+  orders        Order[]
+  commissions   Commission[]
+  payouts       CommissionPayout[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
   @@index([active])
 }
 
 /// Pedido / Orçamento (entidade única com fluxo de status)
 model Order {
-  id            String      @id @default(cuid())
-  number        String      @unique // SO2606-0001
-  status        OrderStatus @default(ORCAMENTO)
+  id            String             @id @default(cuid())
+  number        String             @unique // SO2606-0001
+  status        OrderStatus        @default(ORCAMENTO)
   customerId    String
-  customer      Customer    @relation(fields: [customerId], references: [id])
+  customer      Customer           @relation(fields: [customerId], references: [id])
   clientRef     String? // Ref. Cliente
   employeeId    String?
-  employee      Employee?   @relation(fields: [employeeId], references: [id])
+  employee      Employee?          @relation(fields: [employeeId], references: [id])
   paymentTerms  String? // Promissoria
   paymentMethod String? // boleto
   deliveryDate  DateTime?
-  notes         String?     @db.Text
+  notes         String?            @db.Text
+  /// Snapshot recalculado a cada alteração (lib/orders/ledger.ts)
+  totalCents    Int                @default(0)
+  paidCents     Int                @default(0)
+  paymentStatus OrderPaymentStatus @default(NAO_COBRADO)
+  source        OrderSource        @default(ADMIN)
+  /// Token do link público de acompanhamento (/pedido/[token])
+  publicToken   String?            @unique
   items         OrderItem[]
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  payments      Payment[]
+  events        OrderEvent[]
+  commissions   Commission[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
   @@index([status])
+  @@index([paymentStatus])
   @@index([customerId])
+}
+
+enum OrderSource {
+  ADMIN
+  SITE
+}
+
+enum OrderPaymentStatus {
+  NAO_COBRADO
+  PENDENTE
+  PARCIAL
+  PAGO
+  ESTORNADO
+}
+
+// ─── Financeiro ────────────────────────────────────────────────────────────────
+
+enum PaymentProvider {
+  ASAAS
+  MANUAL
+}
+
+enum PaymentMethod {
+  PIX
+  BOLETO
+  CARTAO
+  CLIENTE_ESCOLHE // Asaas UNDEFINED: o cliente escolhe na fatura
+  DINHEIRO
+  TRANSFERENCIA
+  OUTRO
+}
+
+enum PaymentStatus {
+  PENDENTE
+  CONFIRMADO // cartão aprovado, saldo ainda não liberado
+  RECEBIDO
+  VENCIDO
+  ESTORNADO
+  CANCELADO
+}
+
+/// Cobrança/recebimento de um pedido (Asaas ou lançamento manual)
+model Payment {
+  id               String          @id @default(cuid())
+  orderId          String
+  order            Order           @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  provider         PaymentProvider
+  method           PaymentMethod
+  status           PaymentStatus   @default(PENDENTE)
+  amountCents      Int
+  netCents         Int? // líquido após taxas do Asaas
+  dueDate          DateTime?
+  paidAt           DateTime?
+  description      String?
+  externalId       String?         @unique // pay_... no Asaas
+  invoiceUrl       String?
+  bankSlipUrl      String?
+  pixPayload       String?         @db.Text // PIX copia e cola
+  pixQrImage       String?         @db.Text // base64 PNG
+  installmentCount Int?
+  lastSyncedAt     DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([orderId])
+  @@index([status])
+}
+
+/// Linha do tempo / auditoria do pedido
+model OrderEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  type      String // CREATED, UPDATED, STATUS, PAYMENT, COMMISSION, NOTE, LINK
+  message   String
+  actor     String   @default("admin") // admin | asaas | cliente | sistema
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+/// Webhooks recebidos — o id do evento garante idempotência (entrega at-least-once)
+model WebhookEvent {
+  id          String    @id // evt_... do provedor
+  provider    String
+  event       String
+  payload     Json
+  processedAt DateTime?
+  error       String?
+  createdAt   DateTime  @default(now())
+}
+
+// ─── Comissões ─────────────────────────────────────────────────────────────────
+
+enum CommissionRole {
+  VENDA
+  PRODUCAO
+  INDICACAO
+  OUTRO
+}
+
+enum CommissionStatus {
+  PENDENTE // pedido ainda não quitado
+  LIBERADA // pedido pago — a pagar ao funcionário
+  PAGA
+  CANCELADA
+}
+
+/// Comissão de um funcionário em um pedido (percentual sobre o total do pedido)
+model Commission {
+  id          String            @id @default(cuid())
+  orderId     String
+  order       Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  employeeId  String
+  employee    Employee          @relation(fields: [employeeId], references: [id])
+  role        CommissionRole    @default(VENDA)
+  bps         Int // pontos-base: 250 = 2,5%
+  baseCents   Int // base de cálculo (total do pedido)
+  amountCents Int
+  status      CommissionStatus  @default(PENDENTE)
+  releasedAt  DateTime?
+  paidAt      DateTime?
+  payoutId    String?
+  payout      CommissionPayout? @relation(fields: [payoutId], references: [id])
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([orderId, employeeId, role])
+  @@index([employeeId, status])
+}
+
+/// Pagamento de comissões a um funcionário (agrupa várias comissões)
+model CommissionPayout {
+  id          String       @id @default(cuid())
+  employeeId  String
+  employee    Employee     @relation(fields: [employeeId], references: [id])
+  amountCents Int
+  paidAt      DateTime     @default(now())
+  method      String?
+  notes       String?
+  commissions Commission[]
+  createdAt   DateTime     @default(now())
 }
 
 /// Item de um pedido — do catálogo (productId) ou livre
@@ -214,4 +377,71 @@ model OrderItem {
   position       Int      @default(0)
 
   @@index([orderId])
+}
+
+// ─── Conta do cliente (Better Auth) ─────────────────────────────────────────────
+// Separado do login do painel (cookie admin_auth). Tabelas no formato do Better Auth 1.7.
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  /// Cadastro comercial vinculado (após o e-mail ser verificado)
+  customerId    String?   @unique
+  customer      Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  sessions      Session[]
+  accounts      Account[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
 }

@@ -31,7 +31,7 @@ export function IconTile({ icon: Icon, label, className }: Props) {
       </div>
 
       {label && (
-        <span className="absolute inset-x-6 bottom-3 truncate text-center font-mono text-[10px] uppercase tracking-widest text-white/35">
+        <span className="absolute inset-x-6 bottom-3 truncate text-center font-mono text-[11px] uppercase tracking-widest text-white/70">
           {label}
         </span>
       )}

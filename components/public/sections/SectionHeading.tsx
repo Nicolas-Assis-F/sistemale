@@ -15,8 +15,8 @@ export function SectionHeading({ eyebrow, title, subtitle, align = 'left', link 
   return (
     <div className={`mb-8 flex flex-col gap-3 ${centered ? 'items-center text-center' : 'sm:flex-row sm:items-end sm:justify-between'}`}>
       <div className={centered ? 'max-w-2xl' : ''}>
-        {eyebrow && <p className="eyebrow mb-1.5">{eyebrow}</p>}
-        <h2 className="section-heading">{title}</h2>
+        {eyebrow && <p className="eyebrow eyebrow-bar mb-2.5">{eyebrow}</p>}
+        <h2 className="section-heading-xl">{title}</h2>
         {subtitle && (
           <p className="mt-2 text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl">
             {subtitle}

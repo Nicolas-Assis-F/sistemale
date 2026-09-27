@@ -13,15 +13,22 @@ export default async function EditEmployeePage({ params }: { params: Promise<{ i
   const updateWithId = updateEmployee.bind(null, id);
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center gap-4">
+    <div className="le-admin-page">
+      <div className="flex flex-wrap items-center gap-4">
         <Link href="/admin/funcionarios" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>← Voltar</Link>
-        <h1 className="text-2xl font-bold">Editar Funcionário</h1>
+        <p className="le-kicker">Gestão / Funcionarios</p><h1 className="le-admin-title">Editar funcionário</h1>
       </div>
       <EmployeeForm
         action={updateWithId}
-        submitLabel="Salvar Alterações"
-        defaultValues={{ name: employee.name, role: employee.role ?? '', active: employee.active }}
+        submitLabel="Salvar alterações"
+        defaultValues={{
+          name: employee.name,
+          role: employee.role ?? '',
+          active: employee.active,
+          phone: employee.phone ?? '',
+          pixKey: employee.pixKey ?? '',
+          commission: employee.commissionBps ? String(employee.commissionBps / 100).replace('.', ',') : '',
+        }}
       />
     </div>
   );

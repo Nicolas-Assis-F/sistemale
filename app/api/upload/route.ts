@@ -24,8 +24,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Arquivo muito grande. Tamanho máximo: 5MB.' }, { status: 400 });
   }
 
-  // Em desenvolvimento sem Vercel Blob configurado, salva localmente em public/uploads/
-  if (process.env.NODE_ENV === 'development') {
+  // Persistência local no servidor próprio: monte data/uploads como volume no deploy.
+  if (process.env.UPLOAD_STORAGE === 'local' || (process.env.NODE_ENV === 'development' && process.env.UPLOAD_STORAGE !== 'blob')) {
     return saveLocally(file);
   }
 
@@ -35,17 +35,19 @@ export async function POST(req: Request) {
 async function saveLocally(file: File): Promise<NextResponse> {
   const { writeFile, mkdir } = await import('fs/promises');
   const { join } = await import('path');
+  const { randomUUID } = await import('crypto');
 
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
-  const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-  const dir = join(process.cwd(), 'public', 'uploads');
+  const extension = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+  const filename = `${randomUUID()}.${extension}`;
+  const dir = join(process.cwd(), 'data', 'uploads');
   await mkdir(dir, { recursive: true });
   const filepath = join(dir, filename);
 
   await writeFile(filepath, buffer);
 
-  const url = `/uploads/${filename}`;
+  const url = `/media/${filename}`;
   return NextResponse.json({ url });
 }
 

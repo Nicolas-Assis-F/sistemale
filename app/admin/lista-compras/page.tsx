@@ -14,8 +14,8 @@ export default async function PurchaseListsPage() {
   });
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="le-admin-page">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <ShoppingCart className="h-6 w-6" />
@@ -47,7 +47,7 @@ export default async function PurchaseListsPage() {
         </div>
       ) : (
         <div className="border rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
+          <table className="le-responsive-table w-full text-sm">
             <thead className="bg-muted/50">
               <tr>
                 <th className="text-left px-4 py-3 font-medium">Nome da Lista</th>
@@ -59,14 +59,14 @@ export default async function PurchaseListsPage() {
             <tbody className="divide-y">
               {lists.map((list) => (
                 <tr key={list.id} className="hover:bg-muted/20 transition-colors">
-                  <td className="px-4 py-3 font-medium">{list.name}</td>
-                  <td className="px-4 py-3 text-center">
+                  <td data-label="Nome da Lista" className="px-4 py-3 font-medium">{list.name}</td>
+                  <td data-label="Itens" className="px-4 py-3 text-center">
                     <Badge variant="secondary">{list._count.items}</Badge>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">
+                  <td data-label="Criada em" className="px-4 py-3 text-muted-foreground hidden md:table-cell">
                     {list.createdAt.toLocaleDateString('pt-BR')}
                   </td>
-                  <td className="px-4 py-3">
+                  <td data-label="Nome da Lista" className="px-4 py-3">
                     <div className="flex items-center gap-1 justify-end">
                       <Link
                         href={`/admin/lista-compras/${list.id}`}

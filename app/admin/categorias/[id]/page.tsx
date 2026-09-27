@@ -17,12 +17,12 @@ export default async function EditCategoryPage({ params }: PageProps) {
   const action = updateCategory.bind(null, id);
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center gap-4">
+    <div className="le-admin-page">
+      <div className="flex flex-wrap items-center gap-4">
         <Link href="/admin/categorias" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
           ← Voltar
         </Link>
-        <h1 className="text-2xl font-bold">Editar: {category.name}</h1>
+        <p className="le-kicker">Gestão / Categorias</p><h1 className="le-admin-title">Editar: {category.name}</h1>
       </div>
       <CategoryForm
         defaultValues={{
@@ -33,7 +33,7 @@ export default async function EditCategoryPage({ params }: PageProps) {
           order: category.order,
         }}
         action={action}
-        submitLabel="Salvar Alterações"
+        submitLabel="Salvar alterações"
       />
     </div>
   );

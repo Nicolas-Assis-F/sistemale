@@ -1,0 +1,33 @@
+services:
+  # Postgres local do letorneadora (separado do cpa-postgres).
+  # Porta 55433 no host → 5432 no container (evita conflito com o 55432 do CPA).
+  db:
+    image: postgres:16-alpine
+    container_name: letorneadora-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: letorneadora
+      POSTGRES_PASSWORD: letorneadora
+      POSTGRES_DB: letorneadora
+    ports:
+      - "55433:5432"
+    volumes:
+      - letorneadora_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U letorneadora -d letorneadora"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # GUI opcional para inspecionar o banco em http://localhost:8090
+  adminer:
+    image: adminer:4
+    container_name: letorneadora-adminer
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "8090:8080"
+
+volumes:
+  letorneadora_pgdata:

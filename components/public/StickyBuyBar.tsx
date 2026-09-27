@@ -45,7 +45,7 @@ export function StickyBuyBar({ sku, productName, priceCents }: Props) {
           >
             <div className="container mx-auto flex items-center justify-between gap-3">
               <div>
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total</p>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total</p>
                 <p className="text-lg font-bold text-primary">{formatCurrency(priceCents)}</p>
               </div>
               <WhatsAppButton sku={sku} productName={productName} className="max-w-56 flex-1">

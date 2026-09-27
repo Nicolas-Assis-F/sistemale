@@ -1,5 +1,6 @@
 'use client';
 
+import { useAdminForm } from './use-admin-form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,6 +15,9 @@ const schema = z.object({
   name: z.string().min(1, 'Nome obrigatório'),
   role: z.string().optional(),
   active: z.boolean(),
+  phone: z.string().optional(),
+  pixKey: z.string().optional(),
+  commission: z.string().refine((v) => !v || /^\d{1,2}([.,]\d{1,2})?$|^100$/.test(v.trim()), 'Use um percentual como 2,5'),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -24,17 +28,13 @@ interface Props {
   submitLabel?: string;
 }
 
-export function EmployeeForm({ defaultValues, action, submitLabel = 'Salvar' }: Props) {
+export function EmployeeForm({ defaultValues, action, submitLabel = 'Salvar alterações' }: Props) {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: '', role: '', active: true, ...defaultValues },
+    defaultValues: { name: '', role: '', active: true, phone: '', pixKey: '', commission: '', ...defaultValues },
   });
 
-  async function onSubmit(values: FormValues) {
-    const fd = new FormData();
-    Object.entries(values).forEach(([k, v]) => fd.append(k, String(v ?? '')));
-    await action(fd);
-  }
+  const onSubmit = useAdminForm(form, action);
 
   return (
     <Form {...form}>
@@ -61,6 +61,44 @@ export function EmployeeForm({ defaultValues, action, submitLabel = 'Salvar' }: 
             </FormItem>
           )}
         />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>WhatsApp / telefone</FormLabel>
+                <FormControl><Input {...field} placeholder="(62) 90000-0000" /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="pixKey"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Chave PIX (para comissões)</FormLabel>
+                <FormControl><Input {...field} placeholder="CPF, e-mail, telefone ou aleatória" /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <FormField
+          control={form.control}
+          name="commission"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Comissão padrão (%)</FormLabel>
+              <FormControl><Input {...field} inputMode="decimal" placeholder="Ex.: 2,5" className="max-w-40" /></FormControl>
+              <FormDescription className="text-xs">
+                Sugerida ao vincular o funcionário a um pedido e aplicada automaticamente quando ele é o responsável pela produção. Paga sobre o total do pedido, liberada quando o pedido é quitado.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="active"
@@ -76,7 +114,7 @@ export function EmployeeForm({ defaultValues, action, submitLabel = 'Salvar' }: 
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={form.formState.isSubmitting}>
+        <Button className="sticky bottom-0 w-full sm:w-auto" type="submit" loading={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? 'Salvando...' : submitLabel}
         </Button>
       </form>

@@ -2,78 +2,39 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  LayoutDashboard, Package, Tag, ShoppingCart, FileText, Wrench, Images,
-  MessageSquare, ExternalLink, LogOut, ClipboardList, Users, HardHat,
-  type LucideIcon,
-} from 'lucide-react';
+import { ExternalLink, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface NavItem {
-  href: string;
-  icon: LucideIcon;
-  label: string;
-  badge?: number;
-}
-
-interface NavGroup {
-  title?: string;
-  items: NavItem[];
-}
+import { ADMIN_NAV } from './nav-items';
 
 export function AdminNav({
   unreadCount = 0,
   inFabricationCount = 0,
+  commissionsDueCount = 0,
   onNavigate,
 }: {
   unreadCount?: number;
   inFabricationCount?: number;
+  commissionsDueCount?: number;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
 
-  const groups: NavGroup[] = [
-    { items: [{ href: '/admin', icon: LayoutDashboard, label: 'Dashboard' }] },
-    {
-      title: 'Vendas / Produção',
-      items: [
-        { href: '/admin/pedidos', icon: ClipboardList, label: 'Pedidos', badge: inFabricationCount },
-        { href: '/admin/clientes', icon: Users, label: 'Clientes' },
-        { href: '/admin/funcionarios', icon: HardHat, label: 'Funcionários' },
-      ],
-    },
-    {
-      title: 'Catálogo',
-      items: [
-        { href: '/admin/produtos', icon: Package, label: 'Produtos' },
-        { href: '/admin/categorias', icon: Tag, label: 'Categorias' },
-        { href: '/admin/lista-compras', icon: ShoppingCart, label: 'Lista de Compras' },
-      ],
-    },
-    {
-      title: 'Site institucional',
-      items: [
-        { href: '/admin/conteudo', icon: FileText, label: 'Conteúdo' },
-        { href: '/admin/servicos', icon: Wrench, label: 'Serviços' },
-        { href: '/admin/galeria', icon: Images, label: 'Galeria' },
-      ],
-    },
-    {
-      title: 'Comunicação',
-      items: [{ href: '/admin/mensagens', icon: MessageSquare, label: 'Mensagens', badge: unreadCount }],
-    },
-  ];
+  const counts = { unread: unreadCount, inFabrication: inFabricationCount, commissionsDue: commissionsDueCount };
+  const groups = ADMIN_NAV.map((g) => ({
+    ...g,
+    items: g.items.map((i) => ({ ...i, badge: i.badgeKey ? counts[i.badgeKey] : 0 })),
+  }));
 
   const isActive = (href: string) =>
     href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
 
   return (
     <div className="flex h-full flex-col">
-      <nav className="flex-1 space-y-5 p-3">
+      <nav className="flex-1 space-y-6 p-4">
         {groups.map((group, gi) => (
           <div key={gi} className="space-y-1">
             {group.title && (
-              <p className="px-3 pb-1 text-[0.65rem] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+              <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
                 {group.title}
               </p>
             )}
@@ -86,16 +47,19 @@ export function AdminNav({
                   href={item.href}
                   onClick={onNavigate}
                   className={cn(
-                    'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                    'relative flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-xs font-medium transition-[transform,opacity]',
                     active
-                      ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                      : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                      ? 'bg-sidebar-accent text-white'
+                      : 'text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground'
                   )}
                 >
-                  <Icon className={cn('h-4 w-4', active ? '' : 'text-sidebar-primary')} />
+                  {active && (
+                    <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-le-blue-light" aria-hidden />
+                  )}
+                  <Icon className={cn('h-4 w-4', active ? 'text-le-blue-light' : 'text-sidebar-primary')} />
                   <span className="flex-1">{item.label}</span>
                   {item.badge ? (
-                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[0.65rem] font-bold text-white">
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[11px] font-bold text-white">
                       {item.badge}
                     </span>
                   ) : null}

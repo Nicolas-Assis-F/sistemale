@@ -1,68 +1,47 @@
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { buttonVariants } from '@/components/ui/button';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
+import { AdminFilters } from '@/components/admin/AdminFilters';
+import { AdminRecords } from '@/components/admin/AdminRecords';
+import { EntitySheet } from '@/components/admin/EntitySheet';
+import { CustomerForm } from '@/components/admin/CustomerForm';
 import { ConfirmDeleteButton } from '@/components/admin/ConfirmDeleteButton';
-import { deleteCustomer } from './_actions';
+import { adminListHref, type AdminListParams } from '@/lib/admin-list';
+import { createCustomer, updateCustomer, deleteCustomer } from './_actions';
 
-export default async function CustomersPage() {
-  const customers = await prisma.customer.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: { _count: { select: { orders: true } } },
-  });
-
+export default async function CustomersPage({ searchParams }: { searchParams: Promise<AdminListParams> }) {
+  const { q = '', novo, editar } = await searchParams;
+  const [rows, selected] = await Promise.all([
+    prisma.customer.findMany({ where: q ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { code: { contains: q, mode: 'insensitive' } }, { city: { contains: q, mode: 'insensitive' } }] } : {}, orderBy: { createdAt: 'desc' }, include: { _count: { select: { orders: true } }, user: { select: { emailVerified: true } } } }),
+    editar ? prisma.customer.findUnique({ where: { id: editar } }) : Promise.resolve(null),
+  ]);
+  if (editar && !selected) notFound();
+  const closeHref = adminListHref('clientes', q);
+  const createHref = adminListHref('clientes', q, { novo: '1' });
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Clientes</h1>
-          <p className="text-sm text-muted-foreground">{customers.length} clientes</p>
-        </div>
-        <Link href="/admin/clientes/novo" className={buttonVariants()}>+ Novo Cliente</Link>
+    <div className="le-admin-page">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div><p className="le-kicker">Gestão / Clientes</p><h1 className="le-admin-title">Clientes</h1><p className="mt-2 text-sm text-le-muted">{rows.length} registro(s){q ? ' encontrados' : ' cadastrados'}</p></div>
+        <Link data-entity-create href={createHref} className={buttonVariants()}>+ Novo cliente</Link>
       </div>
-
-      <div className="overflow-hidden rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Código</TableHead>
-              <TableHead>Nome</TableHead>
-              <TableHead className="hidden md:table-cell">Cidade</TableHead>
-              <TableHead className="text-right">Pedidos</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {customers.map((c) => (
-              <TableRow key={c.id}>
-                <TableCell className="font-mono text-xs text-muted-foreground">{c.code}</TableCell>
-                <TableCell className="font-medium">{c.name}</TableCell>
-                <TableCell className="hidden text-sm text-muted-foreground md:table-cell">
-                  {c.city ? `${c.city}${c.state ? ` – ${c.state}` : ''}` : '—'}
-                </TableCell>
-                <TableCell className="text-right">{c._count.orders}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Link href={`/admin/clientes/${c.id}`} className={buttonVariants({ variant: 'ghost', size: 'sm' })}>Editar</Link>
-                    <ConfirmDeleteButton
-                      action={() => deleteCustomer(c.id)}
-                      confirmMessage={`Excluir "${c.name}"? Esta ação não pode ser desfeita.`}
-                      label="Excluir"
-                    />
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-            {customers.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">Nenhum cliente cadastrado.</TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <AdminFilters placeholder="Buscar clientes" />
+      <AdminRecords createHref={createHref} createLabel="Cadastrar cliente" empty={q ? 'Nenhum resultado. Tente outro termo de busca.' : 'Nenhum registro ainda. Comece pelo primeiro cadastro.'}
+        rows={rows.map((row) => ({
+          id: row.id,
+          title: <Link href={adminListHref('clientes', q, { editar: row.id })} className="hover:text-le-blue">{row.name}</Link>,
+          details: [{ label: 'Código', value: <span className="font-mono text-xs">{row.code}</span> },
+              { label: 'Cidade', value: row.city || '—' },
+              { label: 'Pedidos', value: row._count.orders },
+              { label: 'Portal', value: row.user ? <span className="rounded-full bg-le-success-surface px-2 py-0.5 text-[11px] font-semibold text-le-success">Conta ativa</span> : <span className="text-le-muted">—</span> }],
+          actions: <><Link href={adminListHref('clientes', q, { editar: row.id })} className={buttonVariants({ variant: 'outline', size: 'sm' })}>Editar</Link><ConfirmDeleteButton action={deleteCustomer.bind(null, row.id)} confirmMessage={`Excluir "${row.name}"? Esta ação não pode ser desfeita.`} label="Excluir" /></>,
+        }))} />
+      {(novo === '1' || selected) && <EntitySheet key={selected?.id ?? 'new'} title={selected ? 'Editar cliente' : 'Cadastrar cliente'} closeHref={closeHref}>
+        <CustomerForm action={selected ? updateCustomer.bind(null, selected.id) : createCustomer} defaultValues={selected ? {
+          name: selected.name, doc: selected.doc ?? '', email: selected.email ?? '', phone: selected.phone ?? '',
+          address: selected.address ?? '', city: selected.city ?? '', state: selected.state ?? '', zip: selected.zip ?? '', contact: selected.contact ?? '',
+        } : undefined} />
+      </EntitySheet>}
     </div>
   );
 }

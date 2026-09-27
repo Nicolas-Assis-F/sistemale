@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
+import { requireAdmin } from '@/lib/auth';
 
 const gallerySchema = z.object({
   title: z.string().min(1, 'Título obrigatório').max(160),
@@ -22,6 +23,7 @@ function revalidate() {
 }
 
 export async function createGalleryItem(formData: FormData) {
+  await requireAdmin();
   const parsed = gallerySchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
   const data = parsed.data;
@@ -36,10 +38,12 @@ export async function createGalleryItem(formData: FormData) {
     },
   });
   revalidate();
+  if (formData.get('_presentation') === 'sheet') return { ok: true as const };
   redirect('/admin/galeria');
 }
 
 export async function updateGalleryItem(id: string, formData: FormData) {
+  await requireAdmin();
   const parsed = gallerySchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
   const data = parsed.data;
@@ -55,10 +59,12 @@ export async function updateGalleryItem(id: string, formData: FormData) {
     },
   });
   revalidate();
+  if (formData.get('_presentation') === 'sheet') return { ok: true as const };
   redirect('/admin/galeria');
 }
 
 export async function deleteGalleryItem(id: string): Promise<{ error: string } | { ok: true }> {
+  await requireAdmin();
   try {
     await prisma.galleryItem.delete({ where: { id } });
   } catch {

@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { slugify } from '@/lib/slugify';
+import { requireAdmin } from '@/lib/auth';
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Nome obrigatório').max(100),
@@ -15,6 +16,7 @@ const categorySchema = z.object({
 });
 
 export async function createCategory(formData: FormData) {
+  await requireAdmin();
   const raw = Object.fromEntries(formData);
   const parsed = categorySchema.safeParse(raw);
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
@@ -33,10 +35,12 @@ export async function createCategory(formData: FormData) {
   revalidateTag('categories', 'max');
   revalidatePath('/');
   revalidatePath('/admin/categorias');
+  if (formData.get('_presentation') === 'sheet') return { ok: true as const };
   redirect('/admin/categorias');
 }
 
 export async function updateCategory(id: string, formData: FormData) {
+  await requireAdmin();
   const raw = Object.fromEntries(formData);
   const parsed = categorySchema.safeParse(raw);
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
@@ -56,10 +60,12 @@ export async function updateCategory(id: string, formData: FormData) {
   revalidateTag('categories', 'max');
   revalidatePath('/');
   revalidatePath('/admin/categorias');
+  if (formData.get('_presentation') === 'sheet') return { ok: true as const };
   redirect('/admin/categorias');
 }
 
 export async function deleteCategory(id: string): Promise<{ error: string } | { ok: true }> {
+  await requireAdmin();
   const productCount = await prisma.product.count({ where: { categoryId: id } });
   if (productCount > 0) {
     return { error: `Não é possível excluir: existem ${productCount} produto(s) vinculados a esta categoria.` };

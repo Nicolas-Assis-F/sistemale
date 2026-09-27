@@ -1,68 +1,105 @@
-import Link from 'next/link';
-import { MessageCircle, Search } from 'lucide-react';
-import { getCachedNavCategories } from '@/lib/cache';
-import { NAV_LINKS } from '@/lib/site-content';
-import { buttonVariants } from '@/components/ui/button';
-import { Brand } from '@/components/Brand';
-import { SearchBar } from './SearchBar';
-import { MobileNav } from './MobileNav';
-
-const phone = process.env.NEXT_PUBLIC_COMPANY_PHONE ?? '';
-
-export async function Header() {
-  const categories = await getCachedNavCategories().catch(() => []);
-
+"use client";
+import { buttonVariants } from "@/components/ui/button";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { ArrowUpRight, Menu } from "lucide-react";
+import { Brand } from "@/components/Brand";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { buildWhatsAppUrl } from "@/lib/whatsapp-url";
+import { AccountButton } from "@/components/account/AccountButton";
+const links = [
+  { href: "/", label: "Início" },
+  { href: "/vitrine", label: "Vitrine" },
+  { href: "/sobre", label: "A L&E" },
+  { href: "/servicos", label: "Soluções" },
+];
+export function Header() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-white/90 supports-backdrop-filter:backdrop-blur-md shadow-card">
-      <div className="container mx-auto flex h-16 items-center gap-4 px-4">
-        {/* Marca */}
-        <Brand href="/" priority />
-
-        {/* Nav institucional (desktop) */}
-        <nav className="hidden flex-1 items-center justify-center gap-0.5 lg:flex">
-          {NAV_LINKS.map((l) => (
+    <header className="le-header">
+      <div className="le-container flex h-22 items-center justify-between gap-5">
+        <Brand href="/" />
+        <nav
+          aria-label="Navegação principal"
+          className="hidden items-center gap-8 lg:flex"
+        >
+          {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-primary/8 hover:text-primary"
+              aria-current={
+                (
+                  l.href === "/"
+                    ? pathname === "/"
+                    : pathname.startsWith(l.href)
+                )
+                  ? "page"
+                  : undefined
+              }
+              className="le-nav-link"
             >
               {l.label}
             </Link>
           ))}
         </nav>
-
-        {/* Busca (desktop) */}
-        <div className="hidden lg:block lg:w-56 xl:w-72">
-          <SearchBar />
+        <div className="flex items-center gap-3">
+          <AccountButton className="hidden sm:inline-flex" />
+          <span className="hidden sm:block">
+            <a
+              href={buildWhatsAppUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ variant: "dark", size: "lg" })}
+            >
+              Fale com a L&E <ArrowUpRight size={16} />
+            </a>
+          </span>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger
+              aria-label="Abrir navegação"
+              className="rounded-xl border p-3 lg:hidden"
+            >
+              <Menu size={20} />
+            </DialogTrigger>
+            <DialogContent className="p-7">
+              <DialogTitle>Navegar pela L&E</DialogTitle>
+              <nav aria-label="Navegação mobile" className="mt-3 flex flex-col gap-2">
+                {links.map((l) => (
+                  <Link
+                    key={l.href}
+                    onClick={() => setOpen(false)}
+                    href={l.href}
+                    aria-current={(l.href === '/' ? pathname === '/' : pathname.startsWith(l.href)) ? 'page' : undefined}
+                    className="rounded-xl p-3 text-lg hover:bg-muted"
+                  >
+                    {l.label}
+                  </Link>
+                ))}
+                <Link
+                  href="/conta"
+                  onClick={() => setOpen(false)}
+                  className="rounded-xl p-3 text-lg hover:bg-muted"
+                >
+                  Minha conta
+                </Link>
+                <Link
+                  href="/contato"
+                  onClick={() => setOpen(false)}
+                  className="le-button le-button-blue mt-3"
+                >
+                  Solicitar orçamento
+                </Link>
+              </nav>
+            </DialogContent>
+          </Dialog>
         </div>
-
-        {/* Empurra as ações para a direita no mobile/tablet */}
-        <div className="flex-1 lg:hidden" />
-
-        {/* WhatsApp rápido (desktop) */}
-        {phone && (
-          <a
-            href={`https://wa.me/${phone}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden shrink-0 items-center gap-1.5 rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-green-700 lg:flex"
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span className="hidden xl:inline">WhatsApp</span>
-          </a>
-        )}
-
-        {/* Busca (mobile/tablet) */}
-        <Link
-          href="/busca"
-          aria-label="Buscar produtos"
-          className={buttonVariants({ variant: 'ghost', size: 'icon' }) + ' lg:hidden'}
-        >
-          <Search className="h-5 w-5" />
-        </Link>
-
-        {/* Menu mobile/tablet */}
-        <MobileNav categories={categories} phone={phone} />
       </div>
     </header>
   );

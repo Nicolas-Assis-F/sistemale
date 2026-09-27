@@ -12,12 +12,12 @@ export default async function NewOrderPage() {
   ]);
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center gap-4">
+    <div className="le-admin-page">
+      <div className="flex flex-wrap items-center gap-4">
         <Link href="/admin/pedidos" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>← Voltar</Link>
-        <h1 className="text-2xl font-bold">Novo Pedido / Orçamento</h1>
+        <p className="le-kicker">Gestão / Pedidos</p><h1 className="le-admin-title">Novo pedido / orçamento</h1>
       </div>
-      <OrderForm products={products} customers={customers} employees={employees} action={createOrder} submitLabel="Criar Pedido" />
+      <OrderForm products={products} customers={customers} employees={employees} action={createOrder} submitLabel="Criar pedido" />
     </div>
   );
 }

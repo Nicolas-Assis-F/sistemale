@@ -28,8 +28,8 @@ export default async function EditOrderPage({ params }: { params: Promise<{ id: 
   }));
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center gap-4">
+    <div className="le-admin-page">
+      <div className="flex flex-wrap items-center gap-4">
         <Link href={`/admin/pedidos/${id}`} className={buttonVariants({ variant: 'ghost', size: 'sm' })}>← Voltar</Link>
         <h1 className="font-mono text-2xl font-bold">Editar {order.number}</h1>
       </div>
@@ -38,7 +38,7 @@ export default async function EditOrderPage({ params }: { params: Promise<{ id: 
         customers={customers}
         employees={employees}
         action={updateWithId}
-        submitLabel="Salvar Alterações"
+        submitLabel="Salvar alterações"
         defaultValues={{
           customerId: order.customerId,
           clientRef: order.clientRef ?? '',

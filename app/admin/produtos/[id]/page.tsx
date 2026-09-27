@@ -31,12 +31,14 @@ export default async function EditProductPage({ params, searchParams }: PageProp
   const activeTab = tab === 'pecas' ? 'pecas' : 'dados';
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center gap-4">
+    <div className="mx-auto max-w-[1500px] space-y-7 p-5 sm:p-8">
+      <div>
         <Link href="/admin/produtos" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
           ← Voltar
         </Link>
-        <h1 className="text-2xl font-bold">Editar: {product.name}</h1>
+        <p className="mt-5 text-xs font-bold uppercase tracking-[.18em] text-le-blue">Catálogo / edição</p>
+        <h1 className="mt-1 font-heading text-3xl font-bold tracking-tight text-le-text">{product.name}</h1>
+        <p className="mt-2 text-sm text-le-muted">Atualize a ficha e confira a apresentação ao lado do formulário.</p>
       </div>
 
       {/* Tabs */}
@@ -94,7 +96,7 @@ export default async function EditProductPage({ params, searchParams }: PageProp
             specs: specsArray,
           }}
           action={action}
-          submitLabel="Salvar Alterações"
+          submitLabel="Salvar alterações"
         />
       )}
     </div>

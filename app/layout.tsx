@@ -13,11 +13,10 @@ const spaceGrotesk = Space_Grotesk({
   variable: '--font-display',
   subsets: ['latin'],
   display: 'swap',
-  weight: ['500', '600', '700'],
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
-const companyName = process.env.NEXT_PUBLIC_COMPANY_NAME ?? 'Catálogo';
+const companyName = 'L&E Torneadora';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -26,7 +25,7 @@ export const metadata: Metadata = {
     template: `%s | ${companyName}`,
   },
   description:
-    'L & E Torneadora — Fabricamos todos os equipamentos para poços artesianos: máquinas de 40m a 100m, cabeçote hidráulico, roscas e hastes de perfuração. Aparecida de Goiânia – GO.',
+    'L & E Torneadora — Fabricamos todos os equipamentos para poços artesianos: perfuratriz AR-100, cabeçotes hidráulicos, roscas, hastes e brocas PDC. Aparecida de Goiânia – GO.',
   openGraph: {
     type: 'website',
     locale: 'pt_BR',

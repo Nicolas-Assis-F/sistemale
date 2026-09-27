@@ -7,6 +7,7 @@ import {
   DndContext,
   closestCenter,
   PointerSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -16,6 +17,7 @@ import {
   useSortable,
   arrayMove,
   horizontalListSortingStrategy,
+  sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { X, GripVertical, ImagePlus, Loader2, CheckCircle2 } from 'lucide-react';
@@ -46,7 +48,7 @@ function SortableImage({ url, onRemove }: SortableImageProps) {
       className="relative group w-24 h-24 rounded-xl overflow-hidden border-2 border-border bg-muted shrink-0 shadow-sm"
     >
       <Image src={url} alt="Foto do produto" fill className="object-cover" sizes="96px" />
-      <div className="absolute inset-0 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 bg-black/50 transition-opacity rounded-xl">
+      <div className="absolute inset-0 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 bg-black/50 transition-opacity rounded-xl">
         <button
           type="button"
           {...attributes}
@@ -77,7 +79,7 @@ export function ImageUploader({ value, onChange }: Props) {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
-  const sensors = useSensors(useSensor(PointerSensor));
+  const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
   const onDrop = useCallback(
     async (files: File[]) => {
@@ -89,15 +91,19 @@ export function ImageUploader({ value, onChange }: Props) {
       const newUrls: string[] = [];
 
       for (const file of files) {
-        const fd = new FormData();
-        fd.append('file', file);
-        const res = await fetch('/api/upload', { method: 'POST', body: fd });
-        const data = await res.json();
-        if (res.ok) {
-          newUrls.push(data.url);
-          setUploadCount((n) => n + 1);
-        } else {
-          setError(data.error ?? 'Erro ao fazer upload.');
+        try {
+          const fd = new FormData();
+          fd.append('file', file);
+          const res = await fetch('/api/upload', { method: 'POST', body: fd });
+          const data = await res.json();
+          if (res.ok) {
+            newUrls.push(data.url);
+            setUploadCount((n) => n + 1);
+          } else {
+            setError(data.error ?? 'Erro ao fazer upload.');
+          }
+        } catch {
+          setError('Falha de conexão durante o envio. Tente novamente.');
         }
       }
 
@@ -115,6 +121,7 @@ export function ImageUploader({ value, onChange }: Props) {
     onDrop,
     accept: { 'image/jpeg': [], 'image/png': [], 'image/webp': [] },
     maxSize: 5 * 1024 * 1024,
+    onDropRejected: () => setError('Use imagens JPG, PNG ou WebP de até 5 MB.'),
     disabled: uploading,
   });
 
@@ -135,14 +142,14 @@ export function ImageUploader({ value, onChange }: Props) {
     <div className="space-y-4">
       {/* Drop zone */}
       <div
-        {...getRootProps()}
-        className={`relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
+        {...getRootProps({ role: "button", "aria-label": "Enviar imagens" })}
+        className={`relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-[transform,opacity] ${
           isDragActive
-            ? 'border-primary bg-primary/5 scale-[1.01]'
-            : 'border-border hover:border-primary/50 hover:bg-muted/30'
+            ? 'border-orange bg-orange/5 scale-[1.01]'
+            : 'border-le-line bg-le-subtle hover:border-le-warning hover:bg-le-subtle'
         } ${uploading ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}
       >
-        <input {...getInputProps()} />
+        <input {...getInputProps({ "aria-label": "Selecionar imagens" })} />
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
           {uploading ? (
             <>
@@ -191,7 +198,7 @@ export function ImageUploader({ value, onChange }: Props) {
                   <div key={url} className="relative">
                     <SortableImage url={url} onRemove={() => removeImage(url)} />
                     {i === 0 && (
-                      <span className="absolute -top-1.5 -left-1.5 bg-primary text-primary-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                      <span className="absolute -top-1.5 -left-1.5 bg-primary text-primary-foreground text-[11px] font-bold px-1.5 py-0.5 rounded-full">
                         PRINCIPAL
                       </span>
                     )}

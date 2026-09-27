@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { generateCustomerCode } from '@/lib/order-number';
+import { requireAdmin } from '@/lib/auth';
 
 const customerSchema = z.object({
   name: z.string().min(1, 'Nome obrigatório').max(160),
@@ -33,23 +34,28 @@ function toData(d: z.infer<typeof customerSchema>) {
 }
 
 export async function createCustomer(formData: FormData) {
+  await requireAdmin();
   const parsed = customerSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
   const code = await generateCustomerCode();
   await prisma.customer.create({ data: { code, ...toData(parsed.data) } });
   revalidatePath('/admin/clientes');
+  if (formData.get('_presentation') === 'sheet') return { ok: true as const };
   redirect('/admin/clientes');
 }
 
 export async function updateCustomer(id: string, formData: FormData) {
+  await requireAdmin();
   const parsed = customerSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
   await prisma.customer.update({ where: { id }, data: toData(parsed.data) });
   revalidatePath('/admin/clientes');
+  if (formData.get('_presentation') === 'sheet') return { ok: true as const };
   redirect('/admin/clientes');
 }
 
 export async function deleteCustomer(id: string): Promise<{ error: string } | { ok: true }> {
+  await requireAdmin();
   const orderCount = await prisma.order.count({ where: { customerId: id } });
   if (orderCount > 0) {
     return { error: `Não é possível excluir: existem ${orderCount} pedido(s) vinculados a este cliente.` };

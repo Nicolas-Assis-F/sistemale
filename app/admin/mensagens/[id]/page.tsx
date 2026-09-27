@@ -21,10 +21,10 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
     : null;
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center gap-4">
+    <div className="le-admin-page">
+      <div className="flex flex-wrap items-center gap-4">
         <Link href="/admin/mensagens" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>← Voltar</Link>
-        <h1 className="text-2xl font-bold">Mensagem</h1>
+        <p className="le-kicker">Gestão / Mensagens</p><h1 className="le-admin-title">Mensagem</h1>
       </div>
 
       <div className="max-w-2xl space-y-5 rounded-2xl border border-border bg-card p-6 shadow-card">
@@ -66,7 +66,7 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
             </button>
           </form>
           <ConfirmDeleteButton
-            action={() => deleteSubmission(id)}
+            action={deleteSubmission.bind(null, id)}
             confirmMessage="Excluir esta mensagem? Esta ação não pode ser desfeita."
             label="Excluir"
           />

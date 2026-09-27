@@ -1,98 +1,45 @@
 import Link from 'next/link';
-import type { OrderStatus, Prisma } from '@prisma/client';
+import type { OrderStatus, OrderPaymentStatus, Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { buttonVariants } from '@/components/ui/button';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
+import { AdminFilters } from '@/components/admin/AdminFilters';
+import { AdminRecords } from '@/components/admin/AdminRecords';
+import { OrderBoard } from '@/components/admin/orders/OrderBoard';
 import { formatCurrency } from '@/lib/format';
 import { ORDER_STATUS_ORDER, ORDER_STATUS_LABELS, ORDER_STATUS_BADGE } from '@/lib/order-status';
+import { ORDER_PAYMENT_BADGE, ORDER_PAYMENT_LABELS } from '@/lib/finance-labels';
 
-function orderTotal(items: { quantity: number; unitPriceCents: number }[]) {
-  return items.reduce((s, i) => s + i.quantity * i.unitPriceCents, 0);
-}
-
-export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
-  const { status } = await searchParams;
-  const activeStatus = ORDER_STATUS_ORDER.includes(status as OrderStatus) ? (status as OrderStatus) : undefined;
-  const where: Prisma.OrderWhereInput = activeStatus ? { status: activeStatus } : {};
-
-  const orders = await prisma.order.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-    include: {
-      customer: { select: { name: true } },
-      employee: { select: { name: true } },
-      items: { select: { quantity: true, unitPriceCents: true } },
-    },
-  });
-
-  return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Pedidos / Orçamentos</h1>
-          <p className="text-sm text-muted-foreground">{orders.length} {activeStatus ? `· ${ORDER_STATUS_LABELS[activeStatus]}` : 'no total'}</p>
-        </div>
-        <Link href="/admin/pedidos/novo" className={buttonVariants()}>+ Novo Pedido</Link>
-      </div>
-
-      {/* Filtro por status */}
-      <div className="flex flex-wrap gap-2">
-        <Link
-          href="/admin/pedidos"
-          className={buttonVariants({ variant: activeStatus ? 'outline' : 'default', size: 'sm' })}
-        >
-          Todos
-        </Link>
-        {ORDER_STATUS_ORDER.map((s) => (
-          <Link
-            key={s}
-            href={`/admin/pedidos?status=${s}`}
-            className={buttonVariants({ variant: activeStatus === s ? 'default' : 'outline', size: 'sm' })}
-          >
-            {ORDER_STATUS_LABELS[s]}
-          </Link>
-        ))}
-      </div>
-
-      <div className="overflow-hidden rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Número</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead className="hidden md:table-cell">Responsável</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="hidden sm:table-cell text-right">Total</TableHead>
-              <TableHead className="text-right">Data</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orders.map((o) => (
-              <TableRow key={o.id} className="cursor-pointer">
-                <TableCell className="font-mono text-xs">
-                  <Link href={`/admin/pedidos/${o.id}`} className="font-semibold hover:text-primary">{o.number}</Link>
-                </TableCell>
-                <TableCell className="font-medium">{o.customer.name}</TableCell>
-                <TableCell className="hidden text-sm text-muted-foreground md:table-cell">{o.employee?.name ?? '—'}</TableCell>
-                <TableCell>
-                  <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${ORDER_STATUS_BADGE[o.status]}`}>
-                    {ORDER_STATUS_LABELS[o.status]}
-                  </span>
-                </TableCell>
-                <TableCell className="hidden text-right text-sm sm:table-cell">{formatCurrency(orderTotal(o.items))}</TableCell>
-                <TableCell className="text-right text-xs text-muted-foreground">{o.createdAt.toLocaleDateString('pt-BR')}</TableCell>
-              </TableRow>
-            ))}
-            {orders.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">Nenhum pedido encontrado.</TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; paymentStatus?: string; visual?: string }> }) {
+  const { q = '', status, paymentStatus, visual } = await searchParams;
+  const where: Prisma.OrderWhereInput = {
+    ...(ORDER_STATUS_ORDER.includes(status as OrderStatus) ? { status: status as OrderStatus } : {}),
+    ...(paymentStatus && Object.hasOwn(ORDER_PAYMENT_LABELS, paymentStatus) ? { paymentStatus: paymentStatus as OrderPaymentStatus } : {}),
+    ...(q ? { OR: [{ number: { contains: q, mode: 'insensitive' } }, { customer: { name: { contains: q, mode: 'insensitive' } } }] } : {}),
+  };
+  const orders = await prisma.order.findMany({ where, orderBy: { createdAt: 'desc' }, include: { customer: { select: { name: true } }, employee: { select: { name: true } }, items: { select: { quantity: true, unitPriceCents: true } } } });
+  const total = (order: typeof orders[number]) => order.totalCents || order.items.reduce((sum, item) => sum + item.quantity * item.unitPriceCents, 0);
+  const balance = (o: typeof orders[number]) => Math.max(0, total(o) - o.paidCents);
+  return <div className="le-admin-page">
+    <div className="flex flex-wrap items-end justify-between gap-4">
+      <div><p className="le-kicker">Vendas / Produção</p><h1 className="le-admin-title">Pedidos e orçamentos</h1><p className="mt-2 text-sm text-le-muted">{orders.length} pedido(s) encontrados</p></div>
+      <Link href="/admin/pedidos/novo" className={buttonVariants()}>+ Novo pedido</Link>
     </div>
-  );
+    <AdminFilters placeholder="Buscar por número ou cliente" filters={[
+      { name: 'status', label: 'Status do pedido', options: [{ value: '', label: 'Todos os status' }, ...ORDER_STATUS_ORDER.map((value) => ({ value, label: ORDER_STATUS_LABELS[value] }))] },
+      { name: 'paymentStatus', label: 'Situação financeira', options: [{ value: '', label: 'Todas as situações' }, ...Object.entries(ORDER_PAYMENT_LABELS).map(([value, label]) => ({ value, label }))] },
+      { name: 'visual', label: 'Visualização', options: [{ value: '', label: 'Lista' }, { value: 'quadro', label: 'Quadro por status' }] },
+    ]} />
+    {visual === 'quadro' && orders.length ? <OrderBoard orders={orders.map((o) => ({ id: o.id, number: o.number, customer: o.customer.name, status: o.status, balance: balance(o) }))} /> :
+      <AdminRecords createHref="/admin/pedidos/novo" createLabel="Criar orçamento" empty="Nenhum pedido encontrado. Ajuste os filtros ou crie um orçamento." rows={orders.map((o) => ({
+        id: o.id,
+        title: <><Link href={`/admin/pedidos/${o.id}`} className="font-mono text-sm font-semibold text-le-blue">{o.number}</Link>{o.source === 'SITE' && <span className="ml-2 rounded-full bg-le-tint px-2 py-0.5 text-[11px] font-semibold text-le-blue">Pelo site</span>}<p className="mt-1 text-sm">{o.customer.name}</p><p className="mt-1 text-xs text-le-muted">{o.createdAt.toLocaleDateString('pt-BR')} · {o.employee?.name ?? 'Sem responsável'}</p></>,
+        details: [
+          { label: 'Status', value: <span className={`inline-block rounded-full px-2.5 py-1 text-xs ${ORDER_STATUS_BADGE[o.status]}`}>{ORDER_STATUS_LABELS[o.status]}</span> },
+          { label: 'Financeiro', value: <span className={`inline-block rounded-full px-2.5 py-1 text-xs ${ORDER_PAYMENT_BADGE[o.paymentStatus]}`}>{ORDER_PAYMENT_LABELS[o.paymentStatus]}</span> },
+          { label: 'Total', value: formatCurrency(total(o)) },
+          { label: 'A receber', value: <strong className="tabular-nums">{formatCurrency(balance(o))}</strong> },
+        ],
+        actions: <Link href={`/admin/pedidos/${o.id}`} className={buttonVariants({ variant: 'outline', size: 'sm' })}>Abrir pedido</Link>,
+      }))} />}
+  </div>;
 }

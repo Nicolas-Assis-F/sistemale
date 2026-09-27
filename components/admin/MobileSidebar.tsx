@@ -8,7 +8,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { Brand } from '@/components/Brand';
 import { AdminNav } from './AdminNav';
 
-export function MobileSidebar({ unreadCount = 0, inFabricationCount = 0 }: { unreadCount?: number; inFabricationCount?: number }) {
+export function MobileSidebar({ unreadCount = 0, inFabricationCount = 0, commissionsDueCount = 0 }: { unreadCount?: number; inFabricationCount?: number; commissionsDueCount?: number }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -30,12 +30,12 @@ export function MobileSidebar({ unreadCount = 0, inFabricationCount = 0 }: { unr
         <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/50 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 md:hidden" />
         <DialogPrimitive.Popup className="fixed inset-y-0 left-0 z-50 flex w-64 max-w-[85vw] flex-col bg-sidebar outline-none data-open:animate-in data-open:slide-in-from-left data-closed:animate-out data-closed:slide-out-to-left md:hidden">
           <div className="flex items-center justify-between border-b border-sidebar-border p-5">
-            <Brand variant="dark" />
+            <DialogPrimitive.Title className="sr-only">Menu administrativo</DialogPrimitive.Title><Brand variant="dark" />
             <DialogPrimitive.Close aria-label="Fechar" className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
               <X className="h-5 w-5" />
             </DialogPrimitive.Close>
           </div>
-          <AdminNav unreadCount={unreadCount} inFabricationCount={inFabricationCount} onNavigate={() => setOpen(false)} />
+          <AdminNav unreadCount={unreadCount} inFabricationCount={inFabricationCount} commissionsDueCount={commissionsDueCount} onNavigate={() => setOpen(false)} />
         </DialogPrimitive.Popup>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

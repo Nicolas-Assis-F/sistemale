@@ -15,7 +15,16 @@ export const getCachedHomeData = unstable_cache(
     const [categories, featured] = await Promise.all([
       prisma.category.findMany({
         orderBy: { order: 'asc' },
-        include: { _count: { select: { products: { where: { active: true } } } } },
+        include: {
+          _count: { select: { products: { where: { active: true } } } },
+          // 1 produto com foto por categoria → capa visual do bento
+          products: {
+            where: { active: true, NOT: { images: { isEmpty: true } } },
+            select: { images: true },
+            orderBy: { featured: 'desc' },
+            take: 1,
+          },
+        },
       }),
       prisma.product.findMany({
         where: { active: true, featured: true },
@@ -23,7 +32,12 @@ export const getCachedHomeData = unstable_cache(
         orderBy: { updatedAt: 'desc' },
       }),
     ]);
-    return { categories, featured };
+    // Achata a capa e remove a relação pesada do payload cacheado
+    const categoriesWithCover = categories.map(({ products, ...cat }) => ({
+      ...cat,
+      cover: products[0]?.images?.[0] ?? null,
+    }));
+    return { categories: categoriesWithCover, featured };
   },
   ['home-data'],
   { tags: ['categories', 'products'], revalidate: 60 }

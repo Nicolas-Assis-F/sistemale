@@ -5,12 +5,12 @@ import { createCategory } from '../_actions';
 
 export default function NewCategoryPage() {
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center gap-4">
+    <div className="le-admin-page">
+      <div className="flex flex-wrap items-center gap-4">
         <Link href="/admin/categorias" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
           ← Voltar
         </Link>
-        <h1 className="text-2xl font-bold">Nova Categoria</h1>
+        <p className="le-kicker">Gestão / Categorias</p><h1 className="le-admin-title">Nova categoria</h1>
       </div>
       <CategoryForm action={createCategory} submitLabel="Criar Categoria" />
     </div>

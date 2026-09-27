@@ -5,10 +5,10 @@ import { createEmployee } from '../_actions';
 
 export default function NewEmployeePage() {
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center gap-4">
+    <div className="le-admin-page">
+      <div className="flex flex-wrap items-center gap-4">
         <Link href="/admin/funcionarios" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>← Voltar</Link>
-        <h1 className="text-2xl font-bold">Novo Funcionário</h1>
+        <p className="le-kicker">Gestão / Funcionarios</p><h1 className="le-admin-title">Novo funcionário</h1>
       </div>
       <EmployeeForm action={createEmployee} submitLabel="Criar Funcionário" />
     </div>

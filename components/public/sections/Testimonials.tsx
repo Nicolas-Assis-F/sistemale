@@ -17,9 +17,10 @@ export function Testimonials({ testimonials }: Props) {
           {testimonials.map((t, i) => (
             <figure
               key={i}
-              className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 shadow-card"
+              className="group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-border/80 bg-card p-6 shadow-sharp transition-colors hover:border-primary/40"
             >
-              <Quote className="h-7 w-7 shrink-0 text-brand-accent" aria-hidden />
+              <span className="card-accent-top" aria-hidden />
+              <Quote className="h-7 w-7 shrink-0 text-orange" aria-hidden />
               <blockquote className="flex-1 text-sm leading-relaxed text-foreground/90">
                 “{t.quote}”
               </blockquote>

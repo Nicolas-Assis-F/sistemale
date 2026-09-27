@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LE Torneadora
 
-## Getting Started
+Site institucional, catálogo de produtos e painel administrativo em Next.js 16, Prisma e PostgreSQL.
 
-First, run the development server:
+## Rodar localmente
+
+Requisitos: Node.js, npm e Docker com Compose.
 
 ```bash
+cp .env.example .env.local
+docker compose up -d db
+npm install
+npm run db:push
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra `http://localhost:3000`. O painel fica em `http://localhost:3000/admin`. Antes de entrar, defina `ADMIN_PASSWORD` e um `AUTH_COOKIE_SECRET` longo em `.env.local`. Se a porta 3000 estiver ocupada, use `npm run dev -- -p 3100` e ajuste `NEXT_PUBLIC_SITE_URL`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Para preencher um banco vazio com **dados de demonstração**, rode `npm run db:seed`. Não execute o seed sobre o catálogo real. Para conferir a versão de produção localmente, use `npm run build && npm run start -- -p 3100`; com HTTP local, `AUTH_COOKIE_SECURE=false` permite o login no painel.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Catálogo e imagens
 
-## Learn More
+No painel, abra **Produtos → Importar CSV**. Baixe o modelo, preencha até 250 linhas e confira a prévia antes de importar. As categorias precisam existir previamente. Produtos com SKU ou URL já existente são ignorados e contabilizados; linhas inválidas impedem a importação inteira.
 
-To learn more about Next.js, take a look at the following resources:
+Com `UPLOAD_STORAGE=local`, os arquivos enviados pelo painel ficam em `data/uploads` e são servidos em `/media/`. Preserve esse diretório em backups e monte um volume persistente no servidor. Para usar Vercel Blob, configure `UPLOAD_STORAGE=blob` e `BLOB_READ_WRITE_TOKEN`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Migração do Supabase
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Com o PostgreSQL local iniciado, use a URL direta de origem em uma variável de ambiente:
 
-## Deploy on Vercel
+```bash
+SUPABASE_URL='postgresql://usuario:senha@host:5432/postgres' bash scripts/db-migrate-from-supabase.sh
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+O script cria um dump local ignorado pelo Git e restaura o schema `public` em uma transação. Confira as contagens exibidas ao fim antes de usar o banco migrado. Guarde a URL de origem e o dump fora do repositório.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Produção
+
+Configure `DATABASE_URL`, `DIRECT_URL`, `ADMIN_PASSWORD`, `AUTH_COOKIE_SECRET` e `NEXT_PUBLIC_SITE_URL` no ambiente da instância. Use HTTPS e remova `AUTH_COOKIE_SECURE=false` para manter o cookie de sessão seguro. Preserve o volume do PostgreSQL e `data/uploads` nos backups. Execute `npm run build` e `npm run start` após configurar o banco.
+
+## Redesign e catálogo oficial
+
+As rotas principais são `/` (apresentação), `/vitrine` (busca e filtros instantâneos), `/vitrine/[slug]` (ficha técnica) e `/admin` (operação). As antigas rotas de busca, categoria e produto redirecionam para a vitrine.
+
+O catálogo fornecido pelo cliente está em `data/catalogo/products.json`, com 13 referências em 7 linhas. Imagens extraídas do PDF ficam em `public/catalogo`. Para cadastrar os produtos em outro banco, rode `npm run db:catalog`. O comando preserva produtos já existentes e arquiva somente os quatro SKUs do seed de demonstração original. Os dados públicos e o painel usam a mesma base PostgreSQL.
+
+Preço `0` representa **sob cotação**; não é exibido como produto gratuito. O PDF não informa valores nem estoque. Os SKUs `LE-*` são referências internas criadas para o sistema.
+
+Paleta: azul da logo `#0b0a3b`, azul de ação `#3158ef`, amarelo técnico `#f7cd47`, superfícies `#f8f9fc`. A camada de componentes fica em `components/ui`, `components/catalog`, `components/landing` e `components/admin`. Animações respeitam a preferência de movimento reduzido.

@@ -15,12 +15,12 @@ export default async function NewPurchaseListPage() {
   const productsWithParts = products.filter((p) => p.partItems.length > 0);
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center gap-4">
+    <div className="le-admin-page">
+      <div className="flex flex-wrap items-center gap-4">
         <Link href="/admin/lista-compras" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
           ← Voltar
         </Link>
-        <h1 className="text-2xl font-bold">Nova Lista de Compras</h1>
+        <h1 className="le-admin-title">Nova Lista de Compras</h1>
       </div>
 
       {productsWithParts.length === 0 ? (

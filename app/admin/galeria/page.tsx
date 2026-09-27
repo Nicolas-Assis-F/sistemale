@@ -1,53 +1,50 @@
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { buttonVariants } from '@/components/ui/button';
+import { AdminFilters } from '@/components/admin/AdminFilters';
+import { AdminRecords } from '@/components/admin/AdminRecords';
+import { EntitySheet } from '@/components/admin/EntitySheet';
+import { GalleryItemForm } from '@/components/admin/GalleryItemForm';
 import { ConfirmDeleteButton } from '@/components/admin/ConfirmDeleteButton';
-import { deleteGalleryItem } from './_actions';
+import { adminListHref, type AdminListParams } from '@/lib/admin-list';
+import { createGalleryItem, updateGalleryItem, deleteGalleryItem } from './_actions';
 
-export default async function AdminGalleryPage() {
-  const items = await prisma.galleryItem.findMany({ orderBy: { order: 'asc' } });
-
+export default async function GalleryPage({ searchParams }: { searchParams: Promise<AdminListParams> }) {
+  const { q = '', novo, editar } = await searchParams;
+  const [rows, selected] = await Promise.all([
+    prisma.galleryItem.findMany({ where: q ? { OR: [{ title: { contains: q, mode: 'insensitive' } }, { category: { contains: q, mode: 'insensitive' } }] } : {}, orderBy: { order: 'asc' } }),
+    editar ? prisma.galleryItem.findUnique({ where: { id: editar } }) : Promise.resolve(null),
+  ]);
+  if (editar && !selected) notFound();
+  const closeHref = adminListHref('galeria', q);
+  const createHref = adminListHref('galeria', q, { novo: '1' });
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Galeria</h1>
-          <p className="text-sm text-muted-foreground">{items.length} itens · exibidos na página /galeria</p>
-        </div>
-        <Link href="/admin/galeria/novo" className={buttonVariants()}>+ Nova Foto</Link>
+    <div className="le-admin-page">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div><p className="le-kicker">Gestão / Galeria</p><h1 className="le-admin-title">Galeria</h1><p className="mt-2 text-sm text-le-muted">{rows.length} registro(s){q ? ' encontrados' : ' cadastrados'}</p></div>
+        <Link data-entity-create href={createHref} className={buttonVariants()}>+ Nova foto</Link>
       </div>
-
-      {items.length > 0 ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {items.map((item) => (
-            <div key={item.id} className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
-              <div className="relative aspect-square bg-muted">
-                <Image src={item.imageUrl} alt={item.title} fill className="object-cover" sizes="(max-width: 640px) 50vw, 25vw" />
-                {!item.active && (
-                  <span className="absolute left-2 top-2 rounded-md bg-black/60 px-1.5 py-0.5 text-[0.65rem] font-medium text-white">Inativo</span>
-                )}
-              </div>
-              <div className="space-y-2 p-3">
-                <p className="truncate text-sm font-medium">{item.title}</p>
-                {item.category && <p className="text-xs text-muted-foreground">{item.category}</p>}
-                <div className="flex gap-2">
-                  <Link href={`/admin/galeria/${item.id}`} className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' flex-1'}>Editar</Link>
-                  <ConfirmDeleteButton
-                    action={() => deleteGalleryItem(item.id)}
-                    confirmMessage={`Excluir "${item.title}"? Esta ação não pode ser desfeita.`}
-                    label="Excluir"
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
-          <p className="text-sm">Nenhuma foto na galeria. Adicione a primeira.</p>
-        </div>
-      )}
+      <AdminFilters placeholder="Buscar galeria" />
+      <AdminRecords createHref={createHref} createLabel="Cadastrar foto" empty={q ? 'Nenhum resultado. Tente outro termo de busca.' : 'Nenhum registro ainda. Comece pelo primeiro cadastro.'}
+        rows={rows.map((row) => ({
+          id: row.id,
+          title: <div className="flex items-center gap-3"><Image src={row.imageUrl} alt="" width={64} height={64} sizes="64px" className="size-16 rounded-xl object-cover" /><Link href={adminListHref('galeria', q, { editar: row.id })} className="hover:text-le-blue">{row.title}</Link></div>,
+          details: [{ label: 'Categoria', value: row.category || '—' },
+              { label: 'Status', value: row.active ? 'Ativo' : 'Inativo' }],
+          actions: <><Link href={adminListHref('galeria', q, { editar: row.id })} className={buttonVariants({ variant: 'outline', size: 'sm' })}>Editar</Link><ConfirmDeleteButton action={deleteGalleryItem.bind(null, row.id)} confirmMessage={`Excluir "${row.title}"? Esta ação não pode ser desfeita.`} label="Excluir" /></>,
+        }))} />
+      {(novo === '1' || selected) && <EntitySheet key={selected?.id ?? 'new'} title={selected ? 'Editar foto' : 'Cadastrar foto'} closeHref={closeHref}>
+        <GalleryItemForm action={selected ? updateGalleryItem.bind(null, selected.id) : createGalleryItem} defaultValues={selected ? {
+          title: selected.title,
+          description: selected.description ?? '',
+          imageUrl: selected.imageUrl,
+          category: selected.category ?? '',
+          order: selected.order,
+          active: selected.active,
+        } : undefined} />
+      </EntitySheet>}
     </div>
   );
 }

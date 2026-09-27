@@ -1,6 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { unstable_rethrow } from 'next/navigation';
+import { OrderFormSection } from './orders/OrderFormSection';
+import { OrderReview } from './orders/OrderReview';
+import { toast } from './toast';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -102,7 +106,7 @@ const orderFormSchema = z
 
 type FormValues = z.infer<typeof orderFormSchema>;
 
-export function OrderForm({ products, customers, employees, defaultValues, action, submitLabel = 'Salvar Pedido' }: Props) {
+export function OrderForm({ products, customers, employees, defaultValues, action, submitLabel = 'Salvar pedido' }: Props) {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -216,6 +220,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
       icmsPercent: it.icmsPercent,
     }))));
 
+    try {
     const res = await action(fd);
     if (res && typeof res === 'object' && 'error' in res) {
       const fieldErrors = (res as { error: Record<string, string[] | undefined> }).error;
@@ -227,15 +232,26 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
       setFormError('Verifique os dados do pedido e tente novamente.');
       setSaving(false);
     }
-    // Em caso de sucesso, a action redireciona — não é preciso limpar `saving`.
+    } catch (error) {
+      unstable_rethrow(error);
+      setFormError('Não foi possível salvar o pedido. Tente novamente.');
+      toast('Não foi possível salvar o pedido.', 'error');
+    } finally { setSaving(false); }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-24">
+      <form onSubmit={form.handleSubmit(onSubmit)} onKeyDown={(event) => {
+        if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+          event.preventDefault(); if (!saving) event.currentTarget.requestSubmit();
+        }
+      }} className="space-y-6 pb-32">
+        <nav aria-label="Seções do pedido" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {['Cliente', 'Itens', 'Condições', 'Revisão'].map((label, index) => <a key={label} href={`#${['cliente', 'itens', 'condicoes', 'revisao'][index]}`} className="rounded-xl border border-le-line bg-le-surface px-3 py-3 text-sm font-medium hover:border-le-blue">{index + 1}. {label}</a>)}
+        </nav>
         {/* Cliente */}
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-card">
-          <h2 className="mb-4 text-sm font-semibold">Cliente</h2>
+        <OrderFormSection id="cliente">
+          <h2 id="cliente-title" className="mb-4 font-heading text-lg font-medium">1. Cliente</h2>
           <div className="max-w-md">
             <FormField
               control={form.control}
@@ -243,7 +259,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Selecionar cliente</FormLabel>
-                  <Select value={field.value} onValueChange={(v) => field.onChange(v ?? NEW_CUSTOMER)}>
+                  <Select value={field.value} onValueChange={(v) => field.onChange(v ?? NEW_CUSTOMER)} items={[{ value: NEW_CUSTOMER, label: '+ Novo cliente' }, ...customers.map((c) => ({ value: c.id, label: `${c.name} (${c.code})` }))]}>
                     <FormControl>
                       <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                     </FormControl>
@@ -267,7 +283,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
                 name="customerName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormControl><Input placeholder="Nome / Razão social *" {...field} /></FormControl>
+                    <FormControl><Input aria-label="Nome / Razão social *" placeholder="Nome / Razão social *" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -277,7 +293,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
                 name="customerDoc"
                 render={({ field }) => (
                   <FormItem>
-                    <FormControl><Input placeholder="CNPJ / CPF" {...field} /></FormControl>
+                    <FormControl><Input aria-label="CNPJ / CPF" placeholder="CNPJ / CPF" {...field} /></FormControl>
                   </FormItem>
                 )}
               />
@@ -286,7 +302,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
                 name="customerContact"
                 render={({ field }) => (
                   <FormItem>
-                    <FormControl><Input placeholder="Contato" {...field} /></FormControl>
+                    <FormControl><Input aria-label="Contato" placeholder="Contato" {...field} /></FormControl>
                   </FormItem>
                 )}
               />
@@ -295,7 +311,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
                 name="customerPhone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormControl><Input placeholder="Telefone" {...field} /></FormControl>
+                    <FormControl><Input aria-label="Telefone" placeholder="Telefone" {...field} /></FormControl>
                   </FormItem>
                 )}
               />
@@ -304,7 +320,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
                 name="customerEmail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormControl><Input placeholder="E-mail" {...field} /></FormControl>
+                    <FormControl><Input aria-label="E-mail" placeholder="E-mail" {...field} /></FormControl>
                   </FormItem>
                 )}
               />
@@ -313,7 +329,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
                 name="customerAddress"
                 render={({ field }) => (
                   <FormItem className="sm:col-span-2">
-                    <FormControl><Input placeholder="Endereço" {...field} /></FormControl>
+                    <FormControl><Input aria-label="Endereço" placeholder="Endereço" {...field} /></FormControl>
                   </FormItem>
                 )}
               />
@@ -322,7 +338,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
                 name="customerCity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormControl><Input placeholder="Cidade" {...field} /></FormControl>
+                    <FormControl><Input aria-label="Cidade" placeholder="Cidade" {...field} /></FormControl>
                   </FormItem>
                 )}
               />
@@ -332,7 +348,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
                   name="customerState"
                   render={({ field }) => (
                     <FormItem>
-                      <FormControl><Input placeholder="UF" {...field} /></FormControl>
+                      <FormControl><Input aria-label="UF" placeholder="UF" {...field} /></FormControl>
                     </FormItem>
                   )}
                 />
@@ -341,20 +357,20 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
                   name="customerZip"
                   render={({ field }) => (
                     <FormItem>
-                      <FormControl><Input placeholder="CEP" {...field} /></FormControl>
+                      <FormControl><Input aria-label="CEP" placeholder="CEP" {...field} /></FormControl>
                     </FormItem>
                   )}
                 />
               </div>
             </div>
           )}
-        </section>
+        </OrderFormSection>
 
         {/* Itens */}
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-card">
+        <OrderFormSection id="itens">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold">Itens do pedido</h2>
-            <div className="flex gap-2">
+            <h2 id="itens-title" className="font-heading text-lg font-medium">2. Itens do pedido</h2>
+            <div className="flex flex-wrap gap-2">
               <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={() => setPickerOpen((o) => !o)}>
                 <PackagePlus className="h-4 w-4" /> Do catálogo
               </Button>
@@ -369,7 +385,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
             <div className="mb-4 rounded-xl border border-border bg-muted/30 p-3">
               <div className="relative mb-2">
                 <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input className="pl-8" placeholder="Buscar produto..." value={filter} onChange={(e) => setFilter(e.target.value)} />
+                <Input aria-label="Buscar produto no catálogo" className="pl-8" placeholder="Buscar produto..." value={filter} onChange={(e) => setFilter(e.target.value)} />
               </div>
               <div className="max-h-56 space-y-1 overflow-y-auto">
                 {filteredProducts.map((p) => (
@@ -397,15 +413,16 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
               const subtotal = it ? it.quantity * parseCurrencyToCents(it.priceReais) : 0;
               const nameError = form.formState.errors.items?.[index]?.name;
               const quantityError = form.formState.errors.items?.[index]?.quantity;
+              const icmsError = form.formState.errors.items?.[index]?.icmsPercent;
               return (
                 <div key={field.id} className="rounded-xl border border-border p-3">
                   <div className="flex items-start gap-3">
-                    <div className="grid flex-1 gap-2">
+                    <div className="grid min-w-0 flex-1 gap-2">
                       <div>
-                        <Input placeholder="Designação *" {...form.register(`items.${index}.name`)} />
+                        <Input aria-label="Designação *" placeholder="Designação *" {...form.register(`items.${index}.name`)} />
                         {nameError && <p className="mt-1 text-xs text-destructive">{nameError.message}</p>}
                       </div>
-                      <Input placeholder="Descrição (linha adicional)" {...form.register(`items.${index}.description`)} />
+                      <Input aria-label="Descrição (linha adicional)" placeholder="Descrição (linha adicional)" {...form.register(`items.${index}.description`)} />
                       <div className="grid grid-cols-3 gap-2">
                         <div>
                           <label className="text-xs text-muted-foreground">Qtd.</label>
@@ -414,6 +431,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
                             name={`items.${index}.quantity`}
                             render={({ field: qtyField }) => (
                               <Input
+                                aria-label="Quantidade"
                                 type="number"
                                 min={1}
                                 value={qtyField.value}
@@ -425,7 +443,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
                         </div>
                         <div>
                           <label className="text-xs text-muted-foreground">Preço unit. (R$)</label>
-                          <Input inputMode="decimal" placeholder="0,00" {...form.register(`items.${index}.priceReais`)} />
+                          <Input aria-label="Preço unitário em reais" inputMode="decimal" placeholder="0,00" {...form.register(`items.${index}.priceReais`)} />
                         </div>
                         <div>
                           <label className="text-xs text-muted-foreground">ICMS (%)</label>
@@ -434,6 +452,9 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
                             name={`items.${index}.icmsPercent`}
                             render={({ field: icmsField }) => (
                               <Input
+                                aria-invalid={!!icmsError}
+                                aria-describedby={icmsError ? `icms-${index}-error` : undefined}
+                                aria-label="ICMS (%)"
                                 type="number"
                                 min={0}
                                 max={100}
@@ -442,6 +463,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
                               />
                             )}
                           />
+                          {icmsError && <p id={`icms-${index}-error`} className="mt-1 text-xs text-destructive">{icmsError.message}</p>}
                         </div>
                       </div>
                     </div>
@@ -464,11 +486,11 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
               <p className="text-sm text-destructive">{form.formState.errors.items.message}</p>
             )}
           </div>
-        </section>
+        </OrderFormSection>
 
         {/* Dados do pedido */}
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-card">
-          <h2 className="mb-4 text-sm font-semibold">Dados do pedido</h2>
+        <OrderFormSection id="condicoes">
+          <h2 id="condicoes-title" className="mb-4 font-heading text-lg font-medium">3. Condições</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
@@ -476,7 +498,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
-                  <Select value={field.value} onValueChange={(v) => v && field.onChange(v)}>
+                  <Select value={field.value} onValueChange={(v) => v && field.onChange(v)} items={ORDER_STATUS_ORDER.map((s) => ({ value: s, label: ORDER_STATUS_LABELS[s] }))}>
                     <FormControl>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                     </FormControl>
@@ -497,6 +519,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
                 <FormItem>
                   <FormLabel>Funcionário responsável</FormLabel>
                   <Select
+                    items={[{ value: '__none__', label: 'Nenhum' }, ...employees.map((employee) => ({ value: employee.id, label: employee.name }))]}
                     value={field.value || '__none__'}
                     onValueChange={(v) => field.onChange(!v || v === '__none__' ? '' : v)}
                   >
@@ -520,7 +543,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ref. do cliente</FormLabel>
-                  <FormControl><Input placeholder="Ex: Ivomar" {...field} /></FormControl>
+                  <FormControl><Input aria-label="Ex: Ivomar" placeholder="Ex: Ivomar" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -542,7 +565,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Condições de pagamento</FormLabel>
-                  <FormControl><Input placeholder="Promissória, à vista..." {...field} /></FormControl>
+                  <FormControl><Input aria-label="Promissória, à vista..." placeholder="Promissória, à vista..." {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -553,7 +576,7 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Forma de pagamento</FormLabel>
-                  <FormControl><Input placeholder="Boleto, PIX..." {...field} /></FormControl>
+                  <FormControl><Input aria-label="Boleto, PIX..." placeholder="Boleto, PIX..." {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -570,20 +593,21 @@ export function OrderForm({ products, customers, employees, defaultValues, actio
               )}
             />
           </div>
-        </section>
+        </OrderFormSection>
 
+        <OrderReview customer={customerId === NEW_CUSTOMER ? form.watch('customerName') : customers.find((customer) => customer.id === customerId)?.name ?? ''} items={items} terms={form.watch('paymentTerms')} method={form.watch('paymentMethod')} delivery={form.watch('deliveryDate')} total={total} />
         {formError && (
-          <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">{formError}</p>
+          <p role="alert" className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">{formError}</p>
         )}
 
         {/* Rodapé sticky com total */}
-        <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-background/95 supports-backdrop-filter:backdrop-blur-md md:left-60">
-          <div className="container mx-auto flex items-center justify-between gap-4 px-6 py-3">
+        <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-background/95 supports-backdrop-filter:backdrop-blur-md md:left-60.5">
+          <div className="container mx-auto flex items-center justify-between gap-4 px-4 py-3">
             <div>
               <p className="text-xs text-muted-foreground">Total do pedido</p>
               <p className="text-xl font-bold">{formatCurrency(total)}</p>
             </div>
-            <Button type="submit" size="lg" disabled={saving}>
+            <Button type="submit" size="lg" loading={saving}>
               {saving ? 'Salvando...' : submitLabel}
             </Button>
           </div>
