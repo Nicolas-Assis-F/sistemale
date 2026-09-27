@@ -21,6 +21,12 @@ DATABASE_URL="<pooled>" DIRECT_URL="<direta>" npm run db:deploy   # produção
 Os dois já estão no `.env.vercel`. O banco foi carregado com as 7 categorias, os 13 produtos,
 os conteúdos do site e os serviços.
 
+O Prisma Postgres "dorme" quando fica parado e a 1ª conexão pode levar ~1 min. Por isso:
+- o build roda `scripts/check-db.mjs` antes do `next build` (acorda o banco e mostra o host no log);
+- `lib/db.ts` usa pool de 5 conexões e 60 s de espera;
+- crie um monitor grátis (ex.: UptimeRobot, a cada 5 min) em `https://seudominio.com.br/api/health`
+  para o banco ficar sempre acordado.
+
 ## 3. Projeto na Vercel
 New Project → importe `sistemale` → Framework: Next.js (o build já roda `prisma generate`).
 Em Storage → Create → **Blob** (gera `BLOB_READ_WRITE_TOKEN`).
