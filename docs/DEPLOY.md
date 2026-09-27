@@ -9,17 +9,17 @@ git push -u origin main
 ```
 Repositório: https://github.com/Nicolas-Assis-F/sistemale
 
-## 2. Banco de produção (escolha um)
-- **Neon** (recomendado; pela Vercel: Storage → Create → Neon Postgres). Ela injeta `DATABASE_URL` sozinha.
-- **Supabase**: Project Settings → Database → Connection string.
-  - `DATABASE_URL` = pooler, porta 6543, com `?pgbouncer=true`;
-  - `DIRECT_URL` = conexão direta, porta 5432.
-
-Crie as tabelas e importe o catálogo a partir da sua máquina, apontando para o banco de produção:
+## 2. Banco de produção — Prisma Postgres ✅ criado
+O schema é versionado em `prisma/migrations` (baseline `0_init`). Para aplicar mudanças futuras:
 ```bash
-DATABASE_URL="<url-producao>" DIRECT_URL="<url-direta>" npx prisma db push
-DATABASE_URL="<url-producao>" npm run db:catalog
+npm run db:migrate          # local: cria a migration a partir do schema.prisma
+DATABASE_URL="<pooled>" DIRECT_URL="<direta>" npm run db:deploy   # produção
 ```
+- `DATABASE_URL` = host `pooled.db.prisma.io` (runtime).
+- `DIRECT_URL` = host `db.prisma.io` (migrations).
+
+Os dois já estão no `.env.vercel`. O banco foi carregado com as 7 categorias, os 13 produtos,
+os conteúdos do site e os serviços.
 
 ## 3. Projeto na Vercel
 New Project → importe `sistemale` → Framework: Next.js (o build já roda `prisma generate`).
