@@ -23,12 +23,12 @@ export default async function AccountOrderPage({ params, searchParams }: { param
   return (
     <div className="[&_.le-public-order]:mx-0 [&_.le-public-order]:w-full [&_.le-public-order]:max-w-4xl [&_.le-public-order]:py-0">
       {pagar && awaitingPayment && (
-        <div className="mb-4 flex max-w-4xl items-center gap-3 rounded-2xl border border-le-blue/25 bg-le-tint p-4 text-sm text-le-text">
+        <div className="mb-4 flex max-w-4xl items-center gap-3 rounded-2xl border border-le-blue/25 bg-le-tint px-4 py-3 text-sm text-le-text">
           <QrCode className="h-5 w-5 shrink-0 text-le-blue" />
-          Pedido criado! Pague abaixo pelo PIX (QR Code ou copia e cola) ou pela fatura. A confirmação aparece aqui automaticamente.
+          <span><strong>Pedido criado!</strong> Pague abaixo. Esta tela confirma sozinha.</span>
         </div>
       )}
-      <PaymentWatcher active={awaitingPayment} />
+      <PaymentWatcher active={awaitingPayment} silent={Boolean(pagar)} />
       {novo && (
         <div className="mb-6 flex max-w-4xl items-center gap-3 rounded-2xl border border-le-success/25 bg-le-success-surface p-4 text-sm text-le-text">
           <PartyPopper className="h-5 w-5 shrink-0 text-le-success" />

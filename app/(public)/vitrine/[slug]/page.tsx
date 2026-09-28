@@ -3,22 +3,21 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ReactMarkdown from "react-markdown";
-import { ArrowUpRight, ArrowLeft, Check, FileDown, FileText } from "lucide-react";
+import { ArrowLeft, Check, FileDown, FileText } from "lucide-react";
 import { getCatalog } from "@/lib/catalog";
 import { ProductGallery } from "@/components/public/ProductGallery";
 import { MotionProductCard } from "@/components/catalog/MotionProductCard";
 import { CompareToggle } from "@/components/catalog/CompareToggle";
 import { QuoteRequestButton } from "@/components/account/QuoteRequestButton";
-import { BuyButton } from "@/components/account/BuyButton";
+import { ProductBuyBox, PurchaseProvider } from "@/components/catalog/purchase";
 import { asaasConfigured } from "@/lib/asaas";
 import { MIN_CHARGE_CENTS } from "@/lib/orders/checkout";
 import { ProductStickyCTA } from "@/components/catalog/ProductStickyCTA";
 import { SnapRail } from "@/components/catalog/SnapRail";
-import { SpecIcon, WhatsAppIcon } from "@/components/catalog/icons";
+import { SpecIcon } from "@/components/catalog/icons";
 import { keySpecs, shortSpecLabel } from "@/lib/catalog-utils";
 import { Entrance } from "@/components/public/Entrance";
 import { buildWhatsAppUrl } from "@/lib/whatsapp-url";
-import { ProductPrice } from "@/components/catalog/ProductPrice";
 type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -48,7 +47,15 @@ export default async function ProductPage({ params }: Props) {
   const highlights = keySpecs(product, 4);
   // Compra online só com preço definido e pagamento ativo; senão fica o orçamento
   const purchasable = product.priceCents >= MIN_CHARGE_CENTS && asaasConfigured();
+  const whatsappUrl = buildWhatsAppUrl({ sku: product.sku, productName: product.name });
   return (
+    <PurchaseProvider
+      purchasable={purchasable}
+      product={{
+        slug: product.slug, name: product.name, sku: product.sku, priceCents: product.priceCents,
+        originalPriceCents: product.originalPriceCents, stock: product.stock, image: product.images[0] ?? null,
+      }}
+    >
     <div className="le-container pb-24">
       <nav
         className="flex flex-wrap items-center gap-3 py-8 text-[11px] text-le-muted"
@@ -84,6 +91,29 @@ export default async function ProductPage({ params }: Props) {
           <p className="mt-6 text-sm leading-7 text-le-muted">
             {product.shortDesc}
           </p>
+          <div className="mt-7">
+            <ProductBuyBox
+              whatsappUrl={whatsappUrl}
+              quoteSlot={
+                <QuoteRequestButton
+                  slug={product.slug}
+                  name={product.name}
+                  className="h-11 border-le-line bg-white text-le-ink hover:bg-le-subtle"
+                />
+              }
+            />
+          </div>
+          <ProductStickyCTA product={product} />
+          <div className="mt-3 grid grid-cols-2 gap-2.5">
+            <a
+              href={`/vitrine/${product.slug}/ficha-tecnica`}
+              download
+              className="le-button le-button-outline gap-2 px-3"
+            >
+              <FileDown size={16} /> Ficha técnica (PDF)
+            </a>
+            <CompareToggle product={product} />
+          </div>
           <dl className="mt-7 grid grid-cols-2 gap-3">
             {highlights.map(({ key: k, value: v }) => (
               <div
@@ -98,39 +128,6 @@ export default async function ProductPage({ params }: Props) {
               </div>
             ))}
           </dl>
-          <div className="my-7 border-y border-le-line py-5">
-            <ProductPrice product={product} />
-            <p className="mt-2 text-xs text-le-muted">
-              {product.stock > 0
-                ? "Produto com estoque cadastrado. Confirme a disponibilidade."
-                : "Consulte prazo de fabricação e disponibilidade."}
-            </p>
-          </div>
-          {purchasable && <BuyButton slug={product.slug} name={product.name} priceCents={product.priceCents} stock={product.stock} className="mb-2.5" />}
-          <a
-            href={buildWhatsAppUrl({
-              sku: product.sku,
-              productName: product.name,
-            })}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={buttonVariants({ variant: "whatsapp", size: "lg", className: "w-full" })}
-          >
-            <WhatsAppIcon className="h-4.5 w-4.5" /> Falar com especialista{" "}
-            <ArrowUpRight size={17} />
-          </a>
-          <div className="mt-2.5 grid grid-cols-2 gap-2.5">
-            <a
-              href={`/vitrine/${product.slug}/ficha-tecnica`}
-              download
-              className="le-button le-button-outline gap-2 px-3"
-            >
-              <FileDown size={16} /> Ficha técnica (PDF)
-            </a>
-            <CompareToggle product={product} />
-          </div>
-          <QuoteRequestButton slug={product.slug} name={product.name} className="mt-2.5" />
-          <ProductStickyCTA product={product} />
           <p className="mt-4 flex items-center justify-center gap-2 text-[11px] text-le-muted">
             <Check size={13} /> Atendimento direto com a engenharia da L&E
           </p>
@@ -199,5 +196,6 @@ export default async function ProductPage({ params }: Props) {
         </section>
       )}
     </div>
+    </PurchaseProvider>
   );
 }

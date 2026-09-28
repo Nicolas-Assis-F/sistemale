@@ -47,6 +47,87 @@ export function OrderView({ order, backLink }: { order: OrderViewData; backLink?
       {order.paymentStatus === 'PAGO' && <section aria-label="Pedido pago" className="mt-6 flex items-center gap-4 rounded-2xl border border-le-success/30 bg-le-success/5 p-5">
         <Check aria-hidden className="size-8 shrink-0 text-le-success" /><div><h2 className="font-heading text-xl font-medium text-le-success">Pago ✓</h2><p className="mt-1 text-sm text-le-muted">Pagamento confirmado. Obrigado pela confiança na L&E.</p></div>
       </section>}
+      {/* Pagamento */}
+      {open.length > 0 && (
+        <section className="mt-6 space-y-3">
+          <h2 className="font-heading text-lg font-medium">Pagamento</h2>
+          {open.map((p) => {
+            const invoiceFirst = p.method !== 'PIX' && Boolean(p.invoiceUrl);
+            return (
+            <div key={p.id} className="rounded-3xl border border-le-line bg-white p-5 shadow-[0_24px_60px_-44px_rgb(11_10_59/0.45)] sm:p-6">
+              {p.planLabel && <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-le-blue">{p.planLabel}</p>}
+              <div className="flex flex-wrap items-end justify-between gap-2">
+                <p className="font-heading text-[2rem] font-semibold leading-tight tabular-nums tracking-[-0.045em]">{formatCurrency(p.amountCents)}</p>
+                <p className={`text-xs ${p.status === 'VENCIDO' ? 'font-semibold text-red-600' : 'text-le-muted'}`}>
+                  {PAYMENT_METHOD_LABELS[p.method]} · {p.status === 'VENCIDO' ? 'venceu' : 'pague até'} {fmt(p.dueDate)}
+                </p>
+              </div>
+              {p.finePercent ? <p className="mt-1 text-[11px] text-le-muted">Após o vencimento: multa {p.finePercent}% + juros {p.interestPercent}% ao mês</p> : null}
+
+              <div className="mt-5 space-y-2.5 print:hidden">
+                {invoiceFirst && (
+                  <a href={p.invoiceUrl!} target="_blank" rel="noopener noreferrer"
+                    className="flex h-13 w-full items-center justify-center gap-2 rounded-2xl bg-le-blue text-[15px] font-semibold text-white shadow-[0_14px_30px_-14px_rgb(49_88_239/0.9)]">
+                    Pagar com cartão ou boleto <ArrowUpRight size={17} />
+                  </a>
+                )}
+                {p.pixPayload && (
+                  <CopyButton value={p.pixPayload} label={invoiceFirst ? 'Ou copie o código PIX' : 'Copiar código PIX'} doneLabel="Código copiado! Cole no app do banco"
+                    className={invoiceFirst
+                      ? 'flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-le-line bg-white text-sm font-semibold text-le-text'
+                      : 'flex h-13 w-full items-center justify-center gap-2 rounded-2xl bg-le-blue text-[15px] font-semibold text-white shadow-[0_14px_30px_-14px_rgb(49_88_239/0.9)]'} />
+                )}
+                {!p.pixPayload && !invoiceFirst && p.invoiceUrl && (
+                  <a href={p.invoiceUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex h-13 w-full items-center justify-center gap-2 rounded-2xl bg-le-blue text-[15px] font-semibold text-white">
+                    Pagar agora <ArrowUpRight size={17} />
+                  </a>
+                )}
+                {p.bankSlipUrl && (
+                  <a href={p.bankSlipUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-le-line bg-white text-sm font-semibold text-le-text">
+                    <FileText className="h-4 w-4" /> Baixar boleto
+                  </a>
+                )}
+              </div>
+
+              {p.pixPayload && (
+                <>
+                  <ol className="mt-4 space-y-1.5 text-xs text-le-muted">
+                    <li><span className="font-semibold text-le-text">1.</span> Toque em copiar o código PIX</li>
+                    <li><span className="font-semibold text-le-text">2.</span> No app do seu banco, abra <span className="font-semibold text-le-text">Pix → Pix Copia e Cola</span></li>
+                    <li><span className="font-semibold text-le-text">3.</span> Confirme o pagamento. A confirmação aparece aqui sozinha.</li>
+                  </ol>
+                  {p.pixQrImage && (
+                    <>
+                      {/* Celular: QR só se for pagar por outro aparelho */}
+                      <details className="mt-4 rounded-2xl border border-le-line p-3 sm:hidden">
+                        <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-le-text">
+                          <QrCode className="h-4 w-4 text-le-blue" /> Mostrar QR Code (pagar com outro aparelho)
+                        </summary>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`data:image/png;base64,${p.pixQrImage}`} alt="QR Code PIX" className="mx-auto mt-3 h-52 w-52 rounded-xl bg-white" />
+                      </details>
+                      <div className="mt-4 hidden items-center gap-4 rounded-2xl border border-le-line p-4 sm:flex">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`data:image/png;base64,${p.pixQrImage}`} alt="QR Code PIX" className="h-36 w-36 shrink-0 rounded-xl bg-white" />
+                        <p className="text-xs text-le-muted">Ou aponte a câmera do app do banco para o QR Code.</p>
+                      </div>
+                    </>
+                  )}
+                  {!invoiceFirst && p.invoiceUrl && (
+                    <a href={p.invoiceUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs text-le-muted underline-offset-2 hover:underline print:hidden">
+                      Abrir fatura do Asaas <ArrowUpRight size={12} />
+                    </a>
+                  )}
+                </>
+              )}
+            </div>
+            );
+          })}
+        </section>
+      )}
+
       {/* Status */}
       <div className="mt-8 rounded-3xl border border-le-line bg-white p-5 sm:p-7">
         {order.status === 'CANCELADO' ? (
@@ -71,50 +152,6 @@ export function OrderView({ order, backLink }: { order: OrderViewData; backLink?
           Pedido em {fmt(order.createdAt)}{order.deliveryDate ? ` · previsão de entrega ${fmt(order.deliveryDate)}` : ''}
         </p>
       </div>
-
-      {/* Pagamento */}
-      {open.length > 0 && (
-        <section className="mt-6 space-y-3">
-          <h2 className="font-heading text-lg font-medium">Pagamento</h2>
-          {open.map((p) => (
-            <div key={p.id} className="rounded-3xl border border-le-line bg-le-subtle p-5 sm:p-6">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  {p.planLabel && <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-le-blue">{p.planLabel}</p>}
-                  <p className="font-heading text-2xl font-semibold tracking-tight">{formatCurrency(p.amountCents)}</p>
-                  <p className="mt-1 text-xs text-le-muted">
-                    {PAYMENT_METHOD_LABELS[p.method]} · vence {fmt(p.dueDate)}{p.status === 'VENCIDO' ? ' · vencido' : ''}{p.finePercent ? ` · após o vencimento: multa ${p.finePercent}% + juros ${p.interestPercent}% ao mês` : ''}
-                  </p>
-                </div>
-                {p.invoiceUrl && (
-                  <a href={p.invoiceUrl} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "primary", size: "lg", className: "w-full sm:w-auto print:hidden" })}>
-                    Pagar agora <ArrowUpRight size={16} />
-                  </a>
-                )}
-              </div>
-              {(p.pixPayload || p.bankSlipUrl) && (
-                <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-le-line pt-4">
-                  {p.pixQrImage && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={`data:image/png;base64,${p.pixQrImage}`} alt="QR Code PIX" className="h-32 w-32 rounded-xl bg-white p-1" />
-                  )}
-                  <div className="flex flex-col gap-2">
-                    {p.pixPayload && (
-                      <CopyButton value={p.pixPayload} label="Copiar PIX copia e cola" className="inline-flex h-10 items-center gap-2 rounded-xl bg-le-ink px-4 text-xs font-semibold text-white" />
-                    )}
-                    {p.bankSlipUrl && (
-                      <a href={p.bankSlipUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-10 items-center gap-2 rounded-xl border border-le-line bg-white px-4 text-xs font-semibold text-le-text">
-                        <FileText className="h-4 w-4" /> Baixar boleto
-                      </a>
-                    )}
-                    {p.pixPayload && !p.pixQrImage && <span className="flex items-center gap-1 text-[11px] text-le-muted"><QrCode className="h-3.5 w-3.5" /> Cole o código no app do seu banco</span>}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </section>
-      )}
 
       {/* Itens */}
       <section className="mt-6 overflow-hidden rounded-3xl border border-le-line bg-white">

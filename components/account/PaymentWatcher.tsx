@@ -9,7 +9,7 @@ import { Loader2 } from 'lucide-react';
  * servidor, nunca do Asaas) com intervalo crescente, até ~20 min. A confirmação
  * chega pelo webhook; aqui só mostramos quando ela já estiver gravada.
  */
-export function PaymentWatcher({ active }: { active: boolean }) {
+export function PaymentWatcher({ active, silent = false }: { active: boolean; silent?: boolean }) {
   const router = useRouter();
   const [checks, setChecks] = useState(0);
   const done = !active || checks >= 60;
@@ -24,7 +24,7 @@ export function PaymentWatcher({ active }: { active: boolean }) {
     return () => clearTimeout(t);
   }, [checks, done, router]);
 
-  if (!active) return null;
+  if (!active || (silent && !done)) return null;
   return (
     <p aria-live="polite" className="mb-4 flex max-w-4xl items-center gap-2 text-xs text-le-muted">
       {done

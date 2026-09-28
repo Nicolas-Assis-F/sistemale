@@ -132,23 +132,38 @@ const buySchema = z.object({
   slug: z.string().min(1).max(200),
   quantity: z.coerce.number().int().min(1).max(99),
   method: z.enum(CHECKOUT_METHODS),
+  doc: z.string().trim().max(24).optional(),
 });
 
-export type BuyState = { error?: string } | undefined;
+export type BuyState = { error?: string; needDoc?: boolean } | undefined;
 
 /**
  * Compra direta pela vitrine: cria o pedido e a cobrança no Asaas e leva à
  * página do pedido com o PIX. Preço sempre do banco (lib/orders/checkout.ts).
+ * Sem CPF/CNPJ no cadastro, o próprio diálogo pede o documento (sem sair da compra).
  */
 export async function buyNow(_prev: BuyState, formData: FormData): Promise<BuyState> {
   const slug = String(formData.get('slug') ?? '');
-  const { customer } = await requireCustomer(`/vitrine/${slug}`);
+  let { customer } = await requireCustomer(`/vitrine/${slug}`);
   const parsed = buySchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: 'Revise a quantidade e a forma de pagamento.' };
+  const d = parsed.data;
 
-  const result = await startCheckout(customer, parsed.data);
+  const hasDoc = Boolean(customer.doc && parseTaxId(customer.doc).ok);
+  if (!hasDoc) {
+    if (!d.doc) return { needDoc: true };
+    const taxId = parseTaxId(d.doc);
+    if (!taxId.ok) return { needDoc: true, error: taxId.reason };
+    // Documento já vinculado a cobranças no Asaas não é trocado pelo cliente
+    if (customer.asaasCustomerId && customer.doc && !sameTaxId(customer.doc, taxId.value)) {
+      return { needDoc: true, error: 'Para alterar o CPF/CNPJ fale com a nossa equipe.' };
+    }
+    customer = await prisma.customer.update({ where: { id: customer.id }, data: { doc: taxId.value } });
+  }
+
+  const result = await startCheckout(customer, { slug: d.slug, quantity: d.quantity, method: d.method });
   if (!result.ok) {
-    if (result.reason === 'PROFILE') redirect(`/conta/dados?completar=pagamento&next=${encodeURIComponent(`/vitrine/${slug}`)}`);
+    if (result.reason === 'PROFILE') return { needDoc: true, error: result.message };
     return { error: result.message };
   }
   revalidatePath('/conta');
