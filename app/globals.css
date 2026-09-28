@@ -441,96 +441,113 @@ html { scroll-behavior: smooth; scroll-padding-top: 110px; }
 
 }
 
-/* ───────────────── Motion Cards do catálogo (le-mcard) ─────────────────
-   Hover 100% CSS (transform/opacity → compositor). Em touch, tudo que o hover
-   revela fica visível por padrão. Em @layer components: utilitários vencem. */
+/* Vitrine: superfície editorial e cards com ações sempre visíveis. */
 @layer components {
-  .le-mcard { position:relative; display:flex; flex-direction:column; isolation:isolate; overflow:hidden; border:1px solid #e7e8f0; border-radius:20px; background:#fff; transition:transform .25s cubic-bezier(.22,1,.36,1),opacity .25s cubic-bezier(.22,1,.36,1); }
-  .le-mcard:hover, .le-mcard:focus-within { border-color:#d3dbfb; box-shadow:0 1px 2px #0b0a3b0a, 0 24px 48px -18px #1c2a8f33; }
-
-  .le-mcard-stage { --mx:50%; --my:40%; --rx:0deg; --ry:0deg; position:relative; aspect-ratio:4/3.25; overflow:hidden; perspective:900px;
-    background:
-      radial-gradient(120% 90% at 50% 115%, #e4e8f6 0%, transparent 60%),
-      linear-gradient(#0b0a3b08 1px, transparent 1px) 0 0/22px 22px,
-      linear-gradient(90deg, #0b0a3b08 1px, transparent 1px) 0 0/22px 22px,
-      #f6f7fb; }
-  .le-mcard-spot { position:absolute; inset:0; pointer-events:none; opacity:0; transition:transform .25s cubic-bezier(.22,1,.36,1),opacity .25s cubic-bezier(.22,1,.36,1); background:radial-gradient(360px circle at var(--mx) var(--my), #3158ef22, transparent 48%); }
-  .le-mcard-floor { position:absolute; left:20%; right:20%; bottom:13%; height:18px; border-radius:50%; pointer-events:none; background:radial-gradient(closest-side, #0b0a3b2e, transparent); filter:blur(3px); transition:transform .25s cubic-bezier(.22,1,.36,1),opacity .25s cubic-bezier(.22,1,.36,1); }
+  .le-showcase-hero { color:white; background:var(--le-ink); }
+  .le-showcase-grid { display:grid; grid-template-columns:1.05fr 1fr; min-height:470px; }
+  .le-showcase-copy { position:relative; z-index:1; padding:58px 32px 38px 0; }
+  .le-showcase-eyebrow { display:flex; align-items:center; gap:9px; color:var(--le-blue-light); font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; }
+  .le-showcase-eyebrow > span { width:7px; height:7px; flex-shrink:0; background:var(--le-yellow); border-radius:50%; }
+  .le-showcase-copy h1 { margin-top:22px; font-family:var(--font-display); font-weight:500; font-size:clamp(36px,3.7vw,55px); letter-spacing:-.055em; line-height:1.08; }
+  .le-showcase-copy h1 > span { color:var(--le-yellow); }
+  .le-showcase-description { max-width:440px; margin-top:20px; color:var(--le-line); font-size:14px; line-height:1.9; }
+  .le-showcase-contact { display:inline-flex; align-items:center; gap:8px; padding:12px 0; font-size:12px; font-weight:600; color:white; }
+  .le-showcase-contact:hover { color:var(--le-yellow); }
+  .le-showcase-counts { display:flex; flex-wrap:wrap; gap:12px 24px; margin-top:30px; color:var(--le-blue-light); font-size:11px; }
+  .le-showcase-counts strong { margin-right:5px; color:white; font-family:var(--font-display); font-size:20px; font-weight:500; }
+  .le-showcase-photo { position:relative; min-width:0; margin-right:calc((min(1320px,100vw - 96px) - 100vw)/2); overflow:hidden; }
+  .le-showcase-photo::after { position:absolute; inset:0; content:""; background:linear-gradient(90deg,var(--le-ink),transparent 35%),linear-gradient(0deg,var(--le-ink),transparent 40%); pointer-events:none; }
+  .le-showcase-photo img { object-position:65% center; }
+  .le-showcase-photo-label { position:absolute; left:16%; bottom:55px; z-index:1; display:flex; align-items:center; gap:12px; font-size:12px; line-height:1.7; }
+  .le-showcase-photo-label svg { color:var(--le-yellow); }
+  .le-showcase-photo-label strong { font-weight:600; }
+  .le-showcase-photo figcaption { position:absolute; z-index:1; bottom:15px; right:24px; color:var(--le-line); font-size:11px; }
+  .le-showcase-strip { background:var(--le-blue); font-size:12px; font-weight:500; }
+  .le-showcase-strip span, .le-showcase-strip a { display:flex; align-items:center; gap:9px; }
+  .le-showcase-strip a:hover { text-decoration:underline; text-underline-offset:4px; }
+  .le-showcase-strip svg { flex-shrink:0; }
+  .le-about-photo { position:relative; isolation:isolate; aspect-ratio:1/1; overflow:hidden; border-radius:24px 24px 80px 24px; background:var(--le-ink); }
+  .le-about-photo::after { position:absolute; content:""; inset:30% 0 0; background:linear-gradient(transparent,var(--le-ink)); pointer-events:none; }
+  .le-about-caption { position:absolute; bottom:70px; left:32px; right:32px; z-index:1; display:grid; gap:8px; color:white; }
+  .le-about-caption span { font-size:11px; text-transform:uppercase; letter-spacing:.12em; color:var(--le-yellow); }
+  .le-about-caption strong { max-width:340px; font-family:var(--font-display); font-size:28px; font-weight:500; line-height:1.15; letter-spacing:-.04em; }
+  .le-about-photo figcaption { position:absolute; z-index:1; bottom:28px; left:32px; color:var(--le-line); font-size:11px; }
+  .le-about-principle { padding:32px; border:1px solid var(--le-line); border-radius:20px; background:var(--le-surface); }
+  .le-about-principle:nth-child(2) { color:white; border-color:var(--le-blue); background:var(--le-blue); }
+  .le-about-principle:nth-child(2) p { color:white; }
+  .le-about-number { display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:12px; background:var(--le-yellow); color:var(--le-ink); font-family:var(--font-display); font-size:13px; font-weight:600; }
+  .le-product-price { display:flex; flex-direction:column; gap:3px; }
+  .le-product-price-label { font-size:11px; font-weight:500; color:var(--le-text-muted); }
+  .le-product-price-value { font-family:var(--font-display); font-size:24px; font-weight:600; line-height:1.2; letter-spacing:-.045em; color:var(--le-ink); }
+  .le-product-price-value.is-offer { color:var(--le-blue); }
+  .le-product-price-saving { font-size:11px; font-weight:600; color:var(--le-success); }
+  .le-mcard { position:relative; display:flex; flex-direction:column; min-width:0; isolation:isolate; overflow:hidden; border:1px solid var(--le-line); border-radius:22px; background:var(--le-surface); }
+  .le-mcard:hover, .le-mcard:focus-within { border-color:var(--le-blue-border); box-shadow:0 18px 40px -24px color-mix(in srgb,var(--le-blue) 40%,transparent); }
+  .le-mcard[data-offer] { border-color:var(--le-yellow); }
+  .le-mcard-stage { --mx:50%; --my:40%; --rx:0deg; --ry:0deg; position:relative; aspect-ratio:4/3; overflow:hidden; perspective:900px; background:radial-gradient(ellipse at 90% 90%,color-mix(in srgb,var(--le-blue) 14%,transparent),transparent 65%),linear-gradient(135deg,var(--le-tint),var(--le-canvas)); }
+  .le-mcard-spot { position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .3s cubic-bezier(.22,1,.36,1); background:radial-gradient(360px circle at var(--mx) var(--my),color-mix(in srgb,var(--le-blue) 14%,transparent),transparent 48%); }
+  .le-mcard-floor { position:absolute; left:20%; right:20%; bottom:13%; height:18px; border-radius:50%; pointer-events:none; background:radial-gradient(closest-side,color-mix(in srgb,var(--le-ink) 18%,transparent),transparent); filter:blur(3px); transition:transform .3s cubic-bezier(.22,1,.36,1),opacity .3s cubic-bezier(.22,1,.36,1); }
   .le-mcard-hit { position:absolute; inset:0; display:block; cursor:pointer; outline-offset:-4px; }
-  /* O blend fica no wrapper: o transform dele cria stacking context e isolaria o blend do <img> (fotos com fundo branco opaco). */
-  .le-mcard-tilt { position:absolute; inset:0; mix-blend-mode:multiply; transform:rotateX(var(--rx)) rotateY(var(--ry)); transition:transform .25s cubic-bezier(.22,1,.36,1),opacity .25s cubic-bezier(.22,1,.36,1); }
-  .le-mcard-img { object-fit:contain; padding:26px 26px 34px; transition:transform .25s cubic-bezier(.22,1,.36,1),opacity .25s cubic-bezier(.22,1,.36,1); }
-
-  .le-mcard-tag { position:absolute; left:14px; top:14px; z-index:2; pointer-events:none; padding:5px 9px; border:1px solid #ffffffb3; border-radius:8px; background:#ffffffc7; backdrop-filter:blur(8px); color:#5e6080; font-size:11px; font-weight:500; }
-  .le-mcard-badge { position:absolute; left:14px; top:46px; z-index:2; pointer-events:none; padding:3px 8px; border-radius:6px; background:var(--le-yellow); color:var(--le-ink); font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
-
-  .le-mcard-compare { position:absolute; right:12px; top:12px; z-index:3; display:inline-flex; align-items:center; gap:6px; padding:5px 10px 5px 5px; border:1px solid #ffffffb3; border-radius:999px; background:#ffffffd9; backdrop-filter:blur(8px); color:#4b4d6e; font-size:11px; font-weight:600; transition:transform .25s cubic-bezier(.22,1,.36,1),opacity .25s cubic-bezier(.22,1,.36,1); }
-  .le-mcard-compare:hover { background:#fff; color:var(--le-blue); }
-  .le-mcard-compare:disabled { cursor:not-allowed; opacity:.5 !important; }
-  .le-mcard-compare-box { display:flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:999px; background:#eef1fb; color:var(--le-blue); transition:transform .25s cubic-bezier(.22,1,.36,1),opacity .25s cubic-bezier(.22,1,.36,1); }
-  .le-mcard-compare.is-on { background:var(--le-ink); border-color:var(--le-ink); color:#fff; }
-  .le-mcard-compare.is-on .le-mcard-compare-box { background:var(--le-yellow); color:var(--le-ink); }
-
-  .le-mcard-specs { position:absolute; left:10px; right:10px; bottom:10px; z-index:2; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1px; overflow:hidden; border:1px solid #ffffffa6; border-radius:14px; background:#e7e9f3b3; backdrop-filter:blur(14px) saturate(1.4); box-shadow:0 10px 30px -12px #0b0a3b40; pointer-events:none; }
-  .le-mcard-specs > div { min-width:0; padding:9px 10px 10px; background:#ffffffc2; transition:transform .25s cubic-bezier(.22,1,.36,1),opacity .25s cubic-bezier(.22,1,.36,1); }
-  .le-mcard-specs dt { display:flex; align-items:center; gap:4px; color:var(--le-text-muted); font-size:11px; font-weight:500; letter-spacing:.04em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .le-mcard-specs dt svg { flex-shrink:0; color:var(--le-blue); }
-  .le-mcard-specs dd { margin-top:3px; color:var(--le-text); font-family:var(--font-display); font-size:12.5px; font-weight:600; letter-spacing:-.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .le-mcard-peek { position:absolute; left:50%; top:40%; z-index:2; display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border-radius:999px; background:#0b0a3be6; color:#fff; font-size:11px; font-weight:500; pointer-events:none; opacity:0; transform:translate(-50%,6px) scale(.96); transition:transform .25s cubic-bezier(.22,1,.36,1),opacity .25s cubic-bezier(.22,1,.36,1); }
-
-  .le-mcard-body { display:flex; flex:1; flex-direction:column; padding:18px 20px 16px; }
-  .le-mcard-title { color:#111139; font-family:var(--font-display); font-size:18px; font-weight:600; line-height:1.2; letter-spacing:-.035em; transition:transform .25s cubic-bezier(.22,1,.36,1),opacity .25s cubic-bezier(.22,1,.36,1); }
+  /* O blend acompanha o elemento transformado para preservar o recorte branco das fotos. */
+  .le-mcard-tilt { position:absolute; inset:0; mix-blend-mode:multiply; transform:rotateX(var(--rx)) rotateY(var(--ry)); transition:transform .3s cubic-bezier(.22,1,.36,1); }
+  .le-mcard-img { object-fit:contain; padding:48px 24px 26px; transition:transform .3s cubic-bezier(.22,1,.36,1); }
+  .le-mcard-tag { position:absolute; left:14px; bottom:12px; z-index:2; max-width:calc(100% - 28px); pointer-events:none; padding:5px 9px; border-radius:7px; background:var(--le-surface); color:var(--le-text-muted); font-size:11px; font-weight:500; }
+  .le-mcard-badge { position:absolute; left:14px; top:14px; z-index:2; max-width:calc(100% - 68px); pointer-events:none; padding:6px 9px; border-radius:7px; background:var(--le-ink); color:white; font-size:11px; font-weight:600; }
+  .le-mcard-badge.is-offer { background:var(--le-yellow); color:var(--le-ink); }
+  .le-mcard-compare { position:absolute; right:12px; top:12px; z-index:3; display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:36px; padding:6px; border:1px solid var(--le-line); border-radius:999px; background:var(--le-surface); color:var(--le-text-muted); font-size:11px; font-weight:600; }
+  .le-mcard-compare > span:last-child { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+  .le-mcard-compare:hover { color:var(--le-blue); border-color:var(--le-blue); }
+  .le-mcard-compare:disabled { cursor:not-allowed; opacity:.5; }
+  .le-mcard-compare-box { display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:999px; background:var(--le-tint); color:var(--le-blue); }
+  .le-mcard-compare.is-on { background:var(--le-blue); border-color:var(--le-blue); color:white; }
+  .le-mcard-compare.is-on .le-mcard-compare-box { background:var(--le-blue); color:white; }
+  .le-mcard-peek { position:absolute; left:50%; top:50%; z-index:2; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; padding:9px 12px; border-radius:999px; background:var(--le-ink); color:white; font-size:11px; font-weight:500; pointer-events:none; opacity:0; transform:translate(-50%,6px); transition:transform .25s cubic-bezier(.22,1,.36,1),opacity .25s cubic-bezier(.22,1,.36,1); }
+  .le-mcard-body { display:flex; flex:1; flex-direction:column; min-width:0; padding:22px 20px 20px; }
+  .le-mcard-title { min-width:0; color:var(--le-text); font-family:var(--font-display); font-size:20px; font-weight:600; line-height:1.2; letter-spacing:-.035em; overflow-wrap:anywhere; }
   .le-mcard-title:hover { color:var(--le-blue); }
-  .le-mcard-sku { flex-shrink:0; margin-top:2px; padding:2px 6px; border-radius:6px; background:#f4f5f9; color:var(--le-text-muted); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px; white-space:nowrap; }
-  .le-mcard-desc { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:40px; margin-top:6px; color:var(--le-text-muted); font-size:13px; line-height:20px; }
-  .le-mcard-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
-  .le-mcard-chips li { display:inline-flex; align-items:center; gap:5px; max-width:100%; padding:4px 8px; border-radius:7px; background:#f3f4f9; color:#44466a; font-size:11px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .le-mcard-sku { flex-shrink:0; margin-top:2px; padding:3px 6px; border-radius:6px; background:var(--le-subtle); color:var(--le-text-muted); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px; white-space:nowrap; }
+  .le-mcard-desc { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:40px; margin-top:10px; color:var(--le-text-muted); font-size:13px; line-height:20px; }
+  .le-mcard-chips { display:flex; flex-wrap:wrap; gap:6px; margin:14px 0 20px; }
+  .le-mcard-chips li { display:inline-flex; align-items:center; gap:5px; max-width:100%; padding:5px 7px; border-radius:7px; background:var(--le-tint); color:var(--le-text); font-size:11px; font-weight:500; overflow-wrap:anywhere; }
   .le-mcard-chips li svg { flex-shrink:0; color:var(--le-blue); }
-
-  .le-mcard-foot { position:relative; display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:44px; margin-top:auto; padding-top:14px; border-top:1px solid #eeeff5; }
-  .le-mcard-body > .le-mcard-foot { margin-top:16px; }
-  .le-mcard-meta { display:flex; flex-direction:column; gap:1px; transition:transform .25s cubic-bezier(.22,1,.36,1),opacity .25s cubic-bezier(.22,1,.36,1); }
-  .le-mcard-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
-  .le-mcard-cta { display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 13px; border-radius:10px; background:var(--le-blue); color:#fff; font-size:11.5px; font-weight:600; white-space:nowrap; box-shadow:0 6px 16px -6px #3158ef99, inset 0 1px 0 #ffffff2e; transition:transform .25s cubic-bezier(.22,1,.36,1),opacity .25s cubic-bezier(.22,1,.36,1); }
+  .le-mcard-foot { display:flex; flex-direction:column; gap:16px; margin-top:auto; padding-top:16px; border-top:1px solid var(--le-line); }
+  .le-mcard-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+  .le-mcard-cta { display:inline-flex; flex:1; justify-content:center; align-items:center; gap:7px; min-height:42px; padding:0 12px; border-radius:11px; background:var(--le-blue); color:white; font-size:12px; font-weight:600; white-space:nowrap; transition:transform .2s cubic-bezier(.22,1,.36,1); }
   .le-mcard-cta:hover { background:var(--le-blue-hover); }
-  .le-mcard-more { display:inline-flex; align-items:center; gap:6px; height:36px; min-width:36px; justify-content:center; padding:0 10px; border-radius:10px; background:#f0f3ff; color:var(--le-blue); font-size:11.5px; font-weight:600; white-space:nowrap; transition:transform .25s cubic-bezier(.22,1,.36,1),opacity .25s cubic-bezier(.22,1,.36,1); }
-  .le-mcard-more:hover { background:var(--le-ink); color:#fff; }
-  .le-mcard-more-label { display:none; }
-
-  /* Desktop com mouse: revelações no hover/foco */
+  .le-mcard-more { display:inline-flex; align-items:center; gap:6px; min-height:42px; justify-content:center; padding:0 10px; border:1px solid var(--le-line); border-radius:11px; color:var(--le-text); font-size:12px; font-weight:600; white-space:nowrap; }
+  .le-mcard-more:hover { background:var(--le-ink); border-color:var(--le-ink); color:white; }
   @media (hover:hover) and (pointer:fine) {
-    .le-mcard:not(.le-mcard-row) .le-mcard-chips { display:none; }
-    .le-mcard:not(.le-mcard-row) .le-mcard-compare:not(.is-on) { opacity:0; transform:translateY(-4px); }
-    .le-mcard:hover .le-mcard-compare, .le-mcard:focus-within .le-mcard-compare { opacity:1; transform:none; }
-    .le-mcard-specs > div { opacity:0; transform:translateY(14px); }
-    .le-mcard-specs > div:nth-child(2) { transition-delay:.04s; }
-    .le-mcard-specs > div:nth-child(3) { transition-delay:.08s; }
-    .le-mcard-specs { background:transparent; border-color:transparent; box-shadow:none; backdrop-filter:none; transition:transform .25s cubic-bezier(.22,1,.36,1),opacity .25s cubic-bezier(.22,1,.36,1); }
-    .le-mcard:hover .le-mcard-specs, .le-mcard:focus-within .le-mcard-specs { background:#e7e9f3b3; border-color:#ffffffa6; box-shadow:0 10px 30px -12px #0b0a3b40; backdrop-filter:blur(14px) saturate(1.4); }
-    .le-mcard:hover .le-mcard-specs > div, .le-mcard:focus-within .le-mcard-specs > div { opacity:1; transform:none; }
     .le-mcard:hover .le-mcard-spot { opacity:1; }
-    .le-mcard:hover .le-mcard-img { transform:translateY(-14%) scale(1.06); }
-    .le-mcard:hover .le-mcard-floor { transform:translateY(-6px) scaleX(.82); opacity:.55; }
-    .le-mcard-stage:hover .le-mcard-peek { opacity:1; transform:translate(-50%,0) scale(1); }
-    .le-mcard:not(.le-mcard-row) .le-mcard-cta { opacity:0; transform:translateX(10px); pointer-events:none; }
-    .le-mcard:hover .le-mcard-cta, .le-mcard:focus-within .le-mcard-cta { opacity:1; transform:none; pointer-events:auto; }
-    .le-mcard:not(.le-mcard-row):hover .le-mcard-meta, .le-mcard:not(.le-mcard-row):focus-within .le-mcard-meta { opacity:0; transform:translateY(-6px); }
-    .le-mcard:not(.le-mcard-row) .le-mcard-actions { position:absolute; inset:14px 0 0; }
-    .le-mcard:hover .le-mcard-more-label, .le-mcard:focus-within .le-mcard-more-label { display:inline; }
+    .le-mcard:hover .le-mcard-img { transform:translateY(-5%) scale(1.04); }
+    .le-mcard:hover .le-mcard-floor { transform:translateY(-4px) scaleX(.86); opacity:.55; }
+    .le-mcard-stage:hover .le-mcard-peek, .le-mcard-hit:focus-visible ~ .le-mcard-peek { opacity:1; transform:translate(-50%,0); }
+    .le-mcard-cta:hover { transform:translateY(-2px); }
   }
-  @media (hover:none), (pointer:coarse) {
-    .le-mcard-specs, .le-mcard-peek { display:none; }
-  }
-
-  /* Variante lista (modo compacto para engenharia) */
-  .le-mcard-row .le-mcard-specs, .le-mcard-row .le-mcard-peek { display:none; }
+  .le-mcard-row .le-mcard-peek { display:none; }
+  .le-mcard-row .le-mcard-compare { position:static; }
   @media (min-width:640px) {
     .le-mcard-row { flex-direction:row; }
-    .le-mcard-row .le-mcard-stage { width:210px; flex-shrink:0; aspect-ratio:auto; min-height:190px; }
-    .le-mcard-row .le-mcard-img { padding:20px; }
+    .le-mcard-row .le-mcard-stage { width:210px; flex-shrink:0; aspect-ratio:auto; min-height:230px; }
+    .le-mcard-row .le-mcard-img { padding:40px 20px; }
+    .le-mcard-row .le-mcard-badge { max-width:calc(100% - 28px); }
     .le-mcard-row .le-mcard-desc { min-height:0; }
+    .le-mcard-row .le-mcard-foot { flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:space-between; }
   }
-  .le-mcard-row .le-mcard-compare { position:static; opacity:1; transform:none; border-color:#e6e8f1; }
+  @media (max-width:1100px) { .le-showcase-photo { margin-right:-24px; } }
+  @media (max-width:767px) {
+    .le-showcase-grid { grid-template-columns:1fr; }
+    .le-showcase-copy { padding:38px 0 28px; }
+    .le-showcase-copy h1 { font-size:clamp(34px,6vw,45px); }
+    .le-showcase-description { font-size:13px; }
+    .le-showcase-photo { height:240px; margin:0 -18px; }
+    .le-showcase-photo::after { background:linear-gradient(180deg,var(--le-ink),transparent 35%),linear-gradient(0deg,var(--le-ink),transparent 55%); }
+    .le-showcase-photo-label { left:24px; bottom:50px; }
+    .le-showcase-photo figcaption { right:18px; }
+    .le-showcase-strip { font-size:11px; }
+    .le-about-caption { left:24px; bottom:60px; }
+    .le-about-caption strong { font-size:24px; }
+    .le-about-photo figcaption { left:24px; bottom:24px; }
+  }
 
   /* Trilho horizontal nativo com snap (substitui carrosséis) */
   .le-rail { display:grid; grid-auto-flow:column; grid-auto-columns:min(82%,340px); gap:16px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory; scroll-padding-inline:2px; padding-bottom:6px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
@@ -549,7 +566,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 110px; }
 
 @layer components {
   @media (prefers-reduced-motion: reduce) {
-    .le-mcard-tilt, .le-mcard:hover .le-mcard-img, .le-mcard:hover .le-mcard-floor { transform:none; }
+    .le-mcard-tilt, .le-mcard:hover .le-mcard-img, .le-mcard:hover .le-mcard-floor, .le-mcard-cta:hover { transform:none; }
   }
   @media print {
     body:has(.le-public-order) { background:white; color:black; }

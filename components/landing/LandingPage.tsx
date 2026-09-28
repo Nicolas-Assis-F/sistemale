@@ -171,14 +171,14 @@ export function LandingPage({ products }: { products: CatalogProduct[] }) {
               ENGENHARIA EM CADA DETALHE
             </span>
             <Image
-              src="/catalogo/cabecote-80m.webp"
-              alt="Cabeçote hidráulico OMS 200 da L&E"
+              src="/brand/sobre-precisao-v2.webp"
+              alt="Ilustração de conexões usinadas e ferramentas de medição em uma oficina"
               fill
               sizes="(max-width:767px) calc(100vw - 164px), (max-width:1100px) 40vw, 500px"
-              className="object-contain p-12"
+              className="object-cover"
             />
-            <span className="absolute bottom-6 left-6 font-mono text-xs text-le-muted">
-              OMS 200 / REDUÇÃO 2:1
+            <span className="absolute bottom-6 left-6 rounded-md bg-le-ink px-3 py-2 text-[11px] text-white">
+              Imagem ilustrativa gerada por IA
             </span>
           </div>
           <div className="flex flex-col justify-center px-2 py-5 lg:px-10">

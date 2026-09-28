@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type RefObject } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
@@ -11,7 +11,7 @@ import {
 import type { CatalogProduct } from "@/lib/catalog";
 import { keySpecs, shortSpecLabel } from "@/lib/catalog-utils";
 import { buildWhatsAppUrl } from "@/lib/whatsapp-url";
-import { formatCurrency } from "@/lib/format";
+import { ProductPrice } from "./ProductPrice";
 import { cn } from "@/lib/utils";
 import { SpecIcon, WhatsAppIcon } from "./icons";
 import { useCompare } from "./CompareProvider";
@@ -22,6 +22,7 @@ interface Props {
   products?: CatalogProduct[];
   onNavigate?: (product: CatalogProduct) => void;
   onClose: () => void;
+  returnFocus: RefObject<HTMLButtonElement | null>;
 }
 
 /**
@@ -29,7 +30,7 @@ interface Props {
  * do card — fotos, especificações completas, ficha técnica em PDF e o CTA de venda.
  * Desktop: modal central. Mobile: bottom sheet de altura quase total.
  */
-export function ProductQuickView({ product, products = [], onNavigate, onClose }: Props) {
+export function ProductQuickView({ product, products = [], onNavigate, onClose, returnFocus }: Props) {
   const [current, setCurrent] = useState<CatalogProduct | null>(product);
   // Mantém o conteúdo durante a animação de saída
   useEffect(() => {
@@ -47,6 +48,7 @@ export function ProductQuickView({ product, products = [], onNavigate, onClose }
       <DialogPrimitive.Portal>
         <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-le-ink-deep/55 duration-300 supports-backdrop-filter:backdrop-blur-[6px] data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
         <DialogPrimitive.Popup
+          finalFocus={returnFocus}
           className={cn(
             "fixed z-50 flex flex-col overflow-hidden bg-white text-le-text outline-none",
             "inset-x-0 bottom-0 h-[94dvh] rounded-t-[26px] duration-300 data-open:animate-in data-open:slide-in-from-bottom data-closed:animate-out data-closed:slide-out-to-bottom",
@@ -226,13 +228,7 @@ function QuickViewBody({
             </section>
           )}
 
-          <p className="mt-5 text-[13px] text-le-muted">
-            {product.priceCents > 0 ? (
-              <>Investimento a partir de <strong className="text-le-text">{formatCurrency(product.priceCents)}</strong>.</>
-            ) : (
-              <>Valor sob cotação — configuramos conforme sua operação.</>
-            )}
-          </p>
+          <div className="mt-5"><ProductPrice product={product} /></div>
         </div>
 
         {/* Ações */}

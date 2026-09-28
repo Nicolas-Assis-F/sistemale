@@ -15,7 +15,7 @@ import { SpecIcon, WhatsAppIcon } from "@/components/catalog/icons";
 import { keySpecs, shortSpecLabel } from "@/lib/catalog-utils";
 import { Entrance } from "@/components/public/Entrance";
 import { buildWhatsAppUrl } from "@/lib/whatsapp-url";
-import { formatCurrency } from "@/lib/format";
+import { ProductPrice } from "@/components/catalog/ProductPrice";
 type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -94,14 +94,7 @@ export default async function ProductPage({ params }: Props) {
             ))}
           </dl>
           <div className="my-7 border-y border-le-line py-5">
-            <p className="text-[11px] uppercase tracking-wider text-le-muted">
-              {product.priceCents ? "Investimento" : "Condições comerciais"}
-            </p>
-            <p className="mt-2 font-heading text-2xl tracking-tight">
-              {product.priceCents
-                ? formatCurrency(product.priceCents)
-                : "Cotação personalizada"}
-            </p>
+            <ProductPrice product={product} />
             <p className="mt-2 text-xs text-le-muted">
               {product.stock > 0
                 ? "Produto com estoque cadastrado. Confirme a disponibilidade."

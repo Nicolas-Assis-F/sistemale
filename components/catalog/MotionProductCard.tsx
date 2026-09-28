@@ -8,38 +8,32 @@ import { m, useReducedMotion } from "motion/react";
 import type { CatalogProduct } from "@/lib/catalog";
 import { keySpecs, shortSpecLabel } from "@/lib/catalog-utils";
 import { buildWhatsAppUrl } from "@/lib/whatsapp-url";
-import { formatCurrency } from "@/lib/format";
+import { getProductOffer } from "@/lib/catalog-offers";
+import { ProductPrice } from "./ProductPrice";
 import { cn } from "@/lib/utils";
 import { SpecIcon, WhatsAppIcon } from "./icons";
 import { useCompare } from "./CompareProvider";
 
 interface Props {
   product: CatalogProduct;
-  onPreview?: (product: CatalogProduct) => void;
+  onPreview?: (product: CatalogProduct, trigger: HTMLButtonElement) => void;
   index?: number;
   variant?: "grid" | "row";
   className?: string;
+  imageSizes?: string;
   /** React 19: ref como prop — necessário para AnimatePresence mode="popLayout". */
   ref?: Ref<HTMLElement>;
 }
 
-/**
- * Card "vivo" do catálogo.
- * - Hover (desktop): spotlight segue o cursor, a máquina sobe/ganha escala com tilt
- *   sutil, um painel de vidro revela as 3 especificações-chave e a barra de ações
- *   (Cotar agora / Detalhes) substitui o preço.
- * - Touch: specs e ações ficam sempre visíveis (sem depender de hover).
- * - Layout animations: entra/sai/reordena suavemente quando os filtros mudam.
- * Hover é CSS puro (transform/opacity, GPU); Motion só cuida do layout.
- */
-export function MotionProductCard({ product, onPreview, index = 0, variant = "grid", className, ref }: Props) {
+/** Motion no layout; hover em CSS. Preços e ações permanecem visíveis em todos os dispositivos. */
+export function MotionProductCard({ product, onPreview, index = 0, variant = "grid", className, imageSizes, ref }: Props) {
   const reduced = useReducedMotion();
   const stageRef = useRef<HTMLDivElement>(null);
   const compare = useCompare();
   const inCompare = compare.has(product.slug);
   const specs = keySpecs(product, 3);
   const href = `/vitrine/${product.slug}`;
-  const price = product.priceCents > 0 ? formatCurrency(product.priceCents) : null;
+  const offer = getProductOffer(product);
   const whatsapp = buildWhatsAppUrl({ sku: product.sku, productName: product.name });
 
   // Spotlight + tilt via CSS vars: sem re-render do React a cada movimento
@@ -64,7 +58,8 @@ export function MotionProductCard({ product, onPreview, index = 0, variant = "gr
       onClick={() => compare.toggle(product)}
       disabled={!inCompare && compare.isFull}
       aria-pressed={inCompare}
-      title={!inCompare && compare.isFull ? "Limite de 3 equipamentos" : undefined}
+      aria-label={`${inCompare ? "Remover da comparação" : "Comparar"}: ${product.name}`}
+      title={!inCompare && compare.isFull ? "Limite de 3 equipamentos" : "Comparar equipamentos"}
       className={cn("le-mcard-compare", inCompare && "is-on")}
     >
       <span className="le-mcard-compare-box">{inCompare ? <Check size={11} strokeWidth={3} /> : <GitCompareArrows size={11} />}</span>
@@ -77,7 +72,7 @@ export function MotionProductCard({ product, onPreview, index = 0, variant = "gr
       src={product.images[0]}
       alt={product.name}
       fill
-      sizes={variant === "row" ? "(max-width:639px) calc(100vw - 36px), 210px" : "(max-width:639px) calc(100vw - 36px), (max-width:1023px) 45vw, (max-width:1279px) 30vw, 330px"}
+      sizes={imageSizes ?? (variant === "row" ? "(max-width:639px) calc(100vw - 84px), 170px" : "(max-width:639px) calc(100vw - 84px), (max-width:1023px) calc(50vw - 84px), (max-width:1279px) calc(50vw - 224px), 290px")}
       className="le-mcard-img"
     />
   ) : (
@@ -95,6 +90,7 @@ export function MotionProductCard({ product, onPreview, index = 0, variant = "gr
         layout: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
         default: { duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: Math.min(index, 8) * 0.03 },
       }}
+      data-offer={offer ? true : undefined}
       className={cn("le-mcard group", variant === "row" && "le-mcard-row", className)}
     >
       {/* Palco da imagem */}
@@ -104,7 +100,7 @@ export function MotionProductCard({ product, onPreview, index = 0, variant = "gr
         {onPreview ? (
           <button
             type="button"
-            onClick={() => onPreview(product)}
+            onClick={(event) => onPreview(product, event.currentTarget)}
             aria-label={`Visualização rápida: ${product.name}`}
             className="le-mcard-hit"
           >
@@ -118,21 +114,10 @@ export function MotionProductCard({ product, onPreview, index = 0, variant = "gr
 
         <span className="le-mcard-tag">{product.category.name}</span>
         {variant === "grid" && compareButton}
-        {product.featured && variant === "grid" && <span className="le-mcard-badge">Destaque</span>}
+        {(offer || product.featured) && <span className={cn("le-mcard-badge", offer && "is-offer")}>
+          {offer ? (offer.percent > 0 ? `−${offer.percent}% · Oferta` : "Oferta especial") : "Destaque da fábrica"}
+        </span>}
 
-        {/* Specs-chave reveladas no hover (desktop) */}
-        {variant === "grid" && specs.length > 0 && (
-          <dl className="le-mcard-specs" aria-hidden>
-            {specs.map((s) => (
-              <div key={s.key}>
-                <dt>
-                  <SpecIcon specKey={s.key} size={12} /> {shortSpecLabel(s.key)}
-                </dt>
-                <dd>{s.value}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
         {onPreview && variant === "grid" && (
           <span className="le-mcard-peek" aria-hidden>
             <Eye size={13} /> Visualização rápida
@@ -150,7 +135,7 @@ export function MotionProductCard({ product, onPreview, index = 0, variant = "gr
         </div>
         <p className="le-mcard-desc">{product.shortDesc}</p>
 
-        {/* Chips (touch e modo lista — no desktop em grade as specs estão no palco) */}
+        {/* Especificações sempre disponíveis, inclusive por teclado e toque. */}
         {specs.length > 0 && (
           <ul className="le-mcard-chips">
             {specs.map((s) => (
@@ -163,13 +148,10 @@ export function MotionProductCard({ product, onPreview, index = 0, variant = "gr
         )}
 
         <div className="le-mcard-foot">
-          <div className="le-mcard-meta">
-            <span className="text-[11px] uppercase tracking-[0.14em] text-le-muted">{price ? "A partir de" : "Condição"}</span>
-            <span className="text-[13px] font-semibold text-le-text">{price ?? "Sob cotação"}</span>
-          </div>
+          <ProductPrice product={product} />
           <div className="le-mcard-actions">
             {variant === "row" && compareButton}
-            <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="le-mcard-cta" aria-label={`Cotar ${product.name} pelo WhatsApp`}>
+            <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="le-mcard-cta" aria-label={`Cotar agora: ${product.name} pelo WhatsApp`}>
               <WhatsAppIcon className="h-3.5 w-3.5" /> Cotar agora
             </a>
             <Link href={href} className="le-mcard-more" aria-label={`Detalhes de ${product.name}`}>

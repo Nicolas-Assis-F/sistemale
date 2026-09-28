@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, LayoutGroup, m } from "motion/react";
 import {
-  ArrowDownToLine, ArrowUpRight, LayoutGrid, PackageSearch, Rows3, Search, SlidersHorizontal, X,
+  ArrowUpRight, LayoutGrid, PackageSearch, Rows3, Search, SlidersHorizontal, X,
 } from "lucide-react";
 import { MotionProductCard } from "./MotionProductCard";
 import dynamic from "next/dynamic";
 const ProductQuickView = dynamic(() => import("./ProductQuickView").then((module) => module.ProductQuickView));
 import { SpecIcon } from "./icons";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import type { CatalogProduct } from "@/lib/catalog";
 import {
   FACET_PARAM_PREFIX, buildFacets, matchesFacets, matchesQuery, parseSpecNumber,
@@ -44,7 +44,12 @@ export function CatalogExplorer({
   const [view, setView] = useState<View>(initialView);
   const [preview, setPreview] = useState<CatalogProduct | null>(null);
   const [previewLoaded, setPreviewLoaded] = useState(false);
-  function openPreview(product: CatalogProduct) { setPreviewLoaded(true); setPreview(product); }
+  const previewTrigger = useRef<HTMLButtonElement | null>(null);
+  function openPreview(product: CatalogProduct, trigger: HTMLButtonElement) {
+    previewTrigger.current = trigger;
+    setPreviewLoaded(true);
+    setPreview(product);
+  }
   const [mobileFilters, setMobileFilters] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -138,46 +143,16 @@ export function CatalogExplorer({
 
   return (
     <>
-      {/* Introdução */}
-      <section className="le-catalog-intro">
-        <div className="le-container">
-          <div className="flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <p className="le-kicker">Precisão em cada escolha</p>
-              <h1 className="le-title mt-4">
-                O próximo passo
-                <br />
-                da sua <span className="text-le-blue">operação.</span>
-              </h1>
-              <p className="mt-5 max-w-xl text-sm leading-7 text-le-muted">
-                Filtre por especificação técnica, compare lado a lado e baixe a ficha de cada equipamento.
-              </p>
-            </div>
-            <a href="/catalogo/catalogo-letorneadora.pdf" target="_blank" rel="noopener noreferrer" className="le-button le-button-outline">
-              <ArrowDownToLine size={16} /> Catálogo completo (PDF)
-            </a>
-          </div>
-          <div className="mt-9 flex flex-wrap items-center gap-2 text-[11px] font-medium text-le-muted">
-            <span className="h-1.5 w-1.5 rounded-full bg-le-blue" />
-            {products.length} referências técnicas
-            <span className="mx-2">/</span>
-            {categories.length} linhas de produtos
-            <span className="mx-2">/</span>Atendimento direto com a fábrica
-          </div>
-        </div>
-      </section>
-
       {/* Barra de ferramentas fixa */}
       <div className="sticky top-22 z-30 border-b border-le-line bg-white/85 supports-backdrop-filter:backdrop-blur-xl">
         <div className="le-container flex flex-col gap-3 py-3 lg:flex-row lg:items-center">
-          <div className="le-rail -mx-1 flex-1 auto-cols-max gap-1.5 px-1 pb-0" role="tablist" aria-label="Linhas de produtos">
+          <div className="le-rail -mx-1 flex-1 auto-cols-max gap-1.5 px-1 pb-0" role="group" aria-label="Linhas de produtos">
             {[{ slug: "", name: "Todos", count: products.length }, ...categories].map((c) => {
               const active = category === c.slug;
               return (
                 <button
                   key={c.slug || "all"}
-                  role="tab"
-                  aria-selected={active}
+                  aria-pressed={active}
                   onClick={() => selectCategory(c.slug)}
                   className={cn(
                     "relative flex h-9 items-center gap-2 whitespace-nowrap rounded-full px-3.5 text-xs font-medium transition-colors",
@@ -187,12 +162,12 @@ export function CatalogExplorer({
                   {active && (
                     <m.span
                       layoutId="le-cat-pill"
-                      className="absolute inset-0 rounded-full bg-le-ink"
+                      className="absolute inset-0 rounded-full bg-le-blue"
                       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                     />
                   )}
                   <span className="relative">{c.name}</span>
-                  <span className={cn("relative font-mono text-[11px] tabular-nums", active ? "text-white/55" : "text-le-muted")}>{c.count}</span>
+                  <span className={cn("relative font-mono text-[11px] tabular-nums", active ? "text-white" : "text-le-muted")}>{c.count}</span>
                 </button>
               );
             })}
@@ -238,12 +213,11 @@ export function CatalogExplorer({
                 <option key={f.key} value={`spec:${f.key}`}>Maior {f.key.toLowerCase()}</option>
               ))}
             </select>
-            <div className="hidden rounded-xl border border-le-line bg-white p-0.5 sm:flex" role="radiogroup" aria-label="Modo de visualização">
+            <div className="hidden rounded-xl border border-le-line bg-white p-0.5 sm:flex" role="group" aria-label="Modo de visualização">
               {([["grid", LayoutGrid, "Grade"], ["row", Rows3, "Lista técnica"]] as const).map(([v, Icon, label]) => (
                 <button
                   key={v}
-                  role="radio"
-                  aria-checked={view === v}
+                  aria-pressed={view === v}
                   aria-label={label}
                   title={label}
                   onClick={() => setView(v)}
@@ -257,7 +231,7 @@ export function CatalogExplorer({
         </div>
       </div>
 
-      <section className="le-container py-8 lg:py-12">
+      <section id="catalogo" className="le-container scroll-mt-64 py-8 lg:scroll-mt-48 lg:py-12">
         <div className="grid items-start gap-8 lg:grid-cols-[232px_minmax(0,1fr)]">
           {/* Facetas (desktop) */}
           <aside className="hidden lg:sticky lg:top-44 lg:block">
@@ -341,6 +315,7 @@ export function CatalogExplorer({
         <SheetContent side="bottom">
           <SheetHeader>
             <SheetTitle>Filtrar equipamentos</SheetTitle>
+            <SheetDescription>Escolha as especificações para encontrar o equipamento ideal.</SheetDescription>
           </SheetHeader>
           <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
             <label className="mb-5 block text-xs font-medium text-le-muted">
@@ -368,7 +343,7 @@ export function CatalogExplorer({
         </SheetContent>
       </Sheet>
 
-      {previewLoaded && <ProductQuickView product={preview} products={filtered} onNavigate={setPreview} onClose={() => setPreview(null)} />}
+      {previewLoaded && <ProductQuickView product={preview} products={filtered} onNavigate={setPreview} onClose={() => setPreview(null)} returnFocus={previewTrigger} />}
     </>
   );
 }

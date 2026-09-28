@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getCatalog } from "@/lib/catalog";
 import { FACET_PARAM_PREFIX, type FacetSelection } from "@/lib/catalog-utils";
 import { CatalogExplorer } from "@/components/catalog/CatalogExplorer";
+import { CatalogHero } from "@/components/catalog/CatalogHero";
 export const metadata: Metadata = {
   title: "Vitrine de equipamentos",
   description:
@@ -22,13 +23,16 @@ export default async function VitrinePage({
     facets[key.slice(FACET_PARAM_PREFIX.length)] = Array.isArray(value) ? value : [value];
   }
   return (
-    <CatalogExplorer
-      products={products}
-      initialCategory={one(params.categoria)}
-      initialQuery={one(params.q)}
-      initialSort={one(params.ordem)}
-      initialView={one(params.visual) === "row" ? "row" : "grid"}
-      initialFacets={facets}
-    />
+    <>
+      <CatalogHero productCount={products.length} categoryCount={new Set(products.map((product) => product.category.slug)).size} />
+      <CatalogExplorer
+        products={products}
+        initialCategory={one(params.categoria)}
+        initialQuery={one(params.q)}
+        initialSort={one(params.ordem)}
+        initialView={one(params.visual) === "row" ? "row" : "grid"}
+        initialFacets={facets}
+      />
+    </>
   );
 }
