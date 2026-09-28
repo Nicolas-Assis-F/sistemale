@@ -208,3 +208,34 @@ export async function createAsaasPayment(p: {
 export const getAsaasPayment = (id: string) => asaasFetch<AsaasPayment>(`/payments/${id}`);
 export const getAsaasPixQrCode = (id: string) => asaasFetch<AsaasPixQrCode>(`/payments/${id}/pixQrCode`);
 export const deleteAsaasPayment = (id: string) => asaasFetch<{ deleted: boolean }>(`/payments/${id}`, { method: 'DELETE' });
+
+// ─── Diagnóstico (painel /admin/integracoes) ───────────────────────────────────
+
+export type AsaasHealth =
+  | { ok: true; env: ReturnType<typeof asaasEnv>; accountName: string | null; accountDoc: string | null }
+  | { ok: false; env: ReturnType<typeof asaasEnv>; error: string };
+
+/** Mostra só o começo e o fim do documento: suficiente para conferir de quem é a conta. */
+function maskDoc(doc: string | undefined | null) {
+  const d = (doc ?? '').replace(/[^0-9A-Za-z]/g, '');
+  if (d.length < 6) return null;
+  return `${d.slice(0, 2)}${'•'.repeat(d.length - 4)}${d.slice(-2)}`;
+}
+
+/**
+ * Chamada de leitura à API para confirmar que a chave é válida e de qual conta
+ * ela é. Não expõe a chave nem o saldo.
+ */
+export async function checkAsaasHealth(): Promise<AsaasHealth> {
+  const env = asaasEnv();
+  const issue = asaasConfigIssue();
+  if (issue) return { ok: false, env, error: issue };
+  try {
+    await asaasFetch<{ balance: number }>('/finance/balance');
+  } catch (error) {
+    return { ok: false, env, error: error instanceof Error ? error.message : String(error) };
+  }
+  // Dados comerciais são opcionais: se o endpoint não responder, a chave continua válida
+  const info = await asaasFetch<{ name?: string; companyName?: string; cpfCnpj?: string }>('/myAccount/commercialInfo/').catch(() => null);
+  return { ok: true, env, accountName: info?.companyName || info?.name || null, accountDoc: maskDoc(info?.cpfCnpj) };
+}

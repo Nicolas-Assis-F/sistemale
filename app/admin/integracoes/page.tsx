@@ -1,5 +1,6 @@
-import { Workflow } from 'lucide-react';
+import { CheckCircle2, Workflow, XCircle } from 'lucide-react';
 import { prisma } from '@/lib/db';
+import { checkAsaasHealth } from '@/lib/asaas';
 import { JobActionButton } from '@/components/admin/JobActionButton';
 import { retryJob, runQueueNow } from './_actions';
 
@@ -12,7 +13,7 @@ const INBOX_LABELS = { RECEIVED: 'Recebido', PROCESSED: 'Processado', IGNORED: '
 const fmt = (d: Date | null) => (d ? d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }) : '—');
 
 export default async function IntegrationsPage() {
-  const [byStatus, problems, inbox] = await Promise.all([
+  const [byStatus, problems, inbox, asaas, lastWebhook] = await Promise.all([
     prisma.job.groupBy({ by: ['status'], _count: true }),
     prisma.job.findMany({
       where: { OR: [{ status: 'DEAD' }, { status: 'PENDING', lastError: { not: null } }] },
@@ -24,7 +25,21 @@ export default async function IntegrationsPage() {
       take: 30,
       select: { id: true, provider: true, account: true, eventType: true, status: true, attempts: true, lastError: true, receivedAt: true, processedAt: true },
     }),
+    checkAsaasHealth(),
+    prisma.webhookInbox.findFirst({ where: { provider: 'asaas' }, orderBy: { receivedAt: 'desc' }, select: { receivedAt: true, account: true } }),
   ]);
+  // Só presença/valor público: nenhum segredo é exibido
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
+  const checks: { label: string; ok: boolean; detail: string }[] = [
+    asaas.ok
+      ? { label: 'Asaas', ok: true, detail: `Chave válida · ${asaas.env === 'production' ? 'PRODUÇÃO (dinheiro real)' : 'sandbox (testes)'}${asaas.accountName ? ` · conta ${asaas.accountName}` : ''}${asaas.accountDoc ? ` (${asaas.accountDoc})` : ''}` }
+      : { label: 'Asaas', ok: false, detail: `${asaas.env === 'production' ? 'Produção' : 'Sandbox'}: ${asaas.error}` },
+    { label: 'Token do webhook', ok: Boolean(process.env.ASAAS_WEBHOOK_TOKEN), detail: process.env.ASAAS_WEBHOOK_TOKEN ? 'Configurado (confira se é o mesmo do painel do Asaas)' : 'ASAAS_WEBHOOK_TOKEN ausente: o webhook recusa tudo' },
+    { label: 'Último webhook recebido', ok: Boolean(lastWebhook), detail: lastWebhook ? `${fmt(lastWebhook.receivedAt)} (${lastWebhook.account})` : 'Nenhum ainda: faça um pagamento de teste' },
+    { label: 'Recuperação da fila', ok: Boolean(process.env.CRON_SECRET), detail: process.env.CRON_SECRET ? 'CRON_SECRET configurado' : 'CRON_SECRET ausente: /api/cron/jobs não roda' },
+    { label: 'E-mail', ok: Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM), detail: process.env.RESEND_API_KEY && process.env.EMAIL_FROM ? `Remetente ${process.env.EMAIL_FROM}` : 'RESEND_API_KEY ou EMAIL_FROM ausente' },
+    { label: 'Endereço do site', ok: siteUrl.startsWith('https://') && !siteUrl.includes('vercel.app'), detail: siteUrl ? `${siteUrl}${siteUrl.includes('vercel.app') ? ' — troque pelo domínio (links dos e-mails usam este endereço)' : ''}` : 'NEXT_PUBLIC_SITE_URL ausente' },
+  ];
   const count = (s: string) => byStatus.find((b) => b.status === s)?._count ?? 0;
   const stats = [
     { label: 'Na fila', value: count('PENDING'), tone: '' },
@@ -46,6 +61,21 @@ export default async function IntegrationsPage() {
         </div>
         <JobActionButton action={runQueueNow} label="Processar fila agora" kind="run" />
       </div>
+
+      <section className="space-y-3">
+        <h2 className="font-heading text-lg font-medium">Configuração</h2>
+        <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+          {checks.map((c) => (
+            <li key={c.label} className="flex items-start gap-3 p-4">
+              {c.ok ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-le-success" /> : <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />}
+              <div className="min-w-0">
+                <p className="text-sm font-medium">{c.label}</p>
+                <p className="break-words text-xs text-muted-foreground">{c.detail}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((s) => (
