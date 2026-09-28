@@ -10,6 +10,7 @@ import { fiscalProfileFields, resolveFiscalProfile, saveFiscalProfile } from '@/
 import { generateOrderNumber, withUniqueRetry } from '@/lib/order-number';
 import { logOrderEvent, recalcOrder, ensurePublicToken } from '@/lib/orders/ledger';
 import { emailLayout, sendEmailSafe } from '@/lib/email';
+import { CHECKOUT_METHODS, startCheckout } from '@/lib/orders/checkout';
 
 type Result = { ok: true; message?: string } | { error: string; field?: string };
 
@@ -125,4 +126,32 @@ export async function requestQuote(formData: FormData) {
   revalidatePath('/conta');
   revalidatePath('/admin/pedidos');
   redirect(`/conta/pedidos/${order.number}?novo=1`);
+}
+
+const buySchema = z.object({
+  slug: z.string().min(1).max(200),
+  quantity: z.coerce.number().int().min(1).max(99),
+  method: z.enum(CHECKOUT_METHODS),
+});
+
+export type BuyState = { error?: string } | undefined;
+
+/**
+ * Compra direta pela vitrine: cria o pedido e a cobrança no Asaas e leva à
+ * página do pedido com o PIX. Preço sempre do banco (lib/orders/checkout.ts).
+ */
+export async function buyNow(_prev: BuyState, formData: FormData): Promise<BuyState> {
+  const slug = String(formData.get('slug') ?? '');
+  const { customer } = await requireCustomer(`/vitrine/${slug}`);
+  const parsed = buySchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: 'Revise a quantidade e a forma de pagamento.' };
+
+  const result = await startCheckout(customer, parsed.data);
+  if (!result.ok) {
+    if (result.reason === 'PROFILE') redirect(`/conta/dados?completar=pagamento&next=${encodeURIComponent(`/vitrine/${slug}`)}`);
+    return { error: result.message };
+  }
+  revalidatePath('/conta');
+  revalidatePath('/admin/pedidos');
+  redirect(`/conta/pedidos/${result.orderNumber}?pagar=1`);
 }

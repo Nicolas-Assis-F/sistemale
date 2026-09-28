@@ -8,6 +8,14 @@ import { isAuthenticated } from '@/lib/auth';
 import { slugify } from '@/lib/slugify';
 import { parseImportPrice } from '@/lib/product-import';
 
+/** Preço “De” (riscado) só faz sentido acima do preço atual; senão a oferta some sem aviso. */
+function promoError(priceCents: number, originalPriceCents: number | null) {
+  if (originalPriceCents === null || originalPriceCents === 0) return null;
+  if (priceCents <= 0) return { originalPriceReais: ['Produto sob cotação (preço 0) não pode ter “Preço De”.'] };
+  if (originalPriceCents <= priceCents) return { originalPriceReais: ['O “Preço De” é o valor antigo, que aparece riscado: precisa ser maior que o Preço. Ex.: vender por 50 mostrando “de 350” → Preço 50 e De 350.'] };
+  return null;
+}
+
 const productSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1),
@@ -36,6 +44,8 @@ export async function createProduct(formData: FormData) {
   const data = parsed.data;
   const originalPriceCents =
     data.originalPriceReais ? parseImportPrice(data.originalPriceReais) : null;
+  const promo = promoError(parseImportPrice(data.priceReais)!, originalPriceCents);
+  if (promo) return { error: promo };
 
   try { await prisma.product.create({
     data: {
@@ -73,6 +83,8 @@ export async function updateProduct(id: string, formData: FormData) {
   const data = parsed.data;
   const originalPriceCents =
     data.originalPriceReais ? parseImportPrice(data.originalPriceReais) : null;
+  const promo = promoError(parseImportPrice(data.priceReais)!, originalPriceCents);
+  if (promo) return { error: promo };
 
   try { await prisma.product.update({
     where: { id },

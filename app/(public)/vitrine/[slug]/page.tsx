@@ -9,6 +9,9 @@ import { ProductGallery } from "@/components/public/ProductGallery";
 import { MotionProductCard } from "@/components/catalog/MotionProductCard";
 import { CompareToggle } from "@/components/catalog/CompareToggle";
 import { QuoteRequestButton } from "@/components/account/QuoteRequestButton";
+import { BuyButton } from "@/components/account/BuyButton";
+import { asaasConfigured } from "@/lib/asaas";
+import { MIN_CHARGE_CENTS } from "@/lib/orders/checkout";
 import { ProductStickyCTA } from "@/components/catalog/ProductStickyCTA";
 import { SnapRail } from "@/components/catalog/SnapRail";
 import { SpecIcon, WhatsAppIcon } from "@/components/catalog/icons";
@@ -43,6 +46,8 @@ export default async function ProductPage({ params }: Props) {
     )
     .slice(0, 8);
   const highlights = keySpecs(product, 4);
+  // Compra online só com preço definido e pagamento ativo; senão fica o orçamento
+  const purchasable = product.priceCents >= MIN_CHARGE_CENTS && asaasConfigured();
   return (
     <div className="le-container pb-24">
       <nav
@@ -101,6 +106,7 @@ export default async function ProductPage({ params }: Props) {
                 : "Consulte prazo de fabricação e disponibilidade."}
             </p>
           </div>
+          {purchasable && <BuyButton slug={product.slug} name={product.name} priceCents={product.priceCents} stock={product.stock} className="mb-2.5" />}
           <a
             href={buildWhatsAppUrl({
               sku: product.sku,

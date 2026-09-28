@@ -45,6 +45,12 @@ const schema = z.object({
   featured: z.boolean(),
   images: z.array(z.string()),
   specs: z.array(z.object({ key: z.string(), value: z.string() })),
+}).superRefine((v, ctx) => {
+  const price = parseImportPrice(v.priceReais);
+  const original = v.originalPriceReais ? parseImportPrice(v.originalPriceReais) : null;
+  if (!original || price === null) return;
+  if (price <= 0) ctx.addIssue({ code: 'custom', path: ['originalPriceReais'], message: 'Produto sob cotação (preço 0) não pode ter “Preço De”.' });
+  else if (original <= price) ctx.addIssue({ code: 'custom', path: ['originalPriceReais'], message: 'O “Preço De” (riscado) precisa ser maior que o Preço. Ex.: Preço 50 e De 350.' });
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -227,8 +233,9 @@ export function ProductForm({ categories, defaultValues, action, submitLabel = '
               name="originalPriceReais"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Preço &ldquo;De&rdquo; (promoção)</FormLabel>
-                  <FormControl><Input {...field} placeholder="1499,90 — opcional" /></FormControl>
+                  <FormLabel>Preço &ldquo;De&rdquo; (riscado, opcional)</FormLabel>
+                  <FormControl><Input {...field} placeholder="maior que o Preço — opcional" /></FormControl>
+                  <p className="text-xs text-muted-foreground">Valor antigo exibido riscado. O cliente paga o Preço.</p>
                   <FormMessage />
                 </FormItem>
               )}
