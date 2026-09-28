@@ -11,12 +11,42 @@ export const CUSTOMER_AUTH_BASE_PATH = '/api/cliente';
 
 const siteUrl = (process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '');
 
+/**
+ * Origens aceitas nos POSTs de login/cadastro (proteção CSRF do Better Auth).
+ * Além da URL configurada: a variante com/sem "www", o domínio de produção e a
+ * URL do deploy atual informados pela Vercel, e extras em BETTER_AUTH_TRUSTED_ORIGINS
+ * (separados por vírgula). Sem isso, trocar o domínio quebra o cadastro com
+ * "Invalid origin" até alguém lembrar de atualizar a variável.
+ */
+function trustedOrigins() {
+  const origins = new Set<string>();
+  const add = (raw?: string) => {
+    if (!raw) return;
+    try {
+      const url = new URL(raw.includes('://') ? raw : `https://${raw}`);
+      origins.add(url.origin);
+      if (url.hostname === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(url.hostname)) return;
+      const twin = new URL(url.origin);
+      twin.hostname = url.hostname.startsWith('www.') ? url.hostname.slice(4) : `www.${url.hostname}`;
+      if (!url.hostname.endsWith('.vercel.app')) origins.add(twin.origin);
+    } catch {
+      // valor inválido na variável: ignora
+    }
+  };
+  add(siteUrl);
+  add(process.env.NEXT_PUBLIC_SITE_URL);
+  add(process.env.VERCEL_PROJECT_PRODUCTION_URL);
+  add(process.env.VERCEL_URL);
+  for (const extra of (process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? '').split(',')) add(extra.trim());
+  return [...origins];
+}
+
 export const customerAuth = betterAuth({
   appName: 'L&E Torneadora',
   baseURL: siteUrl,
   basePath: CUSTOMER_AUTH_BASE_PATH,
   secret: process.env.BETTER_AUTH_SECRET,
-  trustedOrigins: [siteUrl],
+  trustedOrigins: trustedOrigins(),
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
   user: {
     additionalFields: {
