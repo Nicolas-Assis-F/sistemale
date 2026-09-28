@@ -11,6 +11,7 @@ export interface CatalogProduct {
   images: string[];
   specs: Record<string, string>;
   priceCents: number;
+  originalPriceCents?: number | null;
   stock: number;
   featured: boolean;
   category: { slug: string; name: string };
@@ -33,11 +34,12 @@ export const getCatalog = unstable_cache(
       images: p.images,
       specs: p.specs as Record<string, string>,
       priceCents: p.priceCents,
+      originalPriceCents: p.originalPriceCents,
       stock: p.stock,
       featured: p.featured,
       category: { slug: p.category.slug, name: p.category.name },
     }));
   },
-  ["catalog-v2"],
+  ["catalog-v3"],
   { tags: ["products", "categories"], revalidate: 60 },
 );
