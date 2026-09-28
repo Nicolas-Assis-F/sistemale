@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireCustomer } from '@/lib/customer-session';
-import { isValidCpfCnpj } from '@/lib/asaas';
+import { parseTaxId, sameTaxId } from '@/lib/domains/customers/tax-id';
 import { generateOrderNumber, withUniqueRetry } from '@/lib/order-number';
 import { logOrderEvent, recalcOrder, ensurePublicToken } from '@/lib/orders/ledger';
 import { emailLayout, sendEmailSafe } from '@/lib/email';
@@ -33,16 +33,17 @@ export async function updateMyProfile(formData: FormData): Promise<Result> {
     return { error: issue?.message ?? 'Revise os dados.', field: String(issue?.path[0] ?? '') };
   }
   const d = parsed.data;
-  if (d.doc && !isValidCpfCnpj(d.doc)) return { error: 'CPF/CNPJ inválido.', field: 'doc' };
+  const taxId = d.doc ? parseTaxId(d.doc) : null;
+  if (taxId && !taxId.ok) return { error: taxId.reason, field: 'doc' };
   // Documento já usado em cobranças no Asaas não pode ser trocado pelo cliente
-  if (customer.asaasCustomerId && customer.doc && d.doc && d.doc.replace(/\D/g, '') !== customer.doc.replace(/\D/g, '')) {
+  if (customer.asaasCustomerId && customer.doc && d.doc && !sameTaxId(d.doc, customer.doc)) {
     return { error: 'Para alterar o CPF/CNPJ fale com a nossa equipe.', field: 'doc' };
   }
   await prisma.customer.update({
     where: { id: customer.id },
     data: {
       name: d.name,
-      doc: d.doc || null,
+      doc: taxId?.ok ? taxId.value : null,
       phone: d.phone || null,
       contact: d.contact || null,
       address: d.address || null,

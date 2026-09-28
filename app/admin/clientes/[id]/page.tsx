@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { buttonVariants } from '@/components/ui/button';
 import { CustomerForm } from '@/components/admin/CustomerForm';
 import { updateCustomer } from '../_actions';
+import { formatTaxId } from '@/lib/domains/customers/tax-id';
 
 export default async function EditCustomerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -25,7 +26,7 @@ export default async function EditCustomerPage({ params }: { params: Promise<{ i
         action={updateWithId}
         submitLabel="Salvar alterações"
         defaultValues={{
-          name: c.name, doc: c.doc ?? '', email: c.email ?? '', phone: c.phone ?? '',
+          name: c.name, doc: formatTaxId(c.doc ?? ''), email: c.email ?? '', phone: c.phone ?? '',
           address: c.address ?? '', city: c.city ?? '', state: c.state ?? '', zip: c.zip ?? '', contact: c.contact ?? '',
         }}
       />

@@ -8,7 +8,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { Brand } from '@/components/Brand';
 import { AdminNav } from './AdminNav';
 
-export function MobileSidebar({ unreadCount = 0, inFabricationCount = 0, commissionsDueCount = 0, financeOverdueCount = 0 }: { unreadCount?: number; inFabricationCount?: number; commissionsDueCount?: number; financeOverdueCount?: number }) {
+export function MobileSidebar({ unreadCount = 0, inFabricationCount = 0, commissionsDueCount = 0, financeOverdueCount = 0, integrationIssuesCount = 0 }: { unreadCount?: number; inFabricationCount?: number; commissionsDueCount?: number; financeOverdueCount?: number; integrationIssuesCount?: number }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -35,7 +35,7 @@ export function MobileSidebar({ unreadCount = 0, inFabricationCount = 0, commiss
               <X className="h-5 w-5" />
             </DialogPrimitive.Close>
           </div>
-          <AdminNav unreadCount={unreadCount} inFabricationCount={inFabricationCount} commissionsDueCount={commissionsDueCount} financeOverdueCount={financeOverdueCount} onNavigate={() => setOpen(false)} />
+          <AdminNav unreadCount={unreadCount} inFabricationCount={inFabricationCount} commissionsDueCount={commissionsDueCount} financeOverdueCount={financeOverdueCount} integrationIssuesCount={integrationIssuesCount} onNavigate={() => setOpen(false)} />
         </DialogPrimitive.Popup>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

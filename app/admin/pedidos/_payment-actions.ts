@@ -8,7 +8,8 @@ import { requireAdmin } from '@/lib/auth';
 import { formatCurrency, parseCurrencyToCents } from '@/lib/format';
 import { PAYMENT_METHOD_LABELS } from '@/lib/finance-labels';
 import { ensurePublicToken, logOrderEvent, recalcOrder } from '@/lib/orders/ledger';
-import { AsaasError, asaasConfigIssue, deleteAsaasPayment, getAsaasPayment, isValidCpfCnpj } from '@/lib/asaas';
+import { AsaasError, asaasConfigIssue, deleteAsaasPayment, getAsaasPayment } from '@/lib/asaas';
+import { isValidTaxId } from '@/lib/domains/customers/tax-id';
 import { ensureAsaasCustomer, issueAsaasCharge } from '@/lib/orders/asaas-charge';
 import { BILLING_RULES, buildPlan, evaluateEligibility, type CustomerCredit } from '@/lib/billing/plan';
 import { applyAsaasPayment } from '@/lib/orders/asaas-sync';
@@ -47,7 +48,7 @@ export async function createAsaasCharge(orderId: string, formData: FormData): Pr
   if (!order) return { error: 'Pedido não encontrado.' };
   if (order.status === 'CANCELADO') return { error: 'Pedido cancelado não pode ser cobrado.' };
   const c = order.customer;
-  if (!c.doc || !isValidCpfCnpj(c.doc)) {
+  if (!c.doc || !isValidTaxId(c.doc)) {
     return { error: 'O cliente precisa de CPF/CNPJ válido para gerar cobrança. Atualize o cadastro do cliente.' };
   }
 
@@ -109,7 +110,7 @@ export async function createPaymentPlan(orderId: string, formData: FormData): Pr
   if (!order) return { error: 'Pedido não encontrado.' };
   if (order.status === 'CANCELADO') return { error: 'Pedido cancelado não pode ser cobrado.' };
   const c = order.customer;
-  if (!c.doc || !isValidCpfCnpj(c.doc)) return { error: 'O cliente precisa de CPF/CNPJ válido. Atualize o cadastro.' };
+  if (!c.doc || !isValidTaxId(c.doc)) return { error: 'O cliente precisa de CPF/CNPJ válido. Atualize o cadastro.' };
 
   // Saldo = total − pago − o que já está em cobrança aberta
   const openCharges = await prisma.payment.aggregate({ where: { orderId, status: { in: ['PENDENTE', 'VENCIDO'] } }, _sum: { amountCents: true } });

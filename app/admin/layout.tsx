@@ -17,11 +17,12 @@ export default async function AdminLayout({
 }) {
   if (!(await isAuthenticated()))
     return <MotionProvider>{children}</MotionProvider>;
-  const [unreadCount, inFabricationCount, commissionsDueCount, financeOverdueCount] = await Promise.all([
+  const [unreadCount, inFabricationCount, commissionsDueCount, financeOverdueCount, integrationIssuesCount] = await Promise.all([
     prisma.contactSubmission.count({ where: { read: false } }),
     prisma.order.count({ where: { status: "EM_FABRICACAO" } }),
     prisma.commission.count({ where: { status: "LIBERADA" } }),
     prisma.financeEntry.count({ where: { status: "PREVISTO", type: "DESPESA", dueDate: { lt: todayStartBR() } } }),
+    prisma.job.count({ where: { status: "DEAD" } }),
   ]);
   return (
     <MotionProvider>
@@ -43,6 +44,7 @@ export default async function AdminLayout({
           inFabricationCount={inFabricationCount}
           commissionsDueCount={commissionsDueCount}
           financeOverdueCount={financeOverdueCount}
+          integrationIssuesCount={integrationIssuesCount}
         />
       </aside>
       <div className="min-w-0 flex-1">
@@ -52,7 +54,8 @@ export default async function AdminLayout({
               unreadCount={unreadCount}
               inFabricationCount={inFabricationCount}
               commissionsDueCount={commissionsDueCount}
-          financeOverdueCount={financeOverdueCount}
+              financeOverdueCount={financeOverdueCount}
+              integrationIssuesCount={integrationIssuesCount}
             />
             <span className="text-xs text-le-muted">
               Seu espaço de trabalho{" "}

@@ -2,6 +2,7 @@
 // Docs: https://docs.asaas.com — auth pelo header `access_token`; User-Agent é
 // obrigatório para contas criadas a partir de 11/06/2024.
 import type { PaymentMethod, PaymentStatus } from '@prisma/client';
+import { normalizeTaxId } from '@/lib/domains/customers/tax-id';
 
 const BASE_URL = {
   sandbox: 'https://api-sandbox.asaas.com/v3',
@@ -163,7 +164,7 @@ export async function createAsaasCustomer(c: {
     method: 'POST',
     body: JSON.stringify({
       name: c.name,
-      cpfCnpj: c.cpfCnpj.replace(/\D/g, ''),
+      cpfCnpj: normalizeTaxId(c.cpfCnpj),
       email: c.email || undefined,
       mobilePhone: c.mobilePhone?.replace(/\D/g, '') || undefined,
       postalCode: c.postalCode?.replace(/\D/g, '') || undefined,
@@ -207,29 +208,3 @@ export async function createAsaasPayment(p: {
 export const getAsaasPayment = (id: string) => asaasFetch<AsaasPayment>(`/payments/${id}`);
 export const getAsaasPixQrCode = (id: string) => asaasFetch<AsaasPixQrCode>(`/payments/${id}/pixQrCode`);
 export const deleteAsaasPayment = (id: string) => asaasFetch<{ deleted: boolean }>(`/payments/${id}`, { method: 'DELETE' });
-
-/** Valida CPF (11) ou CNPJ (14) pelos dígitos verificadores — o Asaas recusa documentos inválidos. */
-export function isValidCpfCnpj(raw: string) {
-  const d = raw.replace(/\D/g, '');
-  if (d.length === 11) {
-    if (/^(\d)\1+$/.test(d)) return false;
-    const calc = (len: number) => {
-      let sum = 0;
-      for (let i = 0; i < len; i++) sum += Number(d[i]) * (len + 1 - i);
-      const r = (sum * 10) % 11;
-      return r === 10 ? 0 : r;
-    };
-    return calc(9) === Number(d[9]) && calc(10) === Number(d[10]);
-  }
-  if (d.length === 14) {
-    if (/^(\d)\1+$/.test(d)) return false;
-    const calc = (len: number) => {
-      const weights = len === 12 ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2] : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-      const sum = weights.reduce((s, w, i) => s + Number(d[i]) * w, 0);
-      const r = sum % 11;
-      return r < 2 ? 0 : 11 - r;
-    };
-    return calc(12) === Number(d[12]) && calc(13) === Number(d[13]);
-  }
-  return false;
-}

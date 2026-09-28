@@ -34,7 +34,7 @@ export function ProfileForm({ email, defaults, docLocked }: { email: string; def
       <fieldset className="grid gap-4 sm:grid-cols-2">
         <legend className="mb-3 text-sm font-semibold text-le-text">Identificação</legend>
         {f('name', 'Nome ou razão social', { required: true, autoComplete: 'organization' }, 'sm:col-span-2')}
-        {f('doc', 'CPF ou CNPJ', { inputMode: 'numeric', readOnly: docLocked, placeholder: '00.000.000/0000-00' })}
+        {f('doc', 'CPF ou CNPJ', { inputMode: 'text', autoCapitalize: 'characters', readOnly: docLocked, placeholder: '00.000.000/0000-00' })}
         <label className="block space-y-1.5">
           <span className="text-xs font-medium text-le-text">E-mail de acesso</span>
           <input value={email} readOnly className={cn(inputCls, 'bg-le-subtle text-le-muted')} />

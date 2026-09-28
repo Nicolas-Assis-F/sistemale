@@ -61,6 +61,9 @@ function nextCommissionStatus(current: CommissionStatus, orderStatus: OrderStatu
 /** Recalcula totais, situação financeira, status automático e comissões do pedido. */
 export async function recalcOrder(orderId: string, actor: Actor = 'sistema') {
   return prisma.$transaction(async (tx) => {
+    // Serializa recálculos do mesmo pedido (ex.: webhooks de duas parcelas ao mesmo
+    // tempo): sem o lock, a transação com leitura antiga poderia gravar por último.
+    await tx.$queryRaw`SELECT "id" FROM "Order" WHERE "id" = ${orderId} FOR UPDATE`;
     const order = await tx.order.findUniqueOrThrow({
       where: { id: orderId },
       include: {
@@ -114,7 +117,7 @@ export async function recalcOrder(orderId: string, actor: Actor = 'sistema') {
     }
 
     return tx.order.update({ where: { id: orderId }, data: { totalCents, paidCents, paymentStatus, status } });
-  });
+  }, { maxWait: 60_000, timeout: 30_000 }); // banco pode estar "acordando"
 }
 
 /** Link público de acompanhamento: token aleatório, não adivinhável. */

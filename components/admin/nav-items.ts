@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Package, Tag, ShoppingCart, FileText, Wrench, Images,
-  MessageSquare, ClipboardList, Users, HardHat, BadgePercent, Landmark,
+  MessageSquare, ClipboardList, Users, HardHat, BadgePercent, Landmark, Workflow,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -9,7 +9,7 @@ export interface AdminNavItem {
   icon: LucideIcon;
   label: string;
   /** Chave do contador exibido como badge (preenchido pelo layout). */
-  badgeKey?: 'unread' | 'inFabrication' | 'commissionsDue' | 'financeOverdue';
+  badgeKey?: 'unread' | 'inFabrication' | 'commissionsDue' | 'financeOverdue' | 'integrationIssues';
 }
 
 export interface AdminNavGroup {
@@ -52,5 +52,9 @@ export const ADMIN_NAV: AdminNavGroup[] = [
   {
     title: 'Comunicação',
     items: [{ href: '/admin/mensagens', icon: MessageSquare, label: 'Mensagens', badgeKey: 'unread' }],
+  },
+  {
+    title: 'Sistema',
+    items: [{ href: '/admin/integracoes', icon: Workflow, label: 'Integrações', badgeKey: 'integrationIssues' }],
   },
 ];

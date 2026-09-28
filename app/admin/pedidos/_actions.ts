@@ -11,6 +11,7 @@ import { ORDER_STATUS_LABELS } from '@/lib/order-status';
 import { formatBps } from '@/lib/finance-labels';
 import { notifyQuoteReady } from '@/lib/orders/notify';
 import { requireAdmin } from '@/lib/auth';
+import { parseTaxId } from '@/lib/domains/customers/tax-id';
 
 const itemSchema = z.object({
   productId: z.string().nullish(),
@@ -52,11 +53,13 @@ async function resolveCustomerId(d: OrderData): Promise<{ id: string } | { error
     return { error: { customerName: ['Selecione um cliente ou informe o nome'] } };
   }
   const name = d.customerName.trim();
+  const taxId = d.customerDoc ? parseTaxId(d.customerDoc) : null;
+  if (taxId && !taxId.ok) return { error: { customerDoc: [taxId.reason] } };
   const customer = await withUniqueRetry(async () => prisma.customer.create({
     data: {
       code: await generateCustomerCode(),
       name,
-      doc: d.customerDoc || null,
+      doc: taxId?.ok ? taxId.value : null,
       email: d.customerEmail || null,
       phone: d.customerPhone || null,
       address: d.customerAddress || null,

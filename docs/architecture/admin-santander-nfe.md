@@ -1,6 +1,6 @@
 # Evolução do Admin — Santander, NF-e, compras e rastreabilidade
 
-**Data:** 28/09/2026. **Status:** proposta técnica; não implementada e sem alteração do banco. **Regime informado:** Simples Nacional. Contratação das APIs Santander, certificado fiscal, credenciamento e provedor fiscal ainda não confirmados.
+**Data:** 28/09/2026. **Status:** proposta técnica; Fase 1 (fundação) iniciada — ver §17. **Regime informado:** Simples Nacional. Contratação das APIs Santander, certificado fiscal, credenciamento e provedor fiscal ainda não confirmados.
 
 ## 1. Decisão de arquitetura e diagnóstico do repositório
 
@@ -397,3 +397,28 @@ A documentação pública embasa o desenho; limites, autenticação exata, paylo
 ## 16. Alcance dos exemplos e verificação
 
 O SQL contém 32 tabelas exemplificativas do núcleo. As relações `REFERENCES` apontam para tabelas presentes no próprio exemplo; a documentação descreve também entidades de apoio não expandidas. Identificadores legados comentados precisam virar FKs para os modelos reais quando a migration for escrita. O arquivo não foi aplicado nem validado contra um servidor PostgreSQL nesta rodada: é material de arquitetura a adaptar ao Prisma e à base existente. `git diff --check` passou. Não foi necessário build porque não houve alteração da aplicação, dependências, dados ou schema ativo.
+
+## 17. Andamento da implementação
+
+### Fatia 1 — fundação (28/09/2026)
+
+Tudo que não depende de contrato Santander, provedor fiscal ou contador:
+
+| Entrega | Onde | Observação |
+| --- | --- | --- |
+| CPF/CNPJ numérico e alfanumérico | `lib/domains/customers/tax-id.ts` | Substitui `isValidCpfCnpj`. Documento salvo na forma canônica (`[0-9A-Z]`); registros antigos com pontuação continuam válidos e são comparados por `sameTaxId`. Asaas recebe o canônico (letras preservadas). |
+| Fila durável + outbox | `lib/infrastructure/jobs/` · modelo `Job` | Postgres, lease, `FOR UPDATE SKIP LOCKED`, backoff com jitter, `DEAD` após 8 tentativas, `concurrencyKey` (um job por chave por vez). |
+| Inbox de webhooks | modelo `WebhookInbox` · `lib/integrations/asaas/webhook.ts` | Webhook Asaas: autentica → inbox + job na mesma transação → 2xx → `after()` executa. O job consulta a cobrança no Asaas (estado vigente), então eventos fora de ordem convergem. `WebhookEvent` fica só como histórico. |
+| Execução | `after()` na rota · `GET /api/cron/jobs` (Bearer `CRON_SECRET`) · `npm run worker` | Na Vercel não há processo contínuo: `after()` é o caminho rápido e o cron/monitor recupera o que ficou para trás. |
+| Painel | `/admin/integracoes` | Contagem por estado, jobs parados com erro e “Tentar de novo”, últimos webhooks. Badge no menu quando há job `DEAD`. |
+| Municípios IBGE | modelo `Municipality` · `npm run db:municipios` · `GET /api/municipalities?uf=GO&q=` | 5.571 municípios; extintos ficam inativos. |
+
+Decisões que ajustam o desenho acima:
+
+- **Outbox e Job são a mesma tabela.** O job é gravado na transação do fato de negócio; separar `OutboxEvent` de `Job` só acrescentaria um despachante sem ganho neste volume. Uma fila gerenciada pode ser plugada depois lendo a mesma tabela.
+- **Centavos continuam `Int`** (teto ≈ R$ 21 milhões por valor). Migrar para `bigint` fica para quando houver necessidade real.
+- **Migrations aditivas, sem apagar nada**: `20260928120000_jobs_webhook_inbox` e `20260928130000_municipalities`.
+
+Testes: `npm test` (unitários sempre; integração com `TEST_DATABASE_URL` apontando para um Postgres descartável — os testes apagam tabelas).
+
+Próximas fatias sugeridas, ainda sem dependência externa: (a) usuários/papéis do admin + `AuditLog` (Better Auth já está no projeto); (b) cadastro fiscal do cliente — `personType`, `ieIndicator`, `stateRegistration`, `CustomerAddress` com FK para `Municipality` e diagnóstico de pendências dos cadastros reais.

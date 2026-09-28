@@ -528,3 +528,82 @@ model PaymentPlan {
 
   @@index([orderId])
 }
+
+// ─── Infraestrutura: inbox de webhooks e fila de jobs ───────────────────────────
+// docs/architecture/admin-santander-nfe.md §2 e §11. A fila é a própria outbox:
+// o job é gravado na MESMA transação do fato de negócio e executado depois por
+// runJobs() (after() da requisição, cron de recuperação ou worker dedicado).
+
+enum InboxStatus {
+  RECEIVED
+  PROCESSED
+  IGNORED
+  FAILED
+}
+
+/// Notificação externa persistida antes do 2xx. Dedupe por provedor/conta/chave.
+model WebhookInbox {
+  id          String      @id @default(cuid())
+  provider    String // asaas | santander-billing | santander-pix | focus
+  /// Conta/ambiente do provedor (ex.: "sandbox" | "production")
+  account     String
+  /// Id do evento no provedor (ou hash do payload quando o provedor não tem id)
+  dedupeKey   String
+  eventType   String
+  payload     Json
+  status      InboxStatus @default(RECEIVED)
+  attempts    Int         @default(0)
+  lastError   String?
+  receivedAt  DateTime    @default(now())
+  processedAt DateTime?
+
+  @@unique([provider, account, dedupeKey])
+  @@index([status, receivedAt])
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  DONE
+  DEAD // esgotou as tentativas: análise manual
+}
+
+model Job {
+  id             String    @id @default(cuid())
+  type           String
+  /// Mesmo fato de negócio nunca gera dois jobs do mesmo tipo
+  dedupeKey      String
+  payload        Json
+  /// Jobs com a mesma chave rodam um de cada vez (ex.: "payment:<id>")
+  concurrencyKey String?
+  status         JobStatus @default(PENDING)
+  runAt          DateTime  @default(now())
+  attempts       Int       @default(0)
+  maxAttempts    Int       @default(8)
+  lockedBy       String?
+  lockedUntil    DateTime?
+  lastError      String?
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([type, dedupeKey])
+  @@index([status, runAt])
+  @@index([concurrencyKey, status])
+}
+
+// ─── Cadastros fiscais ──────────────────────────────────────────────────────────
+
+/// Catálogo oficial de municípios do IBGE (código de 7 dígitos exigido na NF-e).
+/// Carga/atualização: npm run db:municipios. Município extinto fica inativo, nunca apagado.
+model Municipality {
+  ibgeCode   String   @id @db.Char(7)
+  name       String
+  state      String   @db.Char(2)
+  /// Nome sem acento e em minúsculas, para busca
+  searchName String
+  active     Boolean  @default(true)
+  updatedAt  DateTime @updatedAt
+
+  @@index([state, searchName])
+}

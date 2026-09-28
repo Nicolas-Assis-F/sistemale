@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { generateCustomerCode } from '@/lib/order-number';
 import { requireAdmin } from '@/lib/auth';
+import { parseTaxId } from '@/lib/domains/customers/tax-id';
 
 const customerSchema = z.object({
   name: z.string().min(1, 'Nome obrigatório').max(160),
@@ -19,10 +20,23 @@ const customerSchema = z.object({
   contact: z.string().max(120).optional().or(z.literal('')),
 });
 
-function toData(d: z.infer<typeof customerSchema>) {
+/**
+ * Documento novo/alterado precisa ser válido e é salvo na forma canônica. Um
+ * documento antigo inválido que o usuário não mexeu é mantido como está, para
+ * não travar a edição dos outros campos do cadastro.
+ */
+function resolveDoc(input: string | undefined, current?: string | null): { doc: string | null } | { error: string } {
+  if (!input) return { doc: null };
+  const r = parseTaxId(input);
+  if (r.ok) return { doc: r.value };
+  if (current && input.trim() === current.trim()) return { doc: current };
+  return { error: r.reason };
+}
+
+function toData(d: z.infer<typeof customerSchema>, doc: string | null) {
   return {
     name: d.name,
-    doc: d.doc || null,
+    doc,
     email: d.email || null,
     phone: d.phone || null,
     address: d.address || null,
@@ -37,8 +51,10 @@ export async function createCustomer(formData: FormData) {
   await requireAdmin();
   const parsed = customerSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
+  const doc = resolveDoc(parsed.data.doc);
+  if ('error' in doc) return { error: { doc: [doc.error] } };
   const code = await generateCustomerCode();
-  await prisma.customer.create({ data: { code, ...toData(parsed.data) } });
+  await prisma.customer.create({ data: { code, ...toData(parsed.data, doc.doc) } });
   revalidatePath('/admin/clientes');
   if (formData.get('_presentation') === 'sheet') return { ok: true as const };
   redirect('/admin/clientes');
@@ -48,7 +64,10 @@ export async function updateCustomer(id: string, formData: FormData) {
   await requireAdmin();
   const parsed = customerSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
-  await prisma.customer.update({ where: { id }, data: toData(parsed.data) });
+  const current = await prisma.customer.findUnique({ where: { id }, select: { doc: true } });
+  const doc = resolveDoc(parsed.data.doc, current?.doc);
+  if ('error' in doc) return { error: { doc: [doc.error] } };
+  await prisma.customer.update({ where: { id }, data: toData(parsed.data, doc.doc) });
   revalidatePath('/admin/clientes');
   if (formData.get('_presentation') === 'sheet') return { ok: true as const };
   redirect('/admin/clientes');

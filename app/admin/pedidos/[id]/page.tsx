@@ -10,7 +10,8 @@ import {
 import { formatCurrency } from '@/lib/format';
 import { ORDER_STATUS_LABELS, ORDER_STATUS_BADGE } from '@/lib/order-status';
 import { ORDER_PAYMENT_BADGE, ORDER_PAYMENT_LABELS } from '@/lib/finance-labels';
-import { asaasConfigured, asaasEnv, isValidCpfCnpj } from '@/lib/asaas';
+import { asaasConfigured, asaasEnv } from '@/lib/asaas';
+import { formatTaxId, isValidTaxId } from '@/lib/domains/customers/tax-id';
 import { FinancePanel } from '@/components/admin/orders/FinancePanel';
 import { CommissionPanel } from '@/components/admin/orders/CommissionPanel';
 import { CustomerLinkCard } from '@/components/admin/orders/CustomerLinkCard';
@@ -120,7 +121,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               <p className="font-semibold">{order.customer.name}</p>
               <p className="font-mono text-xs text-muted-foreground">{order.customer.code}</p>
               <div className="mt-2 space-y-0.5 text-sm text-muted-foreground">
-                {order.customer.doc ? <p>CPF/CNPJ: {order.customer.doc}</p> : <p className="text-amber-700">Sem CPF/CNPJ — necessário para cobrar no Asaas</p>}
+                {order.customer.doc ? <p>CPF/CNPJ: {formatTaxId(order.customer.doc)}</p> : <p className="text-amber-700">Sem CPF/CNPJ — necessário para cobrar no Asaas</p>}
                 {order.customer.contact && <p>Contato: {order.customer.contact}</p>}
                 {order.customer.phone && <p>{order.customer.phone}</p>}
                 {order.customer.email && <p>{order.customer.email}</p>}
@@ -172,7 +173,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             paidCents={order.paidCents}
             paymentStatus={order.paymentStatus}
             asaas={{ enabled: asaasConfigured(), env: asaasEnv() }}
-            customerDocOk={!!order.customer.doc && isValidCpfCnpj(order.customer.doc)}
+            customerDocOk={!!order.customer.doc && isValidTaxId(order.customer.doc)}
             payments={order.payments.map((p) => ({
               id: p.id, provider: p.provider, method: p.method, status: p.status, amountCents: p.amountCents, netCents: p.netCents,
               dueDate: p.dueDate?.toISOString() ?? null, paidAt: p.paidAt?.toISOString() ?? null,

@@ -1,11 +1,13 @@
 import crypto from 'node:crypto';
-import { NextResponse } from 'next/server';
-import type { Prisma } from '@prisma/client';
-import { prisma } from '@/lib/db';
-import type { AsaasPayment } from '@/lib/asaas';
-import { applyAsaasPayment, findOrCreateLocalPayment } from '@/lib/orders/asaas-sync';
+import { after, NextResponse } from 'next/server';
+import { ASAAS_WEBHOOK_JOB, ingestAsaasWebhook, type AsaasWebhookBody } from '@/lib/integrations/asaas/webhook';
+import { runJobs } from '@/lib/infrastructure/jobs/runner';
+import { jobHandlers } from '@/lib/infrastructure/jobs/handlers';
 
 export const runtime = 'nodejs';
+export const maxDuration = 60;
+
+const MAX_BODY_BYTES = 256 * 1024;
 
 function tokenMatches(received: string | null) {
   const expected = process.env.ASAAS_WEBHOOK_TOKEN;
@@ -19,40 +21,40 @@ function tokenMatches(received: string | null) {
  * Webhook de cobranças do Asaas. Configure no painel do Asaas:
  *   URL:   https://<seu-dominio>/api/webhooks/asaas
  *   Token: o mesmo valor de ASAAS_WEBHOOK_TOKEN (enviado no header asaas-access-token)
- * Entrega é at-least-once: o id do evento é persistido e nunca reprocessado.
+ *
+ * Autentica → grava inbox + job na mesma transação → responde 2xx. O efeito
+ * (baixa, recálculo, e-mail) roda depois, no job: primeiro via after(), e o
+ * cron /api/cron/jobs recupera o que tiver ficado para trás. Se a gravação
+ * falhar, responde 500 para o Asaas reenviar — nunca confirma sem persistir.
  */
 export async function POST(req: Request) {
   if (!tokenMatches(req.headers.get('asaas-access-token'))) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
-  const body = (await req.json().catch(() => null)) as { id?: string; event?: string; payment?: AsaasPayment } | null;
-  if (!body?.id || !body.event) return NextResponse.json({ error: 'payload inválido' }, { status: 400 });
-
-  // Idempotência: se o evento já foi processado com sucesso, só confirma o recebimento
-  const existing = await prisma.webhookEvent.findUnique({ where: { id: body.id } });
-  if (existing?.processedAt) return NextResponse.json({ ok: true, duplicate: true });
-  if (!existing) {
-    await prisma.webhookEvent.create({
-      data: { id: body.id, provider: 'asaas', event: body.event, payload: body as unknown as Prisma.InputJsonValue },
-    }).catch(() => {}); // corrida entre entregas simultâneas: segue para o processamento
-  }
-
+  const text = await req.text().catch(() => '');
+  if (Buffer.byteLength(text) > MAX_BODY_BYTES) return NextResponse.json({ error: 'payload grande demais' }, { status: 413 });
+  let body: Partial<AsaasWebhookBody> | null = null;
   try {
-    if (body.event.startsWith('PAYMENT_') && body.payment?.id) {
-      const local = await findOrCreateLocalPayment(body.payment);
-      // Cobranças criadas fora do sistema (sem externalReference nosso) são apenas registradas
-      if (local) {
-        const remote = body.event === 'PAYMENT_DELETED' ? { ...body.payment, deleted: true } : body.payment;
-        await applyAsaasPayment(local.id, remote, 'asaas');
-      }
-    }
-    await prisma.webhookEvent.update({ where: { id: body.id }, data: { processedAt: new Date(), error: null } });
-    return NextResponse.json({ ok: true });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    await prisma.webhookEvent.update({ where: { id: body.id }, data: { error: message.slice(0, 1000) } }).catch(() => {});
-    // 500 → o Asaas reenvia depois (a fila pausa após 15 falhas seguidas)
-    return NextResponse.json({ error: 'falha ao processar' }, { status: 500 });
+    body = JSON.parse(text);
+  } catch {
+    body = null;
   }
+  if (!body || typeof body.id !== 'string' || typeof body.event !== 'string') {
+    return NextResponse.json({ error: 'payload inválido' }, { status: 400 });
+  }
+
+  let result: Awaited<ReturnType<typeof ingestAsaasWebhook>>;
+  try {
+    result = await ingestAsaasWebhook(body as AsaasWebhookBody);
+  } catch (error) {
+    console.error('[webhook asaas] falha ao persistir', error instanceof Error ? error.message : error);
+    return NextResponse.json({ error: 'falha ao registrar' }, { status: 500 });
+  }
+
+  after(() => runJobs(jobHandlers, { types: [ASAAS_WEBHOOK_JOB], budgetMs: 40_000 }).catch((e) => {
+    console.error('[webhook asaas] execução adiada falhou; o cron retoma', e instanceof Error ? e.message : e);
+  }));
+
+  return NextResponse.json({ ok: true, duplicate: result.duplicate });
 }

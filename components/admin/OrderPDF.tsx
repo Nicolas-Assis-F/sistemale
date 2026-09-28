@@ -2,6 +2,7 @@ import React from 'react';
 import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
 import path from 'path';
 import { formatCurrency } from '@/lib/format';
+import { formatTaxId } from '@/lib/domains/customers/tax-id';
 
 const COLORS = {
   primary: '#1e3a5f',
@@ -132,7 +133,7 @@ export function OrderPDF({ order, mode }: { order: OrderPDFData; mode: 'comercia
             {(order.customer.city || order.customer.state) && (
               <Text style={styles.partyDetail}>{[order.customer.city, order.customer.state].filter(Boolean).join(' – ')} {order.customer.zip ?? ''}</Text>
             )}
-            {order.customer.doc && <Text style={styles.partyDetail}>CNPJ/CPF: {order.customer.doc}</Text>}
+            {order.customer.doc && <Text style={styles.partyDetail}>CNPJ/CPF: {formatTaxId(order.customer.doc)}</Text>}
           </View>
         </View>
 

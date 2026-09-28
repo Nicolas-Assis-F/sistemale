@@ -10,6 +10,7 @@ import { CustomerForm } from '@/components/admin/CustomerForm';
 import { ConfirmDeleteButton } from '@/components/admin/ConfirmDeleteButton';
 import { adminListHref, type AdminListParams } from '@/lib/admin-list';
 import { createCustomer, updateCustomer, deleteCustomer } from './_actions';
+import { formatTaxId } from '@/lib/domains/customers/tax-id';
 
 export default async function CustomersPage({ searchParams }: { searchParams: Promise<AdminListParams> }) {
   const { q = '', novo, editar } = await searchParams;
@@ -39,7 +40,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
         }))} />
       {(novo === '1' || selected) && <EntitySheet key={selected?.id ?? 'new'} title={selected ? 'Editar cliente' : 'Cadastrar cliente'} closeHref={closeHref}>
         <CustomerForm action={selected ? updateCustomer.bind(null, selected.id) : createCustomer} defaultValues={selected ? {
-          name: selected.name, doc: selected.doc ?? '', email: selected.email ?? '', phone: selected.phone ?? '',
+          name: selected.name, doc: formatTaxId(selected.doc ?? ''), email: selected.email ?? '', phone: selected.phone ?? '',
           address: selected.address ?? '', city: selected.city ?? '', state: selected.state ?? '', zip: selected.zip ?? '', contact: selected.contact ?? '',
         } : undefined} />
         {selected && <CustomerHistory customerId={selected.id} />}
