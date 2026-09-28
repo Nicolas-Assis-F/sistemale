@@ -4,14 +4,18 @@ import { useState, useTransition, type FormEvent } from 'react';
 import { Check, Loader2 } from 'lucide-react';
 import { updateMyProfile } from '@/app/(public)/conta/_actions';
 import { cn } from '@/lib/utils';
+import { AddressFields, TaxRegistrationFields, type AddressValue, type TaxRegistrationValue } from '@/components/customers/FiscalFields';
 
-interface Values { name: string; doc: string; phone: string; contact: string; address: string; city: string; state: string; zip: string }
+interface Values { name: string; doc: string; phone: string; contact: string }
 
 const inputCls = 'h-11 w-full rounded-xl border border-le-line bg-white px-3.5 text-sm text-le-text outline-none transition-[border-color,box-shadow] focus:border-le-blue focus:shadow-[0_0_0_4px_rgb(49_88_239/0.12)] aria-invalid:border-le-danger';
 
-export function ProfileForm({ email, defaults, docLocked }: { email: string; defaults: Values; docLocked: boolean }) {
+export function ProfileForm({ email, defaults, fiscal, docLocked }: { email: string; defaults: Values; fiscal: AddressValue & TaxRegistrationValue; docLocked: boolean }) {
   const [pending, start] = useTransition();
   const [status, setStatus] = useState<{ ok?: string; error?: string; field?: string }>({});
+  const [fiscalValues, setFiscalValues] = useState(fiscal);
+  const patch = (p: Partial<AddressValue & TaxRegistrationValue>) => setFiscalValues((v) => ({ ...v, ...p }));
+  const fieldErrors = status.field && status.error ? { [status.field]: status.error } : {};
 
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -42,12 +46,13 @@ export function ProfileForm({ email, defaults, docLocked }: { email: string; def
         {f('phone', 'WhatsApp / telefone', { inputMode: 'tel', autoComplete: 'tel', placeholder: '(62) 90000-0000' })}
         {f('contact', 'Pessoa de contato', { autoComplete: 'name' })}
       </fieldset>
-      <fieldset className="grid gap-4 sm:grid-cols-6">
-        <legend className="mb-3 text-sm font-semibold text-le-text">Endereço de entrega</legend>
-        {f('address', 'Endereço', { autoComplete: 'street-address' }, 'sm:col-span-6')}
-        {f('city', 'Cidade', { autoComplete: 'address-level2' }, 'sm:col-span-3')}
-        {f('state', 'UF', { maxLength: 2, autoComplete: 'address-level1' }, 'sm:col-span-1')}
-        {f('zip', 'CEP', { inputMode: 'numeric', autoComplete: 'postal-code' }, 'sm:col-span-2')}
+      <fieldset className="grid gap-4 sm:grid-cols-2">
+        <legend className="mb-3 text-sm font-semibold text-le-text">Dados para a nota fiscal</legend>
+        <TaxRegistrationFields variant="account" customerFacing value={fiscalValues} onChange={patch} errors={fieldErrors} />
+      </fieldset>
+      <fieldset>
+        <legend className="mb-3 text-sm font-semibold text-le-text">Endereço (nota fiscal e entrega)</legend>
+        <AddressFields variant="account" value={fiscalValues} onChange={patch} errors={fieldErrors} />
       </fieldset>
       {docLocked && <p className="text-xs text-le-muted">O CPF/CNPJ já está vinculado às suas cobranças. Para alterá-lo, fale com a nossa equipe.</p>}
       <div className="flex flex-wrap items-center gap-4">

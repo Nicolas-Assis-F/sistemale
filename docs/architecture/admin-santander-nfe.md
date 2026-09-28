@@ -1,6 +1,6 @@
 # Evolução do Admin — Santander, NF-e, compras e rastreabilidade
 
-**Data:** 28/09/2026. **Status:** proposta técnica; Fase 1 (fundação) iniciada — ver §17. **Regime informado:** Simples Nacional. Contratação das APIs Santander, certificado fiscal, credenciamento e provedor fiscal ainda não confirmados.
+**Data:** 28/09/2026. **Status:** Fase 1 (fundação) implementada — ver §17. **Gateway:** Asaas mantido como principal; Santander adiado — ver §18. **Regime informado:** Simples Nacional. Contratação das APIs Santander, certificado fiscal, credenciamento e provedor fiscal ainda não confirmados.
 
 ## 1. Decisão de arquitetura e diagnóstico do repositório
 
@@ -421,4 +421,37 @@ Decisões que ajustam o desenho acima:
 
 Testes: `npm test` (unitários sempre; integração com `TEST_DATABASE_URL` apontando para um Postgres descartável — os testes apagam tabelas).
 
-Próximas fatias sugeridas, ainda sem dependência externa: (a) usuários/papéis do admin + `AuditLog` (Better Auth já está no projeto); (b) cadastro fiscal do cliente — `personType`, `ieIndicator`, `stateRegistration`, `CustomerAddress` com FK para `Municipality` e diagnóstico de pendências dos cadastros reais.
+### Fatia 2 — cadastro fiscal do cliente (28/09/2026)
+
+| Entrega | Onde | Observação |
+| --- | --- | --- |
+| Campos fiscais | `Customer.tradeName`, `ieIndicator` (1/2/9), `stateRegistration` | Enquadramento é escolhido, nunca deduzido do CPF/CNPJ. IE guardada como texto (zeros e letras preservados). |
+| Endereço estruturado | modelo `CustomerAddress` (PRINCIPAL/ENTREGA) com FK para `Municipality` | Os campos livres antigos (`address/city/state/zip`) viram espelho do PRINCIPAL, então PDF, Asaas e telas antigas seguem iguais. |
+| Diagnóstico | `lib/domains/customers/fiscal-readiness.ts` | Pendências (impedem faturar) e avisos (ex.: sem e-mail para XML/DANFE). Aparece no cadastro, na lista (filtro “Com pendências”) e no pedido. |
+| Formulários | `components/customers/FiscalFields.tsx` | Admin e portal: CEP preenche rua/bairro/cidade (ViaCEP via `/api/cep/[cep]`, conferido com o IBGE); cidade com sugestões do catálogo. No portal a pergunta da IE é em linguagem de cliente. |
+| Saneamento | `npm run db:enderecos` · `npm run db:normalizar-docs` | Os dois começam em modo relatório e só gravam com `--apply`. O texto livre vai inteiro para o logradouro; número e bairro ficam como pendência. |
+| Catálogo em produção | migration `20260928131000_seed_municipalities` | Os 5.571 municípios entram no deploy; `db:municipios` só atualiza. |
+
+A validação do dígito verificador da IE por UF fica com a SEFAZ/provedor fiscal: são 27 algoritmos diferentes e o custo de manter isso não compensa agora.
+
+Próximas fatias sugeridas, ainda sem dependência externa: (a) usuários e papéis do admin + `AuditLog` (Better Auth já está no projeto); (b) domínio de pagamentos sobre o Asaas (§18): obrigação/recebível separado da cobrança e conciliação diária pela API; (c) cadastro fiscal do produto (NCM, origem, unidade, CFOP/CSOSN por perfil), que depende da matriz do contador.
+
+## 18. Decisão de gateway: manter o Asaas (28/09/2026)
+
+**Decisão:** o Asaas continua sendo o único gateway de recebimento. A integração Santander (§3) fica **adiada**, e não descartada: o contrato `PaymentGateway`, a inbox e a fila (§17) servem a qualquer provedor.
+
+| Critério | Asaas (hoje) | Santander (Cobrança + Pix) |
+| --- | --- | --- |
+| Cartão de crédito / parcelado | Sim, na fatura do Asaas | Não. Cartão seria outro contrato (adquirente) e outra integração |
+| Pix e boleto | Sim, inclusive o cliente escolhendo na fatura | Sim, com convênio de cobrança e Pix habilitados |
+| Integração | Pronta, em produção, com sandbox e webhook com token | OAuth + mTLS, certificado, workspace/convênio; guias públicos de 2024 a confrontar com o contrato |
+| Operação | Régua de avisos, fatura hospedada, antecipação e conciliação num lugar | Tarifas negociáveis; conciliação com o extrato bancário |
+| Custo | Tarifa por transação (conferir a tabela vigente da conta) | Tende a ser menor em boleto/Pix com volume e relacionamento; depende do convênio |
+
+Faz sentido rever a decisão quando o volume de boleto/Pix tornar a diferença de tarifa relevante. Nesse caso, entraria o Santander **só para boleto/Pix**, como segundo adapter, e o Asaas continuaria no cartão. Nunca os dois cobrando a mesma obrigação (§3, “dois meios de quitação”).
+
+**Pendência crítica:** a conta Asaas em uso está no CNPJ 55.011.626 (pessoa do sócio), não no da L&E. O recebimento precisa cair na mesma empresa que emite a NF-e, senão receita e nota ficam em CNPJs diferentes. Abrir/migrar a conta Asaas para o CNPJ da L&E antes de vender em volume e antes da Fase 4, e validar com o contador.
+
+**NF-e:** o módulo de notas do Asaas atende NFS-e (serviços). A NF-e de mercadorias (máquinas e peças) continua no provedor fiscal da §6 (Focus NFe recomendado). Confirmar na conta se o Asaas passou a oferecer NF-e de produto antes de contratar outro provedor.
+
+Efeito no plano (§13): a Fase 3 passa a ser “evolução do domínio de pagamentos sobre o Asaas” (obrigação/recebível separado da cobrança, cartão/Pix/boleto na mesma obrigação, conciliação diária pela API do Asaas). O adapter Santander vira fase opcional.

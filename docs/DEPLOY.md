@@ -79,7 +79,18 @@ Domains → adicione o domínio → crie no DNS os registros SPF/DKIM indicados 
    O sistema cria os clientes com as notificações ligadas.
 4. Confira que a conta do Asaas é a que deve receber o dinheiro (hoje ela está no CNPJ 55.011.626).
 
-## 7. Primeiro acesso (checklist)
+## 7. Migrations e saneamento (a cada deploy com mudança de schema)
+O build da Vercel **não** aplica migrations. Antes (ou logo depois) de publicar, com o `.env.vercel` carregado:
+```bash
+npm run db:deploy
+```
+Depois da fatia de cadastro fiscal, rode os relatórios e revise antes de gravar:
+```bash
+npm run db:normalizar-docs   # CPF/CNPJ na forma canônica (--apply grava)
+npm run db:enderecos         # endereço livre → endereço estruturado (--apply grava)
+```
+
+## 8. Primeiro acesso (checklist)
 - [ ] `/admin/login` com a nova senha → cadastrar funcionários (salário/comissão)
 - [ ] Produtos → clicar no preço de cada item e digitar o valor (Tab pula para o próximo)
 - [ ] Criar um pedido de teste de R$ 5,00 → cobrar via PIX → pagar → ver "Pago" chegar pelo webhook

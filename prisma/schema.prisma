@@ -148,22 +148,31 @@ enum OrderStatus {
 
 /// Clientes (reutilizáveis entre pedidos)
 model Customer {
-  id              String   @id @default(cuid())
-  code            String   @unique // CU2606-00001
-  name            String
-  doc             String? // CNPJ/CPF
-  email           String?
-  phone           String?
-  address         String?
-  city            String?
-  state           String?
-  zip             String?
-  contact         String? // pessoa de contato
-  asaasCustomerId String?  @unique // cus_... criado sob demanda na 1ª cobrança
-  user            User? // conta de acesso do cliente (Better Auth)
-  orders          Order[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                String            @id @default(cuid())
+  code              String            @unique // CU2606-00001
+  name              String
+  doc               String? // CNPJ/CPF
+  email             String?
+  phone             String?
+  address           String?
+  city              String?
+  state             String?
+  zip               String?
+  contact           String? // pessoa de contato
+  /// Nome fantasia (o `name` é o nome/razão social usado na NF-e)
+  tradeName         String?
+  /// Enquadramento perante o ICMS (indIEDest da NF-e). Nulo = ainda não informado
+  ieIndicator       IeIndicator?
+  /// Inscrição estadual como texto (preserva zeros à esquerda)
+  stateRegistration String?
+  /// Endereços estruturados (PRINCIPAL = fiscal/cobrança). Os campos livres
+  /// address/city/state/zip acima são espelho do PRINCIPAL para telas antigas e Asaas
+  addresses         CustomerAddress[]
+  asaasCustomerId   String?           @unique // cus_... criado sob demanda na 1ª cobrança
+  user              User? // conta de acesso do cliente (Better Auth)
+  orders            Order[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 }
 
 /// Funcionários (fabricação e vendas) — sem login; base das comissões
@@ -596,14 +605,51 @@ model Job {
 
 /// Catálogo oficial de municípios do IBGE (código de 7 dígitos exigido na NF-e).
 /// Carga/atualização: npm run db:municipios. Município extinto fica inativo, nunca apagado.
+enum IeIndicator {
+  CONTRIBUINTE // 1 — contribuinte do ICMS, com IE
+  ISENTO // 2 — contribuinte isento de inscrição
+  NAO_CONTRIBUINTE // 9 — não contribuinte (pode ou não ter IE)
+}
+
+enum AddressKind {
+  PRINCIPAL // fiscal e cobrança
+  ENTREGA
+}
+
+/// Endereço estruturado do cliente. Campos opcionais: o cadastro pode começar
+/// incompleto; o que falta vira pendência (lib/domains/customers/fiscal-readiness.ts).
+model CustomerAddress {
+  id               String        @id @default(cuid())
+  customerId       String
+  customer         Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  kind             AddressKind   @default(PRINCIPAL)
+  postalCode       String?       @db.Char(8)
+  street           String?
+  /// Texto: aceita "S/N"
+  number           String?
+  complement       String?
+  district         String?
+  municipalityCode String?       @db.Char(7)
+  municipality     Municipality? @relation(fields: [municipalityCode], references: [ibgeCode])
+  cityName         String?
+  state            String?       @db.Char(2)
+  countryCode      String        @default("BR") @db.Char(2)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@unique([customerId, kind])
+  @@index([municipalityCode])
+}
+
 model Municipality {
-  ibgeCode   String   @id @db.Char(7)
+  ibgeCode   String            @id @db.Char(7)
   name       String
-  state      String   @db.Char(2)
+  state      String            @db.Char(2)
   /// Nome sem acento e em minúsculas, para busca
   searchName String
-  active     Boolean  @default(true)
-  updatedAt  DateTime @updatedAt
+  active     Boolean           @default(true)
+  updatedAt  DateTime          @updatedAt
+  addresses  CustomerAddress[]
 
   @@index([state, searchName])
 }

@@ -12,6 +12,8 @@ import { ORDER_STATUS_LABELS, ORDER_STATUS_BADGE } from '@/lib/order-status';
 import { ORDER_PAYMENT_BADGE, ORDER_PAYMENT_LABELS } from '@/lib/finance-labels';
 import { asaasConfigured, asaasEnv } from '@/lib/asaas';
 import { formatTaxId, isValidTaxId } from '@/lib/domains/customers/tax-id';
+import { customerFiscalReadiness, principalAddressInclude } from '@/lib/domains/customers/fiscal-profile';
+import { FiscalReadinessPanel } from '@/components/admin/FiscalReadinessPanel';
 import { FinancePanel } from '@/components/admin/orders/FinancePanel';
 import { CommissionPanel } from '@/components/admin/orders/CommissionPanel';
 import { CustomerLinkCard } from '@/components/admin/orders/CustomerLinkCard';
@@ -29,7 +31,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
     prisma.order.findUnique({
       where: { id },
       include: {
-        customer: true,
+        customer: { include: principalAddressInclude },
         employee: { select: { name: true } },
         items: { orderBy: { position: 'asc' } },
         payments: { orderBy: [{ dueDate: 'asc' }, { createdAt: 'asc' }] },
@@ -127,6 +129,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 {order.customer.email && <p>{order.customer.email}</p>}
                 {(order.customer.city || order.customer.state) && <p>{[order.customer.city, order.customer.state].filter(Boolean).join(' – ')} {order.customer.zip}</p>}
               </div>
+              <div className="mt-3"><FiscalReadinessPanel readiness={customerFiscalReadiness(order.customer)} compact /></div>
               <Link href={`/admin/clientes/${order.customer.id}`} className="mt-3 inline-block text-xs font-medium text-le-blue hover:underline">Editar cadastro</Link>
             </div>
             <div className="rounded-2xl border border-le-line bg-white p-5">

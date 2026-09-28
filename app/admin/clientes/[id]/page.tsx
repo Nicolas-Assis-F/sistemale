@@ -5,10 +5,12 @@ import { buttonVariants } from '@/components/ui/button';
 import { CustomerForm } from '@/components/admin/CustomerForm';
 import { updateCustomer } from '../_actions';
 import { formatTaxId } from '@/lib/domains/customers/tax-id';
+import { customerFiscalReadiness, fiscalFormDefaults, principalAddressInclude } from '@/lib/domains/customers/fiscal-profile';
+import { FiscalReadinessPanel } from '@/components/admin/FiscalReadinessPanel';
 
 export default async function EditCustomerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const c = await prisma.customer.findUnique({ where: { id } });
+  const c = await prisma.customer.findUnique({ where: { id }, include: principalAddressInclude });
   if (!c) notFound();
 
   const updateWithId = updateCustomer.bind(null, id);
@@ -22,12 +24,13 @@ export default async function EditCustomerPage({ params }: { params: Promise<{ i
           <p className="font-mono text-xs text-muted-foreground">{c.code}</p>
         </div>
       </div>
+      <div className="max-w-2xl"><FiscalReadinessPanel readiness={customerFiscalReadiness(c)} /></div>
       <CustomerForm
         action={updateWithId}
         submitLabel="Salvar alterações"
         defaultValues={{
           name: c.name, doc: formatTaxId(c.doc ?? ''), email: c.email ?? '', phone: c.phone ?? '',
-          address: c.address ?? '', city: c.city ?? '', state: c.state ?? '', zip: c.zip ?? '', contact: c.contact ?? '',
+          contact: c.contact ?? '', ...fiscalFormDefaults(c),
         }}
       />
     </div>

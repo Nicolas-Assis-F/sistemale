@@ -7,17 +7,15 @@ import { prisma } from '@/lib/db';
 import { generateCustomerCode } from '@/lib/order-number';
 import { requireAdmin } from '@/lib/auth';
 import { parseTaxId } from '@/lib/domains/customers/tax-id';
+import { fiscalProfileFields, resolveFiscalProfile, saveFiscalProfile } from '@/lib/domains/customers/fiscal-profile';
 
 const customerSchema = z.object({
   name: z.string().min(1, 'Nome obrigatório').max(160),
   doc: z.string().max(40).optional().or(z.literal('')),
   email: z.string().max(160).optional().or(z.literal('')),
   phone: z.string().max(40).optional().or(z.literal('')),
-  address: z.string().max(240).optional().or(z.literal('')),
-  city: z.string().max(120).optional().or(z.literal('')),
-  state: z.string().max(40).optional().or(z.literal('')),
-  zip: z.string().max(20).optional().or(z.literal('')),
   contact: z.string().max(120).optional().or(z.literal('')),
+  ...fiscalProfileFields,
 });
 
 /**
@@ -39,10 +37,6 @@ function toData(d: z.infer<typeof customerSchema>, doc: string | null) {
     doc,
     email: d.email || null,
     phone: d.phone || null,
-    address: d.address || null,
-    city: d.city || null,
-    state: d.state || null,
-    zip: d.zip || null,
     contact: d.contact || null,
   };
 }
@@ -53,8 +47,13 @@ export async function createCustomer(formData: FormData) {
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
   const doc = resolveDoc(parsed.data.doc);
   if ('error' in doc) return { error: { doc: [doc.error] } };
+  const fiscal = await resolveFiscalProfile(parsed.data);
+  if ('field' in fiscal) return { error: { [fiscal.field]: [fiscal.message] } };
   const code = await generateCustomerCode();
-  await prisma.customer.create({ data: { code, ...toData(parsed.data, doc.doc) } });
+  await prisma.$transaction(async (tx) => {
+    const created = await tx.customer.create({ data: { code, ...toData(parsed.data, doc.doc) } });
+    await saveFiscalProfile(tx, created.id, fiscal);
+  });
   revalidatePath('/admin/clientes');
   if (formData.get('_presentation') === 'sheet') return { ok: true as const };
   redirect('/admin/clientes');
@@ -67,7 +66,12 @@ export async function updateCustomer(id: string, formData: FormData) {
   const current = await prisma.customer.findUnique({ where: { id }, select: { doc: true } });
   const doc = resolveDoc(parsed.data.doc, current?.doc);
   if ('error' in doc) return { error: { doc: [doc.error] } };
-  await prisma.customer.update({ where: { id }, data: toData(parsed.data, doc.doc) });
+  const fiscal = await resolveFiscalProfile(parsed.data);
+  if ('field' in fiscal) return { error: { [fiscal.field]: [fiscal.message] } };
+  await prisma.$transaction(async (tx) => {
+    await tx.customer.update({ where: { id }, data: toData(parsed.data, doc.doc) });
+    await saveFiscalProfile(tx, id, fiscal);
+  });
   revalidatePath('/admin/clientes');
   if (formData.get('_presentation') === 'sheet') return { ok: true as const };
   redirect('/admin/clientes');

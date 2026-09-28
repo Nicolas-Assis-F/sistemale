@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireCustomer } from '@/lib/customer-session';
 import { parseTaxId, sameTaxId } from '@/lib/domains/customers/tax-id';
+import { fiscalProfileFields, resolveFiscalProfile, saveFiscalProfile } from '@/lib/domains/customers/fiscal-profile';
 import { generateOrderNumber, withUniqueRetry } from '@/lib/order-number';
 import { logOrderEvent, recalcOrder, ensurePublicToken } from '@/lib/orders/ledger';
 import { emailLayout, sendEmailSafe } from '@/lib/email';
@@ -18,10 +19,7 @@ const profileSchema = z.object({
   doc: opt(20),
   phone: opt(30),
   contact: opt(120),
-  address: opt(200),
-  city: opt(80),
-  state: opt(2),
-  zip: opt(10),
+  ...fiscalProfileFields,
 });
 
 /** O cliente atualiza o PRÓPRIO cadastro (nunca recebe id do navegador). */
@@ -39,18 +37,19 @@ export async function updateMyProfile(formData: FormData): Promise<Result> {
   if (customer.asaasCustomerId && customer.doc && d.doc && !sameTaxId(d.doc, customer.doc)) {
     return { error: 'Para alterar o CPF/CNPJ fale com a nossa equipe.', field: 'doc' };
   }
-  await prisma.customer.update({
-    where: { id: customer.id },
-    data: {
-      name: d.name,
-      doc: taxId?.ok ? taxId.value : null,
-      phone: d.phone || null,
-      contact: d.contact || null,
-      address: d.address || null,
-      city: d.city || null,
-      state: d.state ? d.state.toUpperCase() : null,
-      zip: d.zip || null,
-    },
+  const fiscal = await resolveFiscalProfile({ ...d, tradeName: customer.tradeName ?? '' });
+  if ('field' in fiscal) return { error: fiscal.message, field: fiscal.field };
+  await prisma.$transaction(async (tx) => {
+    await tx.customer.update({
+      where: { id: customer.id },
+      data: {
+        name: d.name,
+        doc: taxId?.ok ? taxId.value : null,
+        phone: d.phone || null,
+        contact: d.contact || null,
+      },
+    });
+    await saveFiscalProfile(tx, customer.id, fiscal);
   });
   revalidatePath('/conta');
   return { ok: true, message: 'Cadastro atualizado.' };

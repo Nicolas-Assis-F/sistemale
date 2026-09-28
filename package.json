@@ -13,10 +13,11 @@
     "db:catalog": "tsx scripts/import-catalog.ts",
     "db:backfill-finance": "tsx scripts/backfill-order-finance.ts",
     "db:deploy": "prisma migrate deploy",
-    "test": "tsx --test --test-concurrency=1 lib/domains/customers/tax-id.test.ts lib/domains/customers/municipalities.test.ts lib/infrastructure/jobs/queue.test.ts lib/integrations/asaas/webhook.test.ts",
+    "test": "tsx --test --test-concurrency=1 lib/domains/customers/tax-id.test.ts lib/domains/customers/municipalities.test.ts lib/domains/customers/fiscal-readiness.test.ts lib/domains/customers/fiscal-profile.test.ts lib/infrastructure/jobs/queue.test.ts lib/integrations/asaas/webhook.test.ts",
     "worker": "tsx scripts/worker.ts",
     "db:municipios": "tsx scripts/import-municipalities.ts",
-    "db:normalizar-docs": "tsx scripts/normalize-customer-docs.ts"
+    "db:normalizar-docs": "tsx scripts/normalize-customer-docs.ts",
+    "db:enderecos": "tsx scripts/migrate-customer-addresses.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
