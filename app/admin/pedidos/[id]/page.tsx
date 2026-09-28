@@ -19,6 +19,7 @@ import { CommissionPanel } from '@/components/admin/orders/CommissionPanel';
 import { CustomerLinkCard } from '@/components/admin/orders/CustomerLinkCard';
 import { OrderStatusControl } from '@/components/admin/orders/OrderStatusControl';
 import { DeleteOrderButton } from '@/components/admin/orders/DeleteOrderButton';
+import { syncOrderPaymentsQuick } from '@/lib/orders/asaas-reconcile';
 
 const ACTOR_LABEL: Record<string, string> = { admin: 'Painel', asaas: 'Asaas', cliente: 'Cliente', sistema: 'Automático' };
 const EVENT_DOT: Record<string, string> = {
@@ -27,6 +28,7 @@ const EVENT_DOT: Record<string, string> = {
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  await syncOrderPaymentsQuick(id);
   const [order, employees] = await Promise.all([
     prisma.order.findUnique({
       where: { id },

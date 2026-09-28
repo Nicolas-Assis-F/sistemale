@@ -2,7 +2,7 @@ import { CheckCircle2, Workflow, XCircle } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { checkAsaasHealth } from '@/lib/asaas';
 import { JobActionButton } from '@/components/admin/JobActionButton';
-import { retryJob, runQueueNow } from './_actions';
+import { reconcileNow, retryJob, runQueueNow } from './_actions';
 
 const JOB_LABELS: Record<string, string> = {
   'asaas.webhook': 'Webhook Asaas',
@@ -59,7 +59,10 @@ export default async function IntegrationsPage() {
             depois de 8 tentativas o job para e aparece aqui.
           </p>
         </div>
-        <JobActionButton action={runQueueNow} label="Processar fila agora" kind="run" />
+        <div className="flex flex-wrap gap-2">
+          <JobActionButton action={reconcileNow} label="Conferir pagamentos no Asaas" kind="run" />
+          <JobActionButton action={runQueueNow} label="Processar fila agora" kind="retry" />
+        </div>
       </div>
 
       <section className="space-y-3">

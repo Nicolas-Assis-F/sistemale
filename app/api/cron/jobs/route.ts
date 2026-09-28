@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { runJobs } from '@/lib/infrastructure/jobs/runner';
 import { jobHandlers } from '@/lib/infrastructure/jobs/handlers';
+import { reconcileOpenPayments } from '@/lib/orders/asaas-reconcile';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -23,6 +24,8 @@ function authorized(req: Request) {
  */
 export async function GET(req: Request) {
   if (!authorized(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  const summary = await runJobs(jobHandlers, { budgetMs: 45_000 });
-  return NextResponse.json({ ok: true, ...summary }, { headers: { 'Cache-Control': 'no-store' } });
+  const summary = await runJobs(jobHandlers, { budgetMs: 30_000 });
+  // Rede de segurança do webhook: consulta no Asaas as cobranças abertas
+  const reconcile = await reconcileOpenPayments({ limit: 40 });
+  return NextResponse.json({ ok: true, ...summary, reconcile }, { headers: { 'Cache-Control': 'no-store' } });
 }

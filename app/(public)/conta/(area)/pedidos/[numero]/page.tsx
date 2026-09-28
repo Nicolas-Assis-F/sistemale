@@ -5,12 +5,17 @@ import { prisma } from '@/lib/db';
 import { requireCustomer } from '@/lib/customer-session';
 import { OrderView, ORDER_VIEW_SELECT } from '@/components/public/OrderView';
 import { PaymentWatcher } from '@/components/account/PaymentWatcher';
+import { syncOrderPaymentsQuick } from '@/lib/orders/asaas-reconcile';
 
 export default async function AccountOrderPage({ params, searchParams }: { params: Promise<{ numero: string }>; searchParams: Promise<{ novo?: string; pagar?: string }> }) {
   const [{ numero }, { novo, pagar }] = await Promise.all([params, searchParams]);
   const { customer } = await requireCustomer(`/conta/pedidos/${numero}`);
   // Escopo pelo cliente logado: número de outro cliente = 404
-  const order = await prisma.order.findFirst({ where: { number: numero, customerId: customer.id }, select: ORDER_VIEW_SELECT });
+  const ref = await prisma.order.findFirst({ where: { number: numero, customerId: customer.id }, select: { id: true } });
+  if (!ref) notFound();
+  // Enquanto o cliente espera, confere direto no Asaas (não depende só do webhook)
+  await syncOrderPaymentsQuick(ref.id);
+  const order = await prisma.order.findUnique({ where: { id: ref.id }, select: ORDER_VIEW_SELECT });
   if (!order) notFound();
   const awaitingPayment = order.paymentStatus !== 'PAGO' && order.status !== 'CANCELADO'
     && order.payments.some((p) => p.status === 'PENDENTE' || p.status === 'VENCIDO');
