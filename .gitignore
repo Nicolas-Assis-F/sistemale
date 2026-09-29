@@ -51,3 +51,7 @@ next-env.d.ts
 
 # Configuração local do Claude Code
 /.claude/settings.local.json
+
+# Vídeos opcionais da home: fornecer na implantação, até 4 MB por arquivo.
+/public/media/hero.mp4
+/public/media/hero.webm

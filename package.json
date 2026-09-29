@@ -13,7 +13,7 @@
     "db:catalog": "tsx --conditions=react-server scripts/import-catalog.ts",
     "db:backfill-finance": "tsx --conditions=react-server scripts/backfill-order-finance.ts",
     "db:deploy": "prisma migrate deploy",
-    "test": "tsx --conditions=react-server --test --test-concurrency=1 lib/security.test.ts lib/admin-session.test.ts lib/domains/customers/tax-id.test.ts lib/domains/customers/municipalities.test.ts lib/domains/customers/fiscal-readiness.test.ts lib/domains/customers/fiscal-profile.test.ts lib/infrastructure/jobs/queue.test.ts lib/integrations/asaas/webhook.test.ts lib/orders/checkout.test.ts lib/orders/asaas-reconcile.test.ts lib/domains/costing/costing.test.ts lib/domains/costing/nfe.test.ts lib/domains/costing/quote.test.ts",
+    "test": "tsx --conditions=react-server --test --test-concurrency=1 lib/security.test.ts lib/admin-session.test.ts lib/domains/customers/tax-id.test.ts lib/domains/customers/municipalities.test.ts lib/domains/customers/fiscal-readiness.test.ts lib/domains/customers/fiscal-profile.test.ts lib/infrastructure/jobs/queue.test.ts lib/integrations/asaas/webhook.test.ts lib/orders/checkout.test.ts lib/orders/asaas-reconcile.test.ts lib/domains/costing/costing.test.ts lib/domains/costing/nfe.test.ts lib/domains/costing/quote.test.ts lib/hero-media.test.ts",
     "worker": "tsx --conditions=react-server scripts/worker.ts",
     "db:municipios": "tsx --conditions=react-server scripts/import-municipalities.ts",
     "db:normalizar-docs": "tsx --conditions=react-server scripts/normalize-customer-docs.ts",

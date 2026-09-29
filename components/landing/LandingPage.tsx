@@ -1,3 +1,5 @@
+import { getHeroMedia } from "@/lib/hero-media";
+import { HeroVideo } from "@/components/public/sections/HeroVideo";
 import { buttonVariants } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,12 +18,14 @@ import { Entrance } from "@/components/public/Entrance";
 import { FeaturedShowcase } from "@/components/catalog/FeaturedShowcase";
 import { buildWhatsAppUrl } from "@/lib/whatsapp-url";
 
-export function LandingPage({ products }: { products: CatalogProduct[] }) {
+export async function LandingPage({ products }: { products: CatalogProduct[] }) {
+  const media = await getHeroMedia();
   const machine = products.find((p) => p.sku === "LE-AR100");
   const featured = products.filter((p) => p.featured).slice(0, 4);
   return (
     <>
-      <section className="le-hero">
+      <section className={media ? "le-hero has-video" : "le-hero"}>
+        {media && <HeroVideo media={media} />}
         <div className="le-container relative">
           <div className="le-hero-grid">
             <Entrance className="relative z-10 py-12 lg:py-20">
@@ -35,7 +39,7 @@ export function LandingPage({ products }: { products: CatalogProduct[] }) {
                 <br />
                 <span>mais fundo.</span>
               </h1>
-              <p className="mt-7 max-w-[390px] text-base leading-7 text-le-muted">
+              <p className={`mt-7 max-w-[390px] text-base leading-7 ${media ? "text-white" : "text-le-muted"}`}>
                 Equipamentos e componentes para perfuração de poços. Da nossa
                 tornearia para o próximo grande projeto da sua operação.
               </p>
@@ -52,7 +56,7 @@ export function LandingPage({ products }: { products: CatalogProduct[] }) {
                   Falar com especialista
                 </a>
               </div>
-              <div className="mt-10 flex items-center gap-3 text-[11px] font-medium text-le-muted">
+              <div className={`mt-10 flex items-center gap-3 text-[11px] font-medium ${media ? "text-white" : "text-le-muted"}`}>
                 <span className="flex h-8 w-8 items-center justify-center rounded-full border border-le-line">
                   <MapPin size={13} />
                 </span>

@@ -1,3 +1,5 @@
+import { getHeroMedia } from '@/lib/hero-media';
+import { HeroVideo } from './HeroVideo';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowDown, ArrowUpRight, MapPin, MessageCircle } from 'lucide-react';
@@ -21,12 +23,13 @@ interface Props {
   featured?: HeroProduct | null;
 }
 
-export function HomeHero({ eyebrow, title, highlight, subtitle, stats = [], featured }: Props) {
+export async function HomeHero({ eyebrow, title, highlight, subtitle, stats = [], featured }: Props) {
+  const media = await getHeroMedia();
   const headline = highlight || title;
 
   return (
     <section className="relative isolate overflow-hidden bg-[#101d28] text-white">
-      <Image src="/brand/usinagem-editorial.webp" alt="" fill priority sizes="100vw" className="object-cover object-[62%_center]" />
+      {media ? <HeroVideo media={media} /> : <Image src="/brand/usinagem-editorial.webp" alt="" fill priority sizes="100vw" className="object-cover object-[62%_center]" />}
       <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,19,29,.98)_0%,rgba(8,19,29,.87)_39%,rgba(8,19,29,.23)_82%),linear-gradient(0deg,rgba(8,19,29,.88),transparent_42%)]" aria-hidden />
 
       <div className="relative container mx-auto flex min-h-[640px] flex-col justify-between px-5 pt-20 sm:min-h-[700px] sm:px-8 sm:pt-24 lg:pt-28">

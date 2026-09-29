@@ -608,3 +608,16 @@ html { scroll-behavior: smooth; scroll-padding-top: 110px; }
     .le-admin .le-responsive-table [data-slot=table-cell] { padding-block:0; }
   }
 }
+
+@layer components {
+  .le-hero-video, .le-hero-video-poster, .le-hero-video video, .le-hero-video-shade { position:absolute; inset:0; width:100%; height:100%; }
+  .le-hero-video { pointer-events:none; }
+  .le-hero-video-poster, .le-hero-video video { object-fit:cover; }
+  .le-hero-video-shade { background:rgba(8,19,29,.78); }
+  .le-hero-video-control { position:absolute; top:16px; right:16px; z-index:20; display:flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; border:1px solid #fff; border-radius:8px; background:#101d28; color:white; }
+  .le-hero.has-video .le-hero-title, .le-hero.has-video .le-hero-eyebrow, .le-hero.has-video .le-hero-bottom { color:white; }
+  .le-hero.has-video .le-hero-title > span { color:var(--le-yellow); }
+  @media (prefers-reduced-motion:reduce), (max-width:767px) {
+    .le-hero-video video, .le-hero-video-control { display:none; }
+  }
+}

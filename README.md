@@ -47,3 +47,15 @@ O catálogo fornecido pelo cliente está em `data/catalogo/products.json`, com 1
 Preço `0` representa **sob cotação**; não é exibido como produto gratuito. O PDF não informa valores nem estoque. Os SKUs `LE-*` são referências internas criadas para o sistema.
 
 Paleta: azul da logo `#0b0a3b`, azul de ação `#3158ef`, amarelo técnico `#f7cd47`, superfícies `#f8f9fc`. A camada de componentes fica em `components/ui`, `components/catalog`, `components/landing` e `components/admin`. Animações respeitam a preferência de movimento reduzido.
+
+### Vídeo opcional no topo da home
+
+Coloque o material final do Higgsfield em `public/media/` antes do build:
+
+- `hero.mp4`: H.264, sem áudio, até **4 MB (4.194.304 bytes)**.
+- `hero.webm`: versão WebM opcional (priorizada quando presente), mesmo limite.
+- `hero-poster.webp`: pôster obrigatório, mesma proporção, até 4 MB; prefira menos de 200 KB.
+
+É necessário o pôster e pelo menos um dos vídeos. Arquivos vazios ou acima do limite são ignorados. Sem um conjunto válido, a home mantém a aparência original. Rode novamente `npm run build` após trocar os arquivos. Não versione vídeos grandes; os dois nomes de vídeo são ignorados pelo Git e podem ser fornecidos na etapa de implantação.
+
+O fundo é decorativo, sem áudio, com reprodução automática em loop apenas em telas a partir de 768 px e enquanto o topo estiver visível. Celulares e a preferência por movimentos reduzidos recebem só o pôster, sem baixar o vídeo. Há controle para pausar e uma camada escura para preservar o contraste dos textos.
