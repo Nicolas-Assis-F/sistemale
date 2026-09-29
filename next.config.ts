@@ -51,6 +51,8 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
+    // Importação de várias NF-e (XML) de uma vez; a Vercel limita o corpo a 4,5 MB
+    serverActions: { bodySizeLimit: '4mb' },
     // Se uma página falhar ao gerar (ex.: banco lento), tenta de novo antes de falhar o build
     staticGenerationRetryCount: 2,
   },

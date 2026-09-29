@@ -38,6 +38,8 @@ model Product {
   category           Category    @relation(fields: [categoryId], references: [id])
   partItems          PartItem[]
   orderItems         OrderItem[]
+  /// Ficha de custo (formação de preço) do produto
+  costSheet          CostSheet?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
 
@@ -652,4 +654,181 @@ model Municipality {
   addresses  CustomerAddress[]
 
   @@index([state, searchName])
+}
+
+// ─── Custos e formação de preço ─────────────────────────────────────────────────
+// Cálculos em lib/domains/costing (pesos, ficha, Simples, mark-up). Dinheiro em
+// centavos (Int); medidas físicas em Float (mm, kg, minutos).
+
+enum MaterialKind {
+  BARRA_REDONDA // maciça (ex.: SAE 1045), peso pela geometria
+  TUBO // SCH 40/80 etc., peso pela geometria
+  COMPONENTE // comprado pronto
+  SERVICO // usinagem/tratamento terceirizado
+  INSUMO // consumível (eletrodo, tinta, óleo)
+}
+
+enum CostUnit {
+  KG
+  M
+  UN
+}
+
+model Material {
+  id             String                @id @default(cuid())
+  name           String
+  kind           MaterialKind
+  /// Aço/especificação (ex.: "SAE 1045", "ASTM A106 Gr.B")
+  grade          String?
+  /// Barra: diâmetro. Tubo: diâmetro externo (mm)
+  diameterMm     Float?
+  /// Tubo: espessura da parede (mm)
+  wallMm         Float?
+  /// Rótulo da medida (ex.: 2 7/8" SCH 80)
+  sizeLabel      String?
+  unit           CostUnit              @default(KG)
+  /// Custo por unidade (por kg, metro ou peça), com impostos não recuperáveis
+  unitCostCents  Int                   @default(0)
+  ncm            String?
+  supplier       String?
+  lastPurchaseAt DateTime?
+  notes          String?
+  active         Boolean               @default(true)
+  lines          CostSheetLine[]
+  invoiceItems   PurchaseInvoiceItem[]
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  @@index([kind, active])
+}
+
+/// Processo / centro de trabalho: custo-hora de mão de obra + máquina
+model WorkCenter {
+  id               String          @id @default(cuid())
+  name             String          @unique
+  rateCentsPerHour Int             @default(0)
+  notes            String?
+  active           Boolean         @default(true)
+  lines            CostSheetLine[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+/// Parâmetros de formação de preço (percentuais em pontos-base: 100 = 1%)
+model PricingProfile {
+  id              String      @id @default(cuid())
+  name            String
+  isDefault       Boolean     @default(false)
+  /// Faturamento bruto dos últimos 12 meses (define a faixa do Simples)
+  rbt12Cents      Int         @default(0)
+  /// Se preenchido, substitui o DAS calculado pelo Anexo II
+  dasOverrideBps  Int?
+  otherTaxBps     Int         @default(0)
+  commissionBps   Int         @default(0)
+  paymentFeeBps   Int         @default(0)
+  fixedExpenseBps Int         @default(0)
+  marginBps       Int         @default(1500)
+  sheets          CostSheet[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model CostSheet {
+  id               String          @id @default(cuid())
+  name             String
+  /// Produto do catálogo que esta ficha precifica (opcional: subconjuntos não têm)
+  productId        String?         @unique
+  product          Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  /// Quantas unidades a ficha produz (custo unitário = total ÷ lote)
+  batchQty         Float           @default(1)
+  ncm              String?
+  notes            String?
+  pricingProfileId String?
+  pricingProfile   PricingProfile? @relation(fields: [pricingProfileId], references: [id], onDelete: SetNull)
+  lines            CostSheetLine[] @relation("SheetLines")
+  usedIn           CostSheetLine[] @relation("SubSheet")
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+enum CostLineKind {
+  MATERIAL
+  COMPONENTE
+  PROCESSO
+  SERVICO
+  SUBFICHA
+  OUTRO
+}
+
+model CostSheetLine {
+  id            String       @id @default(cuid())
+  sheetId       String
+  sheet         CostSheet    @relation("SheetLines", fields: [sheetId], references: [id], onDelete: Cascade)
+  position      Int          @default(0)
+  kind          CostLineKind
+  description   String?
+  materialId    String?
+  material      Material?    @relation(fields: [materialId], references: [id], onDelete: SetNull)
+  workCenterId  String?
+  workCenter    WorkCenter?  @relation(fields: [workCenterId], references: [id], onDelete: SetNull)
+  subSheetId    String?
+  subSheet      CostSheet?   @relation("SubSheet", fields: [subSheetId], references: [id], onDelete: SetNull)
+  lengthMm      Float?
+  quantity      Float        @default(1)
+  minutes       Float?
+  /// Perda de corte/usinagem (bps)
+  scrapBps      Int          @default(0)
+  /// Custo unitário manual (sobrepõe o do material/processo)
+  unitCostCents Int?
+
+  @@index([sheetId, position])
+  @@index([subSheetId])
+}
+
+/// NF-e de compra importada pelo XML (fonte para custos de materiais)
+model PurchaseInvoice {
+  id           String                @id @default(cuid())
+  accessKey    String                @unique
+  number       String
+  series       String
+  issuedAt     DateTime?
+  supplierDoc  String
+  supplierName String
+  supplierUf   String?
+  recipientDoc String?
+  totalCents   Int
+  xml          String                @db.Text
+  items        PurchaseInvoiceItem[]
+  createdAt    DateTime              @default(now())
+
+  @@index([supplierDoc])
+  @@index([issuedAt])
+}
+
+model PurchaseInvoiceItem {
+  id                     String          @id @default(cuid())
+  invoiceId              String
+  invoice                PurchaseInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  position               Int
+  code                   String
+  description            String
+  ncm                    String
+  cfop                   String
+  unit                   String
+  quantity               Float
+  totalCents             Int
+  ipiCents               Int             @default(0)
+  icmsCents              Int             @default(0)
+  icmsStCents            Int             @default(0)
+  effectiveTotalCents    Int
+  effectiveUnitCostCents Int
+  /// Material do cadastro que este item abastece
+  materialId             String?
+  material               Material?       @relation(fields: [materialId], references: [id], onDelete: SetNull)
+  /// Conversão quando a nota não vem em kg (ex.: tubo por peça → kg por peça)
+  kgPerUnit              Float?
+  appliedAt              DateTime?
+
+  @@index([invoiceId, position])
+  @@index([materialId])
 }
