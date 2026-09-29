@@ -1,6 +1,19 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatTaxId, isValidTaxId, normalizeTaxId, parseTaxId, sameTaxId } from './tax-id';
+import { formatTaxId, isValidTaxId, maskTaxId, normalizeTaxId, parseTaxId, sameTaxId } from './tax-id';
+
+test('máscara de CPF e CNPJ numérico e alfanumérico', () => {
+  assert.equal(maskTaxId('52998224725'), '529.•••.•••-25');
+  assert.equal(maskTaxId('CPF: 529.982.247-25'), '529.•••.•••-25');
+  assert.equal(maskTaxId('11222333000181'), '11.•••.•••/••••-81');
+  assert.equal(maskTaxId('12abc34501de35'), '12.•••.•••/••••-35');
+});
+
+test('documentos inválidos recebem máscara genérica sem expor o original', () => {
+  for (const raw of ['', 'abc', '52998224724', '12.ABC.345/01DE-36', '11111111111']) {
+    assert.equal(maskTaxId(raw), '•••.•••.•••-••');
+  }
+});
 
 test('CPF válido com e sem pontuação', () => {
   assert.deepEqual(parseTaxId('529.982.247-25'), { ok: true, kind: 'CPF', value: '52998224725' });

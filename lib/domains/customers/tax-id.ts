@@ -79,6 +79,15 @@ export function formatTaxId(raw: string) {
     : `${v.slice(0, 2)}.${v.slice(2, 5)}.${v.slice(5, 8)}/${v.slice(8, 12)}-${v.slice(12)}`;
 }
 
+/** Exibe somente o prefixo e os verificadores; dados inválidos nunca vazam. */
+export function maskTaxId(raw: string) {
+  const result = parseTaxId(raw);
+  if (!result.ok) return '•••.•••.•••-••';
+  return result.kind === 'CPF'
+    ? `${result.value.slice(0, 3)}.•••.•••-${result.value.slice(-2)}`
+    : `${result.value.slice(0, 2)}.•••.•••/••••-${result.value.slice(-2)}`;
+}
+
 /** Mesmo documento independentemente da pontuação/caixa com que foi digitado. */
 export function sameTaxId(a: string | null | undefined, b: string | null | undefined) {
   if (!a || !b) return false;

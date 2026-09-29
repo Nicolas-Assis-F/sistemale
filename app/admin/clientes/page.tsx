@@ -11,6 +11,7 @@ import { ConfirmDeleteButton } from '@/components/admin/ConfirmDeleteButton';
 import { adminListHref, type AdminListParams } from '@/lib/admin-list';
 import { createCustomer, updateCustomer, deleteCustomer } from './_actions';
 import { formatTaxId } from '@/lib/domains/customers/tax-id';
+import { MaskedDoc } from '@/components/admin/MaskedDoc';
 import { customerFiscalReadiness, fiscalFormDefaults, principalAddressInclude } from '@/lib/domains/customers/fiscal-profile';
 import { FiscalBadge, FiscalReadinessPanel } from '@/components/admin/FiscalReadinessPanel';
 import { requireAdmin } from '@/lib/auth';
@@ -40,6 +41,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
           id: row.id,
           title: <Link href={adminListHref('clientes', q, { editar: row.id })} className="hover:text-le-blue">{row.name}</Link>,
           details: [{ label: 'Código', value: <span className="font-mono text-xs">{row.code}</span> },
+              { label: 'CPF/CNPJ', value: row.doc ? <MaskedDoc value={row.doc} /> : '—' },
               { label: 'Cidade', value: row.city || '—' },
               { label: 'Pedidos', value: row._count.orders },
               { label: 'Fiscal', value: <FiscalBadge readiness={readiness} /> },
