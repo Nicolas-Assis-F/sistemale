@@ -5,12 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { prisma } from '@/lib/db';
 import { formatCurrency } from '@/lib/format';
 import { FileText, ShoppingCart } from 'lucide-react';
+import { requireAdmin } from '@/lib/auth';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function PurchaseListDetailPage({ params }: PageProps) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const { id } = await params;
 
   const list = await prisma.purchaseList.findUnique({

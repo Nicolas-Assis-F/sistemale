@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { checkAsaasHealth } from '@/lib/asaas';
 import { JobActionButton } from '@/components/admin/JobActionButton';
 import { reconcileNow, retryJob, runQueueNow } from './_actions';
+import { requireAdmin } from '@/lib/auth';
 
 const JOB_LABELS: Record<string, string> = {
   'asaas.webhook': 'Webhook Asaas',
@@ -13,6 +14,7 @@ const INBOX_LABELS = { RECEIVED: 'Recebido', PROCESSED: 'Processado', IGNORED: '
 const fmt = (d: Date | null) => (d ? d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }) : '—');
 
 export default async function IntegrationsPage() {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const [byStatus, problems, inbox, asaas, lastWebhook] = await Promise.all([
     prisma.job.groupBy({ by: ['status'], _count: true }),
     prisma.job.findMany({

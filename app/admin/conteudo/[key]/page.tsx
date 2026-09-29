@@ -5,6 +5,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { SiteContentForm } from '@/components/admin/SiteContentForm';
 import { saveSiteContent } from '../_actions';
 import { DEFAULT_HOME, DEFAULT_SOBRE, DEFAULT_SERVICOS, DEFAULT_CONTATO } from '@/lib/site-content';
+import { requireAdmin } from '@/lib/auth';
 
 const DEFAULTS: Record<string, object> = {
   home: DEFAULT_HOME,
@@ -21,6 +22,7 @@ const LABELS: Record<string, string> = {
 };
 
 export default async function EditContentPage({ params }: { params: Promise<{ key: string }> }) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const { key } = await params;
   if (!DEFAULTS[key]) notFound();
 

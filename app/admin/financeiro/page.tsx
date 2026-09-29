@@ -10,6 +10,7 @@ import {
 import { PAYMENT_METHOD_LABELS } from '@/lib/finance-labels';
 import { EntryRowActions, EntrySheetButton, GeneratePayrollButton } from '@/components/admin/finance/FinanceControls';
 import { cn } from '@/lib/utils';
+import { requireAdmin } from '@/lib/auth';
 
 const TABS = [
   { key: 'visao', label: 'Visão geral' },
@@ -21,6 +22,7 @@ const fmtDate = (d: Date | null) => (d ? d.toLocaleDateString('pt-BR', { timeZon
 const isoDate = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(d);
 
 export default async function FinancePage({ searchParams }: { searchParams: Promise<{ mes?: string; aba?: string; tipo?: string; status?: string }> }) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const sp = await searchParams;
   const competence = sp.mes && /^\d{4}-\d{2}$/.test(sp.mes) ? sp.mes : currentCompetence();
   const tab = TABS.find((t) => t.key === sp.aba)?.key ?? 'visao';

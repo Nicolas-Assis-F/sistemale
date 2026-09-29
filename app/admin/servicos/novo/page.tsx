@@ -2,8 +2,10 @@ import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
 import { ServiceItemForm } from '@/components/admin/ServiceItemForm';
 import { createService } from '../_actions';
+import { requireAdmin } from '@/lib/auth';
 
-export default function NewServicePage() {
+export default async function NewServicePage() {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   return (
     <div className="le-admin-page">
       <div className="flex flex-wrap items-center gap-4">

@@ -6,6 +6,7 @@ import { centsToCurrencyInput } from '@/lib/format';
 import { ProductForm } from '@/components/admin/ProductForm';
 import { PartItemsEditor } from '@/components/admin/PartItemsEditor';
 import { updateProduct } from '../_actions';
+import { requireAdmin } from '@/lib/auth';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -13,6 +14,7 @@ interface PageProps {
 }
 
 export default async function EditProductPage({ params, searchParams }: PageProps) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const [{ id }, { tab = 'dados' }] = await Promise.all([params, searchParams]);
 
   const [product, categories, partItems] = await Promise.all([

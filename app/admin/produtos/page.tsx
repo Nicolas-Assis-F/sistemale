@@ -27,6 +27,7 @@ import {
   Package,
 } from "lucide-react";
 import type { Prisma } from "@prisma/client";
+import { requireAdmin } from '@/lib/auth';
 export default async function ProductsPage({
   searchParams,
 }: {
@@ -39,6 +40,7 @@ export default async function ProductsPage({
     editar?: string;
   }>;
 }) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const {
     q = "",
     categoria = "",

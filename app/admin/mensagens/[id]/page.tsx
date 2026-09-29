@@ -5,8 +5,10 @@ import { prisma } from '@/lib/db';
 import { buttonVariants } from '@/components/ui/button';
 import { ConfirmDeleteButton } from '@/components/admin/ConfirmDeleteButton';
 import { markRead, deleteSubmission } from '../_actions';
+import { requireAdmin } from '@/lib/auth';
 
 export default async function MessageDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const { id } = await params;
   const message = await prisma.contactSubmission.findUnique({ where: { id } });
   if (!message) notFound();

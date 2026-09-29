@@ -13,8 +13,10 @@ import { createCustomer, updateCustomer, deleteCustomer } from './_actions';
 import { formatTaxId } from '@/lib/domains/customers/tax-id';
 import { customerFiscalReadiness, fiscalFormDefaults, principalAddressInclude } from '@/lib/domains/customers/fiscal-profile';
 import { FiscalBadge, FiscalReadinessPanel } from '@/components/admin/FiscalReadinessPanel';
+import { requireAdmin } from '@/lib/auth';
 
 export default async function CustomersPage({ searchParams }: { searchParams: Promise<AdminListParams & { fiscal?: string }> }) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const { q = '', novo, editar, fiscal } = await searchParams;
   const [rows, selected] = await Promise.all([
     prisma.customer.findMany({ where: q ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { code: { contains: q, mode: 'insensitive' } }, { city: { contains: q, mode: 'insensitive' } }] } : {}, orderBy: { createdAt: 'desc' }, include: { ...principalAddressInclude, _count: { select: { orders: true } }, user: { select: { emailVerified: true } } } }),

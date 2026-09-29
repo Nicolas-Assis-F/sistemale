@@ -4,12 +4,14 @@ import { buttonVariants } from '@/components/ui/button';
 import { prisma } from '@/lib/db';
 import { CategoryForm } from '@/components/admin/CategoryForm';
 import { updateCategory } from '../_actions';
+import { requireAdmin } from '@/lib/auth';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function EditCategoryPage({ params }: PageProps) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const { id } = await params;
   const category = await prisma.category.findUnique({ where: { id } });
   if (!category) notFound();

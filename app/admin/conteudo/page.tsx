@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Home, Building2, Wrench, Mail, ChevronRight } from 'lucide-react';
+import { requireAdmin } from '@/lib/auth';
 
 const SECTIONS = [
   { key: 'home', label: 'Página Inicial', desc: 'Hero e chamada final da home.', icon: Home },
@@ -8,7 +9,8 @@ const SECTIONS = [
   { key: 'contato', label: 'Contato', desc: 'Textos e horário de atendimento.', icon: Mail },
 ];
 
-export default function AdminContentPage() {
+export default async function AdminContentPage() {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   return (
     <div className="le-admin-page">
       <div>

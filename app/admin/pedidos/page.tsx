@@ -8,8 +8,10 @@ import { OrderBoard } from '@/components/admin/orders/OrderBoard';
 import { formatCurrency } from '@/lib/format';
 import { ORDER_STATUS_ORDER, ORDER_STATUS_LABELS, ORDER_STATUS_BADGE } from '@/lib/order-status';
 import { ORDER_PAYMENT_BADGE, ORDER_PAYMENT_LABELS } from '@/lib/finance-labels';
+import { requireAdmin } from '@/lib/auth';
 
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; paymentStatus?: string; visual?: string }> }) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const { q = '', status, paymentStatus, visual } = await searchParams;
   const where: Prisma.OrderWhereInput = {
     ...(ORDER_STATUS_ORDER.includes(status as OrderStatus) ? { status: status as OrderStatus } : {}),

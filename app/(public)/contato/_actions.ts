@@ -12,7 +12,13 @@ const contactSchema = z.object({
   message: z.string().min(1, 'Mensagem obrigatória').max(4000),
 });
 
+/** Limites anti-spam (sem guardar IP): por e-mail e no total do site. */
+const PER_EMAIL_PER_HOUR = 3;
+const SITE_PER_10_MIN = 30;
+
 export async function submitContact(formData: FormData) {
+  // Campo-armadilha invisível: gente não preenche, robô preenche. Finge sucesso.
+  if (String(formData.get('website') ?? '').trim()) return { ok: true as const };
   const raw = Object.fromEntries(formData);
   const parsed = contactSchema.safeParse(raw);
   if (!parsed.success) {
@@ -20,6 +26,13 @@ export async function submitContact(formData: FormData) {
   }
 
   const data = parsed.data;
+  const [byEmail, recent] = await Promise.all([
+    prisma.contactSubmission.count({ where: { email: data.email, createdAt: { gte: new Date(Date.now() - 60 * 60_000) } } }),
+    prisma.contactSubmission.count({ where: { createdAt: { gte: new Date(Date.now() - 10 * 60_000) } } }),
+  ]);
+  if (byEmail >= PER_EMAIL_PER_HOUR || recent >= SITE_PER_10_MIN) {
+    return { ok: false as const, error: { message: ['Recebemos muitas mensagens agora. Tente de novo em alguns minutos ou fale pelo WhatsApp.'] } };
+  }
   await prisma.contactSubmission.create({
     data: {
       name: data.name,

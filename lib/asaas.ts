@@ -1,6 +1,7 @@
 // Cliente mínimo da API v3 do Asaas (server-only).
 // Docs: https://docs.asaas.com — auth pelo header `access_token`; User-Agent é
 // obrigatório para contas criadas a partir de 11/06/2024.
+import 'server-only';
 import type { PaymentMethod, PaymentStatus } from '@prisma/client';
 import { normalizeTaxId } from '@/lib/domains/customers/tax-id';
 

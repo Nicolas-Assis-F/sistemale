@@ -4,8 +4,10 @@ import { prisma } from '@/lib/db';
 import { buttonVariants } from '@/components/ui/button';
 import { OrderForm, type OrderItemState } from '@/components/admin/OrderForm';
 import { updateOrder } from '../../_actions';
+import { requireAdmin } from '@/lib/auth';
 
 export default async function EditOrderPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const { id } = await params;
   const [order, products, customers, employees] = await Promise.all([
     prisma.order.findUnique({ where: { id }, include: { items: { orderBy: { position: 'asc' } } } }),

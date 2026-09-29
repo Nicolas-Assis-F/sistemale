@@ -2,8 +2,10 @@ import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
 import { CategoryForm } from '@/components/admin/CategoryForm';
 import { createCategory } from '../_actions';
+import { requireAdmin } from '@/lib/auth';
 
-export default function NewCategoryPage() {
+export default async function NewCategoryPage() {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   return (
     <div className="le-admin-page">
       <div className="flex flex-wrap items-center gap-4">

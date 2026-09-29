@@ -4,8 +4,10 @@ import { Badge } from '@/components/ui/badge';
 import { prisma } from '@/lib/db';
 import { DeleteListButton } from '@/components/admin/DeleteListButton';
 import { ShoppingCart, Plus, FileText, ClipboardList } from 'lucide-react';
+import { requireAdmin } from '@/lib/auth';
 
 export default async function PurchaseListsPage() {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const lists = await prisma.purchaseList.findMany({
     include: {
       _count: { select: { items: true } },

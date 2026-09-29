@@ -9,8 +9,10 @@ import { ServiceItemForm } from '@/components/admin/ServiceItemForm';
 import { ConfirmDeleteButton } from '@/components/admin/ConfirmDeleteButton';
 import { adminListHref, type AdminListParams } from '@/lib/admin-list';
 import { createService, updateService, deleteService } from './_actions';
+import { requireAdmin } from '@/lib/auth';
 
 export default async function ServicesPage({ searchParams }: { searchParams: Promise<AdminListParams> }) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const { q = '', novo, editar } = await searchParams;
   const [rows, selected] = await Promise.all([
     prisma.serviceItem.findMany({ where: q ? { OR: [{ title: { contains: q, mode: 'insensitive' } }, { description: { contains: q, mode: 'insensitive' } }] } : {}, orderBy: { order: 'asc' } }),

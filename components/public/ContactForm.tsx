@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -27,6 +27,7 @@ export function ContactForm() {
   const [sent, setSent] = useState(false);
   const [serverError, setServerError] = useState('');
 
+  const trap = useRef<HTMLInputElement>(null);
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { name: '', email: '', phone: '', subject: '', message: '' },
@@ -36,12 +37,14 @@ export function ContactForm() {
     setServerError('');
     const fd = new FormData();
     Object.entries(values).forEach(([k, v]) => fd.append(k, v ?? ''));
+    fd.append('website', trap.current?.value ?? '');
     const res = await submitContact(fd);
     if (res.ok) {
       setSent(true);
       form.reset();
     } else {
-      setServerError('Não foi possível enviar. Tente novamente ou use o WhatsApp.');
+      const limit = (res.error as { message?: string[] } | undefined)?.message?.[0];
+      setServerError(limit ?? 'Não foi possível enviar. Tente novamente ou use o WhatsApp.');
     }
   }
 
@@ -63,6 +66,9 @@ export function ContactForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 rounded-2xl border border-border bg-card p-6 shadow-card">
+        {/* Armadilha anti-robô: invisível para pessoas e leitores de tela */}
+        <input ref={trap} type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true"
+          className="absolute -left-[9999px] h-px w-px opacity-0" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}

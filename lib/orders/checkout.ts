@@ -70,7 +70,8 @@ export async function startCheckout(customer: Customer, input: { slug: string; q
       try {
         if (p.externalId) await deleteAsaasPayment(p.externalId);
       } catch (error) {
-        return { ok: false, reason: 'PROVIDER', message: `Não foi possível trocar a forma de pagamento: ${error instanceof Error ? error.message : String(error)}` };
+        console.error(`[checkout] pedido ${recent.number}: cobrança anterior não cancelada`, error instanceof Error ? error.message : error);
+        return { ok: false, reason: 'PROVIDER', message: 'Não foi possível trocar a forma de pagamento agora. Tente de novo em instantes.' };
       }
       await prisma.payment.update({ where: { id: p.id }, data: { status: 'CANCELADO' } });
       await logOrderEvent(prisma, recent.id, 'PAYMENT', 'Cobrança anterior cancelada: cliente trocou a forma de pagamento no checkout', 'cliente', { paymentId: p.id });
@@ -122,7 +123,9 @@ export async function startCheckout(customer: Customer, input: { slug: string; q
     // Pedido fica registrado sem cobrança: a equipe vê e pode cobrar pelo painel
     await logOrderEvent(prisma, order.id, 'PAYMENT', `Falha ao gerar cobrança no checkout: ${error instanceof Error ? error.message : String(error)}`, 'sistema');
     if (!reusedOrder) await notifyTeam(order.number, order.id, customer.name, `${input.quantity}× ${product.name}`, totalCents, true);
-    return { ok: false, reason: 'PROVIDER', message: error instanceof AsaasError ? `Não foi possível gerar o pagamento: ${error.message}` : 'Não foi possível gerar o pagamento. Tente de novo em instantes.' };
+    console.error(`[checkout] pedido ${order.number}: cobrança não gerada`, error instanceof AsaasError ? `${error.status} ${error.message}` : error);
+    // Detalhe do provedor (configuração, chave) nunca vai para o cliente
+    return { ok: false, reason: 'PROVIDER', message: 'Não foi possível gerar o pagamento agora. Tente de novo em instantes ou fale com a nossa equipe.' };
   }
   await recalcOrder(order.id, 'cliente');
   if (announce) await notifyTeam(order.number, order.id, customer.name, `${input.quantity}× ${product.name}`, totalCents, false);

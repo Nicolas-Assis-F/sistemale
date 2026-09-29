@@ -2,8 +2,10 @@ import { AdminFilters } from '@/components/admin/AdminFilters';
 import Link from 'next/link';
 import { Mail, MailOpen } from 'lucide-react';
 import { prisma } from '@/lib/db';
+import { requireAdmin } from '@/lib/auth';
 
 export default async function AdminMessagesPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const { q = '', status } = await searchParams;
   const messages = await prisma.contactSubmission.findMany({ where: { ...(q ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { subject: { contains: q, mode: 'insensitive' } }, { email: { contains: q, mode: 'insensitive' } }] } : {}), ...(status === 'nao-lidas' ? { read: false } : status === 'lidas' ? { read: true } : {}) }, orderBy: { createdAt: 'desc' } });
   const unread = messages.filter((m) => !m.read).length;

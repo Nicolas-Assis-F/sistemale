@@ -8,6 +8,7 @@ import {
 } from '@/lib/finance-labels';
 import { PayCommissionsButton } from '@/components/admin/commissions/PayCommissionsButton';
 import { cn } from '@/lib/utils';
+import { requireAdmin } from '@/lib/auth';
 
 const TABS: { value: string; label: string; status?: CommissionStatus }[] = [
   { value: 'apagar', label: 'A pagar', status: 'LIBERADA' },
@@ -17,6 +18,7 @@ const TABS: { value: string; label: string; status?: CommissionStatus }[] = [
 ];
 
 export default async function CommissionsPage({ searchParams }: { searchParams: Promise<{ aba?: string; funcionario?: string }> }) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const { aba = 'apagar', funcionario } = await searchParams;
   const tab = TABS.find((t) => t.value === aba) ?? TABS[0];
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);

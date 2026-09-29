@@ -2,8 +2,10 @@ import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
 import { prisma } from '@/lib/db';
 import { PurchaseListBuilder } from '@/components/admin/PurchaseListBuilder';
+import { requireAdmin } from '@/lib/auth';
 
 export default async function NewPurchaseListPage() {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const products = await prisma.product.findMany({
     where: { active: true },
     include: {

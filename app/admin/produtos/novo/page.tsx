@@ -3,8 +3,10 @@ import { buttonVariants } from '@/components/ui/button';
 import { prisma } from '@/lib/db';
 import { ProductForm } from '@/components/admin/ProductForm';
 import { createProduct } from '../_actions';
+import { requireAdmin } from '@/lib/auth';
 
 export default async function NewProductPage() {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const categories = await prisma.category.findMany({ orderBy: { name: 'asc' } });
 
   return (

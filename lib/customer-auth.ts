@@ -1,5 +1,6 @@
 // Autenticação de CLIENTES (Better Auth) — separada do login do painel admin
 // (lib/auth.ts, cookie admin_auth). Rotas em /api/cliente/*.
+import 'server-only';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { magicLink } from 'better-auth/plugins';

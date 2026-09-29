@@ -10,8 +10,10 @@ import { GalleryItemForm } from '@/components/admin/GalleryItemForm';
 import { ConfirmDeleteButton } from '@/components/admin/ConfirmDeleteButton';
 import { adminListHref, type AdminListParams } from '@/lib/admin-list';
 import { createGalleryItem, updateGalleryItem, deleteGalleryItem } from './_actions';
+import { requireAdmin } from '@/lib/auth';
 
 export default async function GalleryPage({ searchParams }: { searchParams: Promise<AdminListParams> }) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const { q = '', novo, editar } = await searchParams;
   const [rows, selected] = await Promise.all([
     prisma.galleryItem.findMany({ where: q ? { OR: [{ title: { contains: q, mode: 'insensitive' } }, { category: { contains: q, mode: 'insensitive' } }] } : {}, orderBy: { order: 'asc' } }),

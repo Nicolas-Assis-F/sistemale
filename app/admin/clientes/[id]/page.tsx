@@ -7,8 +7,10 @@ import { updateCustomer } from '../_actions';
 import { formatTaxId } from '@/lib/domains/customers/tax-id';
 import { customerFiscalReadiness, fiscalFormDefaults, principalAddressInclude } from '@/lib/domains/customers/fiscal-profile';
 import { FiscalReadinessPanel } from '@/components/admin/FiscalReadinessPanel';
+import { requireAdmin } from '@/lib/auth';
 
 export default async function EditCustomerPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const { id } = await params;
   const c = await prisma.customer.findUnique({ where: { id }, include: principalAddressInclude });
   if (!c) notFound();

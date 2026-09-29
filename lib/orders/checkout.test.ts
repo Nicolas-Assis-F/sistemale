@@ -119,7 +119,8 @@ test('falha no Asaas: pedido fica sem cobrança e a nova tentativa reusa o mesmo
   const fail = await co.startCheckout(customer, { slug: 'ponteira', quantity: 1, method: 'PIX' });
   assert.equal(fail.ok, false);
   assert.equal((fail as { reason: string }).reason, 'PROVIDER');
-  assert.match((fail as { message: string }).message, /Serviço indisponível/);
+  assert.doesNotMatch((fail as { message: string }).message, /Serviço indisponível/, 'detalhe do provedor não vai para o cliente');
+  assert.match((fail as { message: string }).message, /Tente de novo/);
   assert.equal(await prisma.payment.count(), 0, 'registro local descartado quando o Asaas recusa');
 
   const ok = await co.startCheckout(customer, { slug: 'ponteira', quantity: 1, method: 'PIX' });

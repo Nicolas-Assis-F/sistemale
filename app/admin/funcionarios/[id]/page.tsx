@@ -5,8 +5,10 @@ import { prisma } from '@/lib/db';
 import { buttonVariants } from '@/components/ui/button';
 import { EmployeeForm } from '@/components/admin/EmployeeForm';
 import { updateEmployee } from '../_actions';
+import { requireAdmin } from '@/lib/auth';
 
 export default async function EditEmployeePage({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const { id } = await params;
   const employee = await prisma.employee.findUnique({ where: { id } });
   if (!employee) notFound();

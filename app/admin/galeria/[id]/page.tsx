@@ -4,8 +4,10 @@ import { prisma } from '@/lib/db';
 import { buttonVariants } from '@/components/ui/button';
 import { GalleryItemForm } from '@/components/admin/GalleryItemForm';
 import { updateGalleryItem } from '../_actions';
+import { requireAdmin } from '@/lib/auth';
 
 export default async function EditGalleryItemPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const { id } = await params;
   const item = await prisma.galleryItem.findUnique({ where: { id } });
   if (!item) notFound();

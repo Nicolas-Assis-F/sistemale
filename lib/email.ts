@@ -1,6 +1,7 @@
 // E-mails transacionais via Resend (server-only).
 // Sem RESEND_API_KEY: em desenvolvimento o conteúdo vai para o console (dá para
 // testar o fluxo de login sem enviar nada); em produção o envio falha com erro claro.
+import 'server-only';
 import { Resend } from 'resend';
 
 const BRAND = { ink: '#0b0a3b', blue: '#3158ef', yellow: '#f7cd47', muted: '#5d6080' };
@@ -23,11 +24,19 @@ export async function sendEmail({ to, subject, html, text }: { to: string; subje
     if (process.env.NODE_ENV === 'production' && process.env.EMAIL_CONSOLE_FALLBACK !== 'true') {
       throw new Error('E-mail não configurado (RESEND_API_KEY / EMAIL_FROM).');
     }
-    console.info(`\n[email:dev] Para: ${to}\nAssunto: ${subject}\n${text}\n`);
+    // Links de login/confirmação dão acesso à conta: fora do desenvolvimento, nunca no log
+    // (na Vercel sempre mascarado; localmente o link aparece para testar o fluxo)
+    const body = process.env.VERCEL ? redactTokens(text) : text;
+    console.info(`\n[email:dev] Para: ${to}\nAssunto: ${subject}\n${body}\n`);
     return;
   }
   const { error } = await r.emails.send({ from: process.env.EMAIL_FROM, to, subject, html, text });
   if (error) throw new Error(`Resend: ${error.message}`);
+}
+
+/** Mascara parâmetros de URL que funcionam como credencial (token, code, callback). */
+export function redactTokens(text: string) {
+  return text.replace(/([?&](?:token|code|otp|key)=)[^&\s"'<>]+/gi, '$1[oculto]');
 }
 
 /** Envio que nunca derruba o fluxo principal (ex.: webhook de pagamento). */

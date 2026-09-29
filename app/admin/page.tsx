@@ -3,6 +3,7 @@ import { buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { StatCard } from "@/components/admin/StatCard";
+import { requireAdmin } from '@/lib/auth';
 import {
   ArrowUpRight,
   Plus,
@@ -12,6 +13,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 export default async function AdminDashboard() {
+  await requireAdmin(); // não depende só do proxy (defesa em profundidade)
   const [total, active, ordersOpen, unread, categories, products, recent] =
     await Promise.all([
       prisma.product.count(),
