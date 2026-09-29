@@ -25,9 +25,15 @@ export async function loadCatalog(): Promise<Catalog> {
 }
 
 /** Perfil padrão de preço; cria um com valores neutros na primeira vez. */
-export async function defaultPricingProfile() {
+export async function defaultPricingProfile({ readOnly = false } = {}) {
   const existing = await prisma.pricingProfile.findFirst({ where: { isDefault: true } }) ?? await prisma.pricingProfile.findFirst();
   if (existing) return existing;
+  // A simulação usa os mesmos padrões, sem criar registros ao abrir a página.
+  if (readOnly) return {
+    id: '', name: 'Padrão', isDefault: true, rbt12Cents: 0, dasOverrideBps: null,
+    otherTaxBps: 0, commissionBps: 0, paymentFeeBps: 100, fixedExpenseBps: 1000,
+    marginBps: 1500, createdAt: new Date(0), updatedAt: new Date(0),
+  } satisfies PricingProfile;
   return prisma.pricingProfile.create({ data: { name: 'Padrão', isDefault: true, commissionBps: 0, paymentFeeBps: 100, fixedExpenseBps: 1000, marginBps: 1500 } });
 }
 

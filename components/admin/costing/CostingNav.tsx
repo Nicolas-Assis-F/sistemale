@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 
 const TABS = [
   { href: '/admin/custos', label: 'Fichas e preços' },
+  { href: '/admin/custos/cotacao', label: 'Cotação rápida' },
   { href: '/admin/custos/materiais', label: 'Materiais' },
   { href: '/admin/custos/processos', label: 'Processos e mão de obra' },
   { href: '/admin/custos/notas', label: 'Notas de compra' },
