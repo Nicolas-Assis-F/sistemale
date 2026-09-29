@@ -25,13 +25,13 @@ type Props = {
   inputs: PriceInputs & { dasBps: number | null };
 };
 
-const KIND_OPTIONS: { kind: LineKind; label: string; hint: string }[] = [
-  { kind: 'MATERIAL', label: 'Matéria-prima', hint: 'barra/tubo por kg' },
-  { kind: 'COMPONENTE', label: 'Componente', hint: 'comprado pronto' },
-  { kind: 'PROCESSO', label: 'Processo', hint: 'minutos × custo-hora' },
-  { kind: 'SERVICO', label: 'Serviço', hint: 'usinagem terceirizada' },
-  { kind: 'SUBFICHA', label: 'Subconjunto', hint: 'outra ficha' },
-  { kind: 'OUTRO', label: 'Outro', hint: 'valor avulso' },
+const KIND_OPTIONS: { kind: LineKind; label: string }[] = [
+  { kind: 'MATERIAL', label: 'Matéria-prima' },
+  { kind: 'COMPONENTE', label: 'Componente' },
+  { kind: 'PROCESSO', label: 'Processo' },
+  { kind: 'SERVICO', label: 'Serviço' },
+  { kind: 'SUBFICHA', label: 'Subconjunto' },
+  { kind: 'OUTRO', label: 'Outro' },
 ];
 const str = (n: number | null | undefined) => (n == null ? '' : String(n).replace('.', ','));
 const n = (s: string) => parseDecimal(s) ?? 0;
@@ -112,8 +112,8 @@ export function SheetEditor({ sheet, materials, workCenters, sheets, products, i
   const marginTone = (bps: number | null) => (bps == null ? '' : bps < 0 ? 'text-red-600' : bps < 800 ? 'text-amber-700' : 'text-le-success');
 
   return (
-    <div className="grid items-start gap-5 xl:grid-cols-[1fr_22rem]">
-      <div className="space-y-4">
+    <div className="le-sheet-editor grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="min-w-0 space-y-4">
         <div className="grid gap-3 rounded-2xl border border-le-line bg-white p-4 sm:grid-cols-6">
           <label className={`${labelCls} sm:col-span-3`}>Nome da ficha
             <input value={name} onChange={(e) => touch(setName)(e.target.value)} className={inputCls} />
@@ -144,10 +144,10 @@ export function SheetEditor({ sheet, materials, workCenters, sheets, products, i
             const kindLabel = KIND_OPTIONS.find((k) => k.kind === d.kind)!.label;
             return (
               <div key={d.key} className="rounded-2xl border border-le-line bg-white p-3">
-                <div className="flex flex-wrap items-end gap-2">
+                <div className="le-cost-line grid grid-cols-2 items-end gap-2 sm:flex sm:flex-wrap">
                   <span className="mb-2 w-24 shrink-0 text-[11px] font-semibold uppercase tracking-wider text-le-blue">{kindLabel}</span>
                   {(d.kind === 'MATERIAL' || d.kind === 'COMPONENTE' || d.kind === 'SERVICO') && (
-                    <label className={`${labelCls} min-w-48 flex-[2]`}>{d.kind === 'MATERIAL' ? 'Material' : d.kind === 'COMPONENTE' ? 'Componente' : 'Serviço'}
+                    <label className={`${labelCls} min-w-0 sm:min-w-48 sm:flex-[2]`}>{d.kind === 'MATERIAL' ? 'Material' : d.kind === 'COMPONENTE' ? 'Componente' : 'Serviço'}
                       <select value={d.materialId} onChange={(e) => update(d.key, { materialId: e.target.value })} className={inputCls}>
                         <option value="">{d.kind === 'MATERIAL' ? 'Escolha…' : 'Escolha ou informe o custo →'}</option>
                         {mats.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
@@ -155,7 +155,7 @@ export function SheetEditor({ sheet, materials, workCenters, sheets, products, i
                     </label>
                   )}
                   {d.kind === 'PROCESSO' && (
-                    <label className={`${labelCls} min-w-48 flex-[2]`}>Processo
+                    <label className={`${labelCls} min-w-0 sm:min-w-48 sm:flex-[2]`}>Processo
                       <select value={d.workCenterId} onChange={(e) => update(d.key, { workCenterId: e.target.value })} className={inputCls}>
                         <option value="">Escolha…</option>
                         {workCenters.map((w) => <option key={w.id} value={w.id}>{w.name} · {formatCurrency(w.rateCentsPerHour)}/h</option>)}
@@ -163,7 +163,7 @@ export function SheetEditor({ sheet, materials, workCenters, sheets, products, i
                     </label>
                   )}
                   {d.kind === 'SUBFICHA' && (
-                    <label className={`${labelCls} min-w-48 flex-[2]`}>Ficha do subconjunto
+                    <label className={`${labelCls} min-w-0 sm:min-w-48 sm:flex-[2]`}>Ficha do subconjunto
                       <select value={d.subSheetId} onChange={(e) => update(d.key, { subSheetId: e.target.value })} className={inputCls}>
                         <option value="">Escolha…</option>
                         {sheets.filter((s) => s.id !== sheet.id).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -171,42 +171,42 @@ export function SheetEditor({ sheet, materials, workCenters, sheets, products, i
                     </label>
                   )}
                   {(d.kind === 'OUTRO' || d.kind === 'COMPONENTE' || d.kind === 'SERVICO') && (
-                    <label className={`${labelCls} w-44`}>Descrição
+                    <label className={`${labelCls} sm:w-44`}>Descrição
                       <input value={d.description} onChange={(e) => update(d.key, { description: e.target.value })} className={inputCls} />
                     </label>
                   )}
                   {steel && (
-                    <label className={`${labelCls} w-28`}>Comprimento (mm)
+                    <label className={`${labelCls} sm:w-28`}>Comprimento (mm)
                       <input value={d.lengthMm} onChange={(e) => update(d.key, { lengthMm: e.target.value })} inputMode="decimal" className={inputCls} />
                     </label>
                   )}
                   {d.kind === 'PROCESSO' && (
-                    <label className={`${labelCls} w-24`}>Minutos
+                    <label className={`${labelCls} sm:w-24`}>Minutos
                       <input value={d.minutes} onChange={(e) => update(d.key, { minutes: e.target.value })} inputMode="decimal" className={inputCls} />
                     </label>
                   )}
-                  <label className={`${labelCls} w-24`}>{steel ? 'Peças' : m?.unit === 'KG' ? 'Qtd (kg)' : d.kind === 'PROCESSO' ? 'Vezes' : 'Qtd'}
+                  <label className={`${labelCls} sm:w-24`}>{steel ? 'Peças' : m?.unit === 'KG' ? 'Qtd (kg)' : d.kind === 'PROCESSO' ? 'Vezes' : 'Qtd'}
                     <input value={d.quantity} onChange={(e) => update(d.key, { quantity: e.target.value })} inputMode="decimal" className={inputCls} />
                   </label>
                   {(d.kind === 'MATERIAL' || d.kind === 'COMPONENTE') && (
-                    <label className={`${labelCls} w-20`}>Perda %
+                    <label className={`${labelCls} sm:w-20`}>Perda %
                       <input value={d.scrapPct} onChange={(e) => update(d.key, { scrapPct: e.target.value })} inputMode="decimal" className={inputCls} />
                     </label>
                   )}
                   {d.kind !== 'SUBFICHA' && (
-                    <label className={`${labelCls} w-28`}>{d.kind === 'PROCESSO' ? 'R$/h (manual)' : m?.unit === 'KG' ? 'R$/kg (manual)' : 'Custo unit. R$'}
+                    <label className={`${labelCls} sm:w-28`}>{d.kind === 'PROCESSO' ? 'R$/h (manual)' : m?.unit === 'KG' ? 'R$/kg (manual)' : 'Custo unit. R$'}
                       <input value={d.unitCost} onChange={(e) => update(d.key, { unitCost: e.target.value })} inputMode="decimal"
                         placeholder={d.kind === 'PROCESSO' ? '' : m ? (m.unitCostCents / 100).toFixed(2).replace('.', ',') : ''} className={inputCls} />
                     </label>
                   )}
-                  <div className="ml-auto flex items-center gap-1 pb-0.5">
-                    <p className="mr-2 w-28 text-right font-heading text-sm font-semibold tabular-nums">{formatCurrency(r?.cents ?? 0)}</p>
-                    <button type="button" aria-label="Subir" onClick={() => move(d.key, -1)} className="rounded p-1 text-le-muted hover:text-le-text"><ArrowUp className="h-4 w-4" /></button>
-                    <button type="button" aria-label="Descer" onClick={() => move(d.key, 1)} className="rounded p-1 text-le-muted hover:text-le-text"><ArrowDown className="h-4 w-4" /></button>
-                    <button type="button" aria-label="Remover linha" onClick={() => remove(d.key)} className="rounded p-1 text-le-muted hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
+                  <div className="le-cost-line-actions sm:ml-auto flex items-center gap-1 pb-0.5">
+                    <p className="mr-2 sm:w-28 text-right font-heading text-sm font-semibold tabular-nums">{formatCurrency(r?.cents ?? 0)}</p>
+                    <button type="button" aria-label="Subir" disabled={i === 0} onClick={() => move(d.key, -1)} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded p-1 text-le-muted hover:text-le-text"><ArrowUp className="h-4 w-4" /></button>
+                    <button type="button" aria-label="Descer" disabled={i === drafts.length - 1} onClick={() => move(d.key, 1)} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded p-1 text-le-muted hover:text-le-text"><ArrowDown className="h-4 w-4" /></button>
+                    <button type="button" aria-label="Remover linha" onClick={() => remove(d.key)} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded p-1 text-le-muted hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 </div>
-                <p className={cn('mt-1.5 pl-26 text-[11px]', r?.warning ? 'text-amber-700' : 'text-le-muted')}>
+                <p className={cn('mt-1.5 break-words text-[11px] sm:pl-26', r?.warning ? 'text-amber-700' : 'text-le-muted')}>
                   {r?.warning ? <><AlertTriangle className="mr-1 inline h-3 w-3" />{r.warning}</> : r?.detail}
                 </p>
               </div>
@@ -215,16 +215,16 @@ export function SheetEditor({ sheet, materials, workCenters, sheets, products, i
           <div className="flex flex-wrap gap-2 rounded-2xl border border-dashed border-le-line p-3">
             <span className="mr-1 self-center text-xs text-le-muted">Adicionar:</span>
             {KIND_OPTIONS.map((k) => (
-              <button key={k.kind} type="button" onClick={() => add(k.kind)} title={k.hint}
-                className="inline-flex h-8 items-center gap-1 rounded-lg border border-le-line bg-white px-2.5 text-xs font-medium hover:border-le-blue hover:text-le-blue">
-                <Plus className="h-3.5 w-3.5" /> {k.label}
+              <button key={k.kind} type="button" onClick={() => add(k.kind)}
+                className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-le-line bg-white px-2.5 text-xs font-medium hover:border-le-blue hover:text-le-blue">
+                <Plus aria-hidden="true" className="h-3.5 w-3.5" /> Adicionar {k.label.toLowerCase()}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      <aside className="space-y-4 xl:sticky xl:top-24">
+      <aside aria-label="Resumo de custo e preço" className="min-w-0 space-y-4 xl:sticky xl:top-24">
         <div className="rounded-2xl border border-le-line bg-white p-4">
           <p className="text-xs text-le-muted">Custo por unidade{batchQty !== 1 ? ` (lote de ${batchQty})` : ''}</p>
           <p className="font-heading text-3xl font-semibold tabular-nums tracking-[-0.04em]">{formatCurrency(result.unitCents)}</p>
@@ -241,12 +241,12 @@ export function SheetEditor({ sheet, materials, workCenters, sheets, products, i
         </div>
 
         <div className="rounded-2xl border border-le-line bg-white p-4">
-          <div className="flex items-end justify-between gap-2">
+          <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
               <p className="text-xs text-le-muted">Preço sugerido</p>
               <p className="font-heading text-3xl font-semibold tabular-nums tracking-[-0.04em] text-le-blue">{suggestion.ok ? formatCurrency(suggestion.priceCents) : '—'}</p>
             </div>
-            <label className={`${labelCls} w-24`}>Margem %
+            <label className={`${labelCls} sm:w-24`}>Margem %
               <input value={marginPct} onChange={(e) => setMarginPct(e.target.value)} inputMode="decimal" className={inputCls} />
             </label>
           </div>

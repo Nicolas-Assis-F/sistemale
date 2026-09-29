@@ -64,17 +64,17 @@ export default async function CostingHomePage() {
         <button type="submit" className="h-9 self-end rounded-lg bg-le-blue px-4 text-sm font-semibold text-white">Criar ficha</button>
       </form>
 
-      <div className="overflow-x-auto rounded-2xl border border-le-line bg-white">
+      <div role="region" aria-label="Tabela de fichas e preços" tabIndex={0} className="le-cost-table rounded-2xl border border-le-line bg-white">
         <table className="w-full text-sm">
           <thead className="text-left text-xs text-le-muted">
             <tr className="border-b border-le-line">
-              <th className="p-3 font-medium">Ficha</th>
-              <th className="p-3 text-right font-medium">Aço</th>
-              <th className="p-3 text-right font-medium">Custo un.</th>
-              <th className="p-3 text-right font-medium">Preço sugerido</th>
-              <th className="p-3 text-right font-medium">Preço atual</th>
-              <th className="p-3 text-right font-medium">Margem atual</th>
-              <th className="p-3" />
+              <th scope="col" className="p-3 font-medium">Ficha</th>
+              <th scope="col" className="p-3 text-right font-medium">Aço</th>
+              <th scope="col" className="p-3 text-right font-medium">Custo un.</th>
+              <th scope="col" className="p-3 text-right font-medium">Preço sugerido</th>
+              <th scope="col" className="p-3 text-right font-medium">Preço atual</th>
+              <th scope="col" className="p-3 text-right font-medium">Margem atual</th>
+              <th scope="col" className="p-3" />
             </tr>
           </thead>
           <tbody className="divide-y divide-le-line">

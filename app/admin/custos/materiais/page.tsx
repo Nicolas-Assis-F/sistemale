@@ -52,16 +52,16 @@ export default async function MaterialsPage({ searchParams }: { searchParams: Pr
       {groups.map((g) => (
         <section key={g.kind} className="space-y-2">
           <h2 className="font-heading text-base font-medium">{KIND_TITLES[g.kind]}</h2>
-          <div className="overflow-x-auto rounded-2xl border border-le-line bg-white">
+          <div role="region" aria-label="Tabela de materiais" tabIndex={0} className="le-cost-table rounded-2xl border border-le-line bg-white">
             <table className="w-full text-sm">
               <thead className="text-left text-xs text-le-muted">
                 <tr className="border-b border-le-line">
-                  <th className="p-3 font-medium">Material</th>
-                  {(g.kind === 'BARRA_REDONDA' || g.kind === 'TUBO') && <><th className="p-3 font-medium">Medida</th><th className="p-3 text-right font-medium">kg/m</th></>}
-                  <th className="p-3 text-right font-medium">Custo</th>
-                  {(g.kind === 'BARRA_REDONDA' || g.kind === 'TUBO') && <th className="p-3 text-right font-medium">R$/m</th>}
-                  <th className="p-3 font-medium">Última compra</th>
-                  <th className="p-3" />
+                  <th scope="col" className="p-3 font-medium">Material</th>
+                  {(g.kind === 'BARRA_REDONDA' || g.kind === 'TUBO') && <><th scope="col" className="p-3 font-medium">Medida</th><th scope="col" className="p-3 text-right font-medium">kg/m</th></>}
+                  <th scope="col" className="p-3 text-right font-medium">Custo</th>
+                  {(g.kind === 'BARRA_REDONDA' || g.kind === 'TUBO') && <th scope="col" className="p-3 text-right font-medium">R$/m</th>}
+                  <th scope="col" className="p-3 font-medium">Última compra</th>
+                  <th scope="col" className="p-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-le-line">

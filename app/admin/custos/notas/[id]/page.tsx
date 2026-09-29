@@ -27,10 +27,10 @@ export default async function PurchaseInvoicePage({ params }: { params: Promise<
           </div>
         } />
       {!materials.length && <p className="rounded-xl bg-le-tint p-3 text-sm">Cadastre os materiais primeiro (<Link href="/admin/custos/materiais" className="text-le-blue">Materiais</Link>) para ligar os itens da nota.</p>}
-      <div className="overflow-x-auto rounded-2xl border border-le-line bg-white">
+      <div role="region" aria-label="Itens da nota de compra" tabIndex={0} className="le-cost-table rounded-2xl border border-le-line bg-white">
         <table className="w-full text-sm">
           <thead className="text-left text-xs text-le-muted">
-            <tr className="border-b border-le-line"><th className="p-3 font-medium">Item da nota</th><th className="p-3 text-right font-medium">Custo real</th><th className="p-3 font-medium">Material do cadastro</th><th className="p-3" /></tr>
+            <tr className="border-b border-le-line"><th scope="col" className="p-3 font-medium">Item da nota</th><th scope="col" className="p-3 text-right font-medium">Custo real</th><th scope="col" className="p-3 font-medium">Material do cadastro</th><th scope="col" className="p-3" /></tr>
           </thead>
           <tbody className="divide-y divide-le-line">
             {invoice.items.map((it) => (

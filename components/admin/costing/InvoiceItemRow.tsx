@@ -48,14 +48,14 @@ export function InvoiceItemRow({ item, materials }: { item: Item; materials: Mat
         <p className="text-xs text-le-muted">total {formatCurrency(item.effectiveTotalCents)}</p>
       </td>
       <td className="min-w-56 p-3">
-        <select value={materialId} onChange={(e) => setMaterialId(e.target.value)} className={inputCls}>
+        <select aria-label={`Material para ${item.description}`} value={materialId} onChange={(e) => setMaterialId(e.target.value)} className={inputCls}>
           <option value="">— não usar —</option>
           {materials.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
         </select>
         {needsConversion && (
           <div className="mt-2 grid grid-cols-2 gap-2">
-            {steel && <input value={pieceLength} onChange={(e) => { setPieceLength(e.target.value); setKgPerUnit(''); }} inputMode="decimal" placeholder={`m por ${item.unit.toLowerCase()}`} className={inputCls} />}
-            <input value={kgPerUnit} onChange={(e) => setKgPerUnit(e.target.value)} inputMode="decimal" placeholder={`kg por ${item.unit.toLowerCase()}`} className={inputCls} />
+            {steel && <input aria-label={`Comprimento em metros por ${item.unit.toLowerCase()}`} value={pieceLength} onChange={(e) => { setPieceLength(e.target.value); setKgPerUnit(''); }} inputMode="decimal" placeholder={`m por ${item.unit.toLowerCase()}`} className={inputCls} />}
+            <input aria-label={`Peso em kg por ${item.unit.toLowerCase()}`} value={kgPerUnit} onChange={(e) => setKgPerUnit(e.target.value)} inputMode="decimal" placeholder={`kg por ${item.unit.toLowerCase()}`} className={inputCls} />
             <p className="col-span-2 text-[11px] text-le-muted">A nota está em {item.unit}. {steel ? 'Informe o comprimento de cada peça (calcula o peso) ou o peso direto.' : 'Informe o peso de cada unidade.'}</p>
           </div>
         )}

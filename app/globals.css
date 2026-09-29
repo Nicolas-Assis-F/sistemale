@@ -621,3 +621,17 @@ html { scroll-behavior: smooth; scroll-padding-top: 110px; }
     .le-hero-video video, .le-hero-video-control { display:none; }
   }
 }
+
+@layer components {
+  .le-cost-table { width:100%; min-width:0; max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; }
+  .le-cost-table table { min-width:640px; }
+  .le-cost-table thead { background:var(--le-subtle); color:var(--le-text); white-space:nowrap; }
+  .le-cost-table:focus-visible { outline:2px solid var(--le-blue); outline-offset:2px; }
+  @media (max-width:639px) {
+    .le-cost-line { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:end; }
+    .le-cost-line > label { width:auto; min-width:0; }
+    .le-cost-line > span, .le-cost-line > .le-cost-line-actions { grid-column:1 / -1; width:auto; min-width:0; margin-left:0; }
+    .le-cost-line-actions p { flex:1; width:auto; min-width:0; overflow-wrap:anywhere; }
+    .le-sheet-editor aside dl > div, .le-sheet-editor aside p.flex { flex-wrap:wrap; gap:4px; }
+  }
+}

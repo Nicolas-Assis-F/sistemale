@@ -16,10 +16,10 @@ export default async function PurchaseInvoicesPage() {
       <CostingNav active="/admin/custos/notas" title="Notas de compra"
         description="Importe o XML das NF-e de compra: fornecedor, itens, NCM, IPI e ICMS-ST são lidos automaticamente e o custo real de cada item (com frete e impostos) atualiza o material." />
       <InvoiceUpload />
-      <div className="overflow-x-auto rounded-2xl border border-le-line bg-white">
+      <div role="region" aria-label="Tabela de notas de compra" tabIndex={0} className="le-cost-table rounded-2xl border border-le-line bg-white">
         <table className="w-full text-sm">
           <thead className="text-left text-xs text-le-muted">
-            <tr className="border-b border-le-line"><th className="p-3 font-medium">Emissão</th><th className="p-3 font-medium">Fornecedor</th><th className="p-3 font-medium">Nota</th><th className="p-3 text-right font-medium">Total</th><th className="p-3 font-medium">Itens aplicados</th><th className="p-3" /></tr>
+            <tr className="border-b border-le-line"><th scope="col" className="p-3 font-medium">Emissão</th><th scope="col" className="p-3 font-medium">Fornecedor</th><th scope="col" className="p-3 font-medium">Nota</th><th scope="col" className="p-3 text-right font-medium">Total</th><th scope="col" className="p-3 font-medium">Itens aplicados</th><th scope="col" className="p-3" /></tr>
           </thead>
           <tbody className="divide-y divide-le-line">
             {invoices.map((inv) => {
