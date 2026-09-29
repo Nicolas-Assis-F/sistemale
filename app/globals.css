@@ -484,6 +484,20 @@ html { scroll-behavior: smooth; scroll-padding-top: 110px; }
   .le-mcard { position:relative; display:flex; flex-direction:column; min-width:0; isolation:isolate; overflow:hidden; border:1px solid var(--le-line); border-radius:22px; background:var(--le-surface); }
   .le-mcard:hover, .le-mcard:focus-within { border-color:var(--le-blue-border); box-shadow:0 18px 40px -24px color-mix(in srgb,var(--le-blue) 40%,transparent); }
   .le-mcard[data-offer] { border-color:var(--le-yellow); }
+  .le-mcard .le-product-price { min-width:0; }
+  .le-mcard .le-product-price-value { white-space:nowrap; font-size:clamp(20px,5.8vw,24px); }
+  .le-mcard .le-product-price-label, .le-mcard .le-product-price-saving { white-space:nowrap; }
+  .le-mcard-stock { align-self:flex-start; padding:4px 8px; border-radius:6px; background:var(--le-subtle); color:var(--le-text-muted); font-size:11px; font-weight:600; }
+  .le-mcard-stock.is-available { background:color-mix(in srgb,var(--le-success) 10%,white); color:var(--le-success); }
+  @media (max-width:639px) {
+    .le-mcard .le-mcard-stage { perspective:none; }
+    .le-mcard-product-link::after { content:""; position:absolute; inset:0; z-index:2; }
+    .le-mcard-product-link:focus-visible::after { outline:3px solid var(--le-blue); outline-offset:-3px; border-radius:22px; }
+    .le-mcard-actions { position:relative; z-index:3; }
+    /* A área da imagem também leva ao produto no celular. */
+    .le-mcard-hit { pointer-events:none; }
+    .le-mcard-hit:focus-visible { pointer-events:auto; z-index:3; }
+  }
   .le-mcard-stage { --mx:50%; --my:40%; --rx:0deg; --ry:0deg; position:relative; aspect-ratio:4/3; overflow:hidden; perspective:900px; background:radial-gradient(ellipse at 90% 90%,color-mix(in srgb,var(--le-blue) 14%,transparent),transparent 65%),linear-gradient(135deg,var(--le-tint),var(--le-canvas)); }
   .le-mcard-spot { position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .3s cubic-bezier(.22,1,.36,1); background:radial-gradient(360px circle at var(--mx) var(--my),color-mix(in srgb,var(--le-blue) 14%,transparent),transparent 48%); }
   .le-mcard-floor { position:absolute; left:20%; right:20%; bottom:13%; height:18px; border-radius:50%; pointer-events:none; background:radial-gradient(closest-side,color-mix(in srgb,var(--le-ink) 18%,transparent),transparent); filter:blur(3px); transition:transform .3s cubic-bezier(.22,1,.36,1),opacity .3s cubic-bezier(.22,1,.36,1); }
@@ -494,7 +508,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 110px; }
   .le-mcard-tag { position:absolute; left:14px; bottom:12px; z-index:2; max-width:calc(100% - 28px); pointer-events:none; padding:5px 9px; border-radius:7px; background:var(--le-surface); color:var(--le-text-muted); font-size:11px; font-weight:500; }
   .le-mcard-badge { position:absolute; left:14px; top:14px; z-index:2; max-width:calc(100% - 68px); pointer-events:none; padding:6px 9px; border-radius:7px; background:var(--le-ink); color:white; font-size:11px; font-weight:600; }
   .le-mcard-badge.is-offer { background:var(--le-yellow); color:var(--le-ink); }
-  .le-mcard-compare { position:absolute; right:12px; top:12px; z-index:3; display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:36px; padding:6px; border:1px solid var(--le-line); border-radius:999px; background:var(--le-surface); color:var(--le-text-muted); font-size:11px; font-weight:600; }
+  .le-mcard-compare { position:absolute; right:12px; top:12px; z-index:3; display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:44px; min-width:44px; padding:6px; border:1px solid var(--le-line); border-radius:999px; background:var(--le-surface); color:var(--le-text-muted); font-size:11px; font-weight:600; }
   .le-mcard-compare > span:last-child { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
   .le-mcard-compare:hover { color:var(--le-blue); border-color:var(--le-blue); }
   .le-mcard-compare:disabled { cursor:not-allowed; opacity:.5; }
@@ -512,9 +526,9 @@ html { scroll-behavior: smooth; scroll-padding-top: 110px; }
   .le-mcard-chips li svg { flex-shrink:0; color:var(--le-blue); }
   .le-mcard-foot { display:flex; flex-direction:column; gap:16px; margin-top:auto; padding-top:16px; border-top:1px solid var(--le-line); }
   .le-mcard-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
-  .le-mcard-cta { display:inline-flex; flex:1; justify-content:center; align-items:center; gap:7px; min-height:42px; padding:0 12px; border-radius:11px; background:var(--le-blue); color:white; font-size:12px; font-weight:600; white-space:nowrap; transition:transform .2s cubic-bezier(.22,1,.36,1); }
+  .le-mcard-cta { display:inline-flex; flex:1; justify-content:center; align-items:center; gap:7px; min-height:44px; padding:0 12px; border-radius:11px; background:var(--le-blue); color:white; font-size:12px; font-weight:600; white-space:nowrap; transition:transform .2s cubic-bezier(.22,1,.36,1); }
   .le-mcard-cta:hover { background:var(--le-blue-hover); }
-  .le-mcard-more { display:inline-flex; align-items:center; gap:6px; min-height:42px; justify-content:center; padding:0 10px; border:1px solid var(--le-line); border-radius:11px; color:var(--le-text); font-size:12px; font-weight:600; white-space:nowrap; }
+  .le-mcard-more { display:inline-flex; align-items:center; gap:6px; min-height:44px; min-width:44px; justify-content:center; padding:0 10px; border:1px solid var(--le-line); border-radius:11px; color:var(--le-text); font-size:12px; font-weight:600; white-space:nowrap; }
   .le-mcard-more:hover { background:var(--le-ink); border-color:var(--le-ink); color:white; }
   @media (hover:hover) and (pointer:fine) {
     .le-mcard:hover .le-mcard-spot { opacity:1; }

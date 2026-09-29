@@ -128,7 +128,7 @@ export function MotionProductCard({ product, onPreview, index = 0, variant = "gr
       {/* Corpo */}
       <div className="le-mcard-body">
         <div className="flex items-start justify-between gap-3">
-          <Link href={href} className="le-mcard-title">
+          <Link href={href} className="le-mcard-title le-mcard-product-link">
             {product.name}
           </Link>
           <span className="le-mcard-sku">{product.sku}</span>
@@ -148,6 +148,9 @@ export function MotionProductCard({ product, onPreview, index = 0, variant = "gr
         )}
 
         <div className="le-mcard-foot">
+          <span className={cn('le-mcard-stock', product.stock > 0 && 'is-available')}>
+            {product.stock > 0 ? 'Em estoque' : 'Sob encomenda'}
+          </span>
           <ProductPrice product={product} />
           <div className="le-mcard-actions">
             {variant === "row" && compareButton}
