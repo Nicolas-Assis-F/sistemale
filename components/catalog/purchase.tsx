@@ -136,7 +136,7 @@ export function ProductBuyBox({ whatsappUrl, quoteSlot }: { whatsappUrl: string;
         <span className={cn('mt-1 inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold',
           inStock ? 'bg-le-success-surface text-le-success' : 'bg-le-tint text-le-blue')}>
           {inStock ? <PackageCheck className="h-3.5 w-3.5" /> : <Timer className="h-3.5 w-3.5" />}
-          {inStock ? `${product.stock} em estoque` : 'Sob encomenda'}
+          {inStock ? `Pronta entrega · ${product.stock} un.` : 'Sob encomenda'}
         </span>
       </div>
       {purchasable && <p className="mt-1 text-xs text-le-muted">No PIX com aprovação na hora, ou no cartão de crédito e boleto.</p>}

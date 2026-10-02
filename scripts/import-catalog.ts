@@ -31,9 +31,10 @@ async function main() {
       },
       data: { active: false, featured: false },
     });
-  });
+    // Banco remoto (produção) passa dos 5 s padrão em ~40 consultas sequenciais.
+  }, { maxWait: 10_000, timeout: 60_000 });
   console.log(
-    "Catálogo importado: 13 referências. Registros existentes preservados.",
+    `Catálogo importado: ${catalog.products.length} referências. Registros existentes preservados.`,
   );
 }
 main()

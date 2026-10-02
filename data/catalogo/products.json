@@ -1,5 +1,5 @@
 {
-  "source": "Catálogo L&E Torneadora fornecido pelo cliente, setembro de 2026. Preços não informados; 0 representa sob consulta.",
+  "source": "Catálogo L&E Torneadora fornecido pelo cliente, setembro de 2026. Preços não informados; 0 representa sob consulta. Hastes por diâmetro e comprimento com preços da tabela de outubro de 2026.",
   "categories": [
     {
       "slug": "maquinas",
@@ -322,6 +322,195 @@
         "Proteção de calibre": "Carbeto"
       },
       "priceCents": 0,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-HASTE-238-2M",
+      "slug": "haste-2-3-8-2m",
+      "name": "Haste 2 3/8″ × 2 m",
+      "categorySlug": "hastes",
+      "shortDesc": "Tubo 2 3/8″ sem costura com 2 m. Ponteiras macho e fêmea usinadas em CNC, soldadas e tratadas.",
+      "description": "Haste de perfuração com tubo 2 3/8″ (60,3 mm) sem costura, trefilado a frio, em 2 metros.\n\n- Ponteiras macho e fêmea usinadas nos nossos tornos CNC\n- Ponteiras soldadas e tratadas, com pega para chave\n- Fabricação própria, com inspeção de solda, alinhamento e rosca\n\nConsulte o estoque para pronta entrega ou fale com a equipe para pedidos em lote.",
+      "images": [
+        "/catalogo/hastes.webp",
+        "/catalogo/hastes-conjunto.webp"
+      ],
+      "specs": {
+        "Diâmetro do tubo": "2 3/8″ (60,3 mm)",
+        "Comprimento": "2 m",
+        "Ponteiras": "Macho e fêmea (CNC)"
+      },
+      "priceCents": 71000,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-HASTE-238-3M",
+      "slug": "haste-2-3-8-3m",
+      "name": "Haste 2 3/8″ × 3 m",
+      "categorySlug": "hastes",
+      "shortDesc": "Tubo 2 3/8″ sem costura com 3 m. Ponteiras macho e fêmea usinadas em CNC, soldadas e tratadas.",
+      "description": "Haste de perfuração com tubo 2 3/8″ (60,3 mm) sem costura, trefilado a frio, em 3 metros.\n\n- Ponteiras macho e fêmea usinadas nos nossos tornos CNC\n- Ponteiras soldadas e tratadas, com pega para chave\n- Fabricação própria, com inspeção de solda, alinhamento e rosca\n\nConsulte o estoque para pronta entrega ou fale com a equipe para pedidos em lote.",
+      "images": [
+        "/catalogo/hastes.webp",
+        "/catalogo/hastes-conjunto.webp"
+      ],
+      "specs": {
+        "Diâmetro do tubo": "2 3/8″ (60,3 mm)",
+        "Comprimento": "3 m",
+        "Ponteiras": "Macho e fêmea (CNC)"
+      },
+      "priceCents": 84000,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-HASTE-238-4M",
+      "slug": "haste-2-3-8-4m",
+      "name": "Haste 2 3/8″ × 4 m",
+      "categorySlug": "hastes",
+      "shortDesc": "Tubo 2 3/8″ sem costura com 4 m. Ponteiras macho e fêmea usinadas em CNC, soldadas e tratadas.",
+      "description": "Haste de perfuração com tubo 2 3/8″ (60,3 mm) sem costura, trefilado a frio, em 4 metros.\n\n- Ponteiras macho e fêmea usinadas nos nossos tornos CNC\n- Ponteiras soldadas e tratadas, com pega para chave\n- Fabricação própria, com inspeção de solda, alinhamento e rosca\n\nConsulte o estoque para pronta entrega ou fale com a equipe para pedidos em lote.",
+      "images": [
+        "/catalogo/hastes.webp",
+        "/catalogo/hastes-conjunto.webp"
+      ],
+      "specs": {
+        "Diâmetro do tubo": "2 3/8″ (60,3 mm)",
+        "Comprimento": "4 m",
+        "Ponteiras": "Macho e fêmea (CNC)"
+      },
+      "priceCents": 97000,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-HASTE-278-2M",
+      "slug": "haste-2-7-8-2m",
+      "name": "Haste 2 7/8″ × 2 m",
+      "categorySlug": "hastes",
+      "shortDesc": "Tubo 2 7/8″ sem costura com 2 m. Ponteiras macho e fêmea usinadas em CNC, soldadas e tratadas.",
+      "description": "Haste de perfuração com tubo 2 7/8″ (73,0 mm) sem costura, trefilado a frio, em 2 metros.\n\n- Ponteiras macho e fêmea usinadas nos nossos tornos CNC\n- Ponteiras soldadas e tratadas, com pega para chave\n- Fabricação própria, com inspeção de solda, alinhamento e rosca\n\nConsulte o estoque para pronta entrega ou fale com a equipe para pedidos em lote.",
+      "images": [
+        "/catalogo/hastes.webp",
+        "/catalogo/hastes-conjunto.webp"
+      ],
+      "specs": {
+        "Diâmetro do tubo": "2 7/8″ (73,0 mm)",
+        "Comprimento": "2 m",
+        "Ponteiras": "Macho e fêmea (CNC)"
+      },
+      "priceCents": 92000,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-HASTE-278-3M",
+      "slug": "haste-2-7-8-3m",
+      "name": "Haste 2 7/8″ × 3 m",
+      "categorySlug": "hastes",
+      "shortDesc": "Tubo 2 7/8″ sem costura com 3 m. Ponteiras macho e fêmea usinadas em CNC, soldadas e tratadas.",
+      "description": "Haste de perfuração com tubo 2 7/8″ (73,0 mm) sem costura, trefilado a frio, em 3 metros.\n\n- Ponteiras macho e fêmea usinadas nos nossos tornos CNC\n- Ponteiras soldadas e tratadas, com pega para chave\n- Fabricação própria, com inspeção de solda, alinhamento e rosca\n\nConsulte o estoque para pronta entrega ou fale com a equipe para pedidos em lote.",
+      "images": [
+        "/catalogo/hastes.webp",
+        "/catalogo/hastes-conjunto.webp"
+      ],
+      "specs": {
+        "Diâmetro do tubo": "2 7/8″ (73,0 mm)",
+        "Comprimento": "3 m",
+        "Ponteiras": "Macho e fêmea (CNC)"
+      },
+      "priceCents": 108000,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-HASTE-278-4M",
+      "slug": "haste-2-7-8-4m",
+      "name": "Haste 2 7/8″ × 4 m",
+      "categorySlug": "hastes",
+      "shortDesc": "Tubo 2 7/8″ sem costura com 4 m. Ponteiras macho e fêmea usinadas em CNC, soldadas e tratadas.",
+      "description": "Haste de perfuração com tubo 2 7/8″ (73,0 mm) sem costura, trefilado a frio, em 4 metros.\n\n- Ponteiras macho e fêmea usinadas nos nossos tornos CNC\n- Ponteiras soldadas e tratadas, com pega para chave\n- Fabricação própria, com inspeção de solda, alinhamento e rosca\n\nConsulte o estoque para pronta entrega ou fale com a equipe para pedidos em lote.",
+      "images": [
+        "/catalogo/hastes.webp",
+        "/catalogo/hastes-conjunto.webp"
+      ],
+      "specs": {
+        "Diâmetro do tubo": "2 7/8″ (73,0 mm)",
+        "Comprimento": "4 m",
+        "Ponteiras": "Macho e fêmea (CNC)"
+      },
+      "priceCents": 124000,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-HASTE-312-2M",
+      "slug": "haste-3-1-2-2m",
+      "name": "Haste 3 1/2″ × 2 m",
+      "categorySlug": "hastes",
+      "shortDesc": "Tubo 3 1/2″ sem costura com 2 m. Ponteiras macho e fêmea usinadas em CNC, soldadas e tratadas.",
+      "description": "Haste de perfuração com tubo 3 1/2″ (88,9 mm) sem costura, trefilado a frio, em 2 metros.\n\n- Ponteiras macho e fêmea usinadas nos nossos tornos CNC\n- Ponteiras soldadas e tratadas, com pega para chave\n- Fabricação própria, com inspeção de solda, alinhamento e rosca\n\nConsulte o estoque para pronta entrega ou fale com a equipe para pedidos em lote.",
+      "images": [
+        "/catalogo/hastes.webp",
+        "/catalogo/hastes-conjunto.webp"
+      ],
+      "specs": {
+        "Diâmetro do tubo": "3 1/2″ (88,9 mm)",
+        "Comprimento": "2 m",
+        "Ponteiras": "Macho e fêmea (CNC)"
+      },
+      "priceCents": 119000,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-HASTE-312-3M",
+      "slug": "haste-3-1-2-3m",
+      "name": "Haste 3 1/2″ × 3 m",
+      "categorySlug": "hastes",
+      "shortDesc": "Tubo 3 1/2″ sem costura com 3 m. Ponteiras macho e fêmea usinadas em CNC, soldadas e tratadas.",
+      "description": "Haste de perfuração com tubo 3 1/2″ (88,9 mm) sem costura, trefilado a frio, em 3 metros.\n\n- Ponteiras macho e fêmea usinadas nos nossos tornos CNC\n- Ponteiras soldadas e tratadas, com pega para chave\n- Fabricação própria, com inspeção de solda, alinhamento e rosca\n\nConsulte o estoque para pronta entrega ou fale com a equipe para pedidos em lote.",
+      "images": [
+        "/catalogo/hastes.webp",
+        "/catalogo/hastes-conjunto.webp"
+      ],
+      "specs": {
+        "Diâmetro do tubo": "3 1/2″ (88,9 mm)",
+        "Comprimento": "3 m",
+        "Ponteiras": "Macho e fêmea (CNC)"
+      },
+      "priceCents": 141000,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-HASTE-312-4M",
+      "slug": "haste-3-1-2-4m",
+      "name": "Haste 3 1/2″ × 4 m",
+      "categorySlug": "hastes",
+      "shortDesc": "Tubo 3 1/2″ sem costura com 4 m. Ponteiras macho e fêmea usinadas em CNC, soldadas e tratadas.",
+      "description": "Haste de perfuração com tubo 3 1/2″ (88,9 mm) sem costura, trefilado a frio, em 4 metros.\n\n- Ponteiras macho e fêmea usinadas nos nossos tornos CNC\n- Ponteiras soldadas e tratadas, com pega para chave\n- Fabricação própria, com inspeção de solda, alinhamento e rosca\n\nConsulte o estoque para pronta entrega ou fale com a equipe para pedidos em lote.",
+      "images": [
+        "/catalogo/hastes.webp",
+        "/catalogo/hastes-conjunto.webp"
+      ],
+      "specs": {
+        "Diâmetro do tubo": "3 1/2″ (88,9 mm)",
+        "Comprimento": "4 m",
+        "Ponteiras": "Macho e fêmea (CNC)"
+      },
+      "priceCents": 163000,
       "stock": 0,
       "featured": false,
       "active": true

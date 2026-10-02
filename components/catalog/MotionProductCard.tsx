@@ -149,7 +149,7 @@ export function MotionProductCard({ product, onPreview, index = 0, variant = "gr
 
         <div className="le-mcard-foot">
           <span className={cn('le-mcard-stock', product.stock > 0 && 'is-available')}>
-            {product.stock > 0 ? 'Em estoque' : 'Sob encomenda'}
+            {product.stock > 0 ? 'Pronta entrega' : 'Sob encomenda'}
           </span>
           <ProductPrice product={product} />
           <div className="le-mcard-actions">
