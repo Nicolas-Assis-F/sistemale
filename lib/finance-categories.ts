@@ -20,6 +20,7 @@ export const FINANCE_CATEGORIES: FinanceCategory[] = [
   { key: 'COMISSOES', label: 'Comissões', type: 'DESPESA', group: 'PESSOAL' },
   { key: 'ADIANTAMENTO', label: 'Adiantamento / vale', type: 'DESPESA', group: 'PESSOAL' },
   { key: 'ENCARGOS', label: 'Encargos (FGTS, INSS, férias, 13º)', type: 'DESPESA', group: 'PESSOAL' },
+  { key: 'MAO_OBRA_PRODUCAO', label: 'Mão de obra por produção (hastes)', type: 'DESPESA', group: 'PESSOAL' },
   { key: 'PRO_LABORE', label: 'Pró-labore / retirada dos sócios', type: 'DESPESA', group: 'PESSOAL' },
   // Produção
   { key: 'MATERIA_PRIMA', label: 'Matéria-prima (aço, tubos, barras)', type: 'DESPESA', group: 'PRODUCAO' },

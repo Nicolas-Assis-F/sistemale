@@ -40,6 +40,7 @@ model Product {
   orderItems         OrderItem[]
   /// Ficha de custo (formação de preço) do produto
   costSheet          CostSheet?
+  rods               Rod[]
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
 
@@ -179,25 +180,33 @@ model Customer {
 
 /// Funcionários (fabricação e vendas) — sem login; base das comissões
 model Employee {
-  id             String             @id @default(cuid())
-  name           String
-  role           String?
-  active         Boolean            @default(true)
-  phone          String?
-  pixKey         String? // para pagar a comissão
+  id                String             @id @default(cuid())
+  name              String
+  role              String?
+  active            Boolean            @default(true)
+  phone             String?
+  pixKey            String? // para pagar a comissão
   /// Comissão padrão em pontos-base (250 = 2,5%) — sugerida ao vincular a um pedido
-  commissionBps  Int                @default(0)
+  commissionBps     Int                @default(0)
   /// Como é remunerado: nem todo funcionário recebe comissão
-  payType        PayType            @default(SALARIO)
-  salaryCents    Int                @default(0) // salário mensal bruto
-  payDay         Int                @default(5) // dia do pagamento no mês seguinte à competência
-  hiredAt        DateTime?
-  financeEntries FinanceEntry[]
-  orders         Order[]
-  commissions    Commission[]
-  payouts        CommissionPayout[]
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  payType           PayType            @default(SALARIO)
+  salaryCents       Int                @default(0) // salário mensal bruto
+  payDay            Int                @default(5) // dia do pagamento no mês seguinte à competência
+  hiredAt           DateTime?
+  /// Produção de hastes: valor pago por haste APROVADA (soldador ou ajudante)
+  pieceRateCents    Int                @default(0)
+  /// Letra gravada na haste para saber quem soldou (ex.: S)
+  markLetter        String?
+  rodsWelded        Rod[]              @relation("RodWelder")
+  rodsHelped        Rod[]              @relation("RodHelper")
+  productionMoves   ProductionMove[]
+  productionPayouts ProductionPayout[]
+  financeEntries    FinanceEntry[]
+  orders            Order[]
+  commissions       Commission[]
+  payouts           CommissionPayout[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   @@index([active])
 }
@@ -494,29 +503,30 @@ enum FinanceStatus {
 /// Lançamento financeiro (contas a pagar/receber). Recebimentos de PEDIDOS vêm
 /// da tabela Payment e não são duplicados aqui.
 model FinanceEntry {
-  id              String            @id @default(cuid())
-  type            FinanceType
-  category        String // chave de lib/finance-categories.ts
-  description     String
-  amountCents     Int
-  competence      String // AAAA-MM (mês de referência, ex.: folha de setembro)
-  dueDate         DateTime
-  paidAt          DateTime?
-  status          FinanceStatus     @default(PREVISTO)
-  method          String? // PIX, boleto, dinheiro…
-  account         String? // Caixa, Banco, Asaas…
-  supplier        String? // fornecedor / favorecido
-  document        String? // nº da nota/boleto
-  notes           String?           @db.Text
-  employeeId      String?
-  employee        Employee?         @relation(fields: [employeeId], references: [id])
-  orderId         String?
-  order           Order?            @relation(fields: [orderId], references: [id])
-  payoutId        String?           @unique
-  payout          CommissionPayout? @relation(fields: [payoutId], references: [id])
-  recurrenceGroup String? // lançamentos repetidos mensalmente
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id               String            @id @default(cuid())
+  type             FinanceType
+  category         String // chave de lib/finance-categories.ts
+  description      String
+  amountCents      Int
+  competence       String // AAAA-MM (mês de referência, ex.: folha de setembro)
+  dueDate          DateTime
+  paidAt           DateTime?
+  status           FinanceStatus     @default(PREVISTO)
+  method           String? // PIX, boleto, dinheiro…
+  account          String? // Caixa, Banco, Asaas…
+  supplier         String? // fornecedor / favorecido
+  document         String? // nº da nota/boleto
+  notes            String?           @db.Text
+  employeeId       String?
+  employee         Employee?         @relation(fields: [employeeId], references: [id])
+  orderId          String?
+  order            Order?            @relation(fields: [orderId], references: [id])
+  payoutId         String?           @unique
+  payout           CommissionPayout? @relation(fields: [payoutId], references: [id])
+  productionPayout ProductionPayout?
+  recurrenceGroup  String? // lançamentos repetidos mensalmente
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   @@index([type, status, dueDate])
   @@index([competence])
@@ -831,4 +841,94 @@ model PurchaseInvoiceItem {
 
   @@index([invoiceId, position])
   @@index([materialId])
+}
+
+// ─── Produção de hastes (galpão) ─────────────────────────────────────────────
+
+enum ProductionItemKind {
+  TUBO // tubo inteiro de 9 m
+  PECA // pedaço de tubo cortado (2, 3 ou 4 m)
+  PAR // par de roscas (macho + fêmea) usinado no CNC
+}
+
+enum ProductionMoveReason {
+  ENTRADA // compra de tubo ou par recebido do CNC
+  CORTE // tubo virou peças
+  SOLDA // peça + par viraram haste
+  REFUGO
+  AJUSTE // contagem física
+}
+
+/// Movimento do estoque em processo. Saldo = soma de qty por (kind, diameter, lengthM).
+model ProductionMove {
+  id         String               @id @default(cuid())
+  kind       ProductionItemKind
+  diameter   String // 238 | 278 | 312 (lib/production/rules.ts)
+  lengthM    Int                  @default(0) // só PECA; 0 para tubo e par
+  qty        Int // + entra / − sai
+  reason     ProductionMoveReason
+  note       String?
+  employeeId String?
+  employee   Employee?            @relation(fields: [employeeId], references: [id])
+  createdAt  DateTime             @default(now())
+
+  @@index([kind, diameter, lengthM])
+  @@index([createdAt])
+}
+
+enum RodStatus {
+  INSPECAO // soldada, aguardando inspeção
+  RETRABALHO
+  APROVADA // entrou no estoque do catálogo
+  REFUGO
+}
+
+/// Uma haste física. A marca gravada (markCode) é dia + letra do soldador.
+model Rod {
+  id             String            @id @default(cuid())
+  serial         String            @unique // H2610-0001 (interno)
+  markCode       String // 021026S = soldada em 02/10/26 pelo soldador S
+  diameter       String
+  lengthM        Int
+  status         RodStatus         @default(INSPECAO)
+  welderId       String
+  welder         Employee          @relation("RodWelder", fields: [welderId], references: [id])
+  helperId       String?
+  helper         Employee?         @relation("RodHelper", fields: [helperId], references: [id])
+  productId      String? // produto do catálogo que recebeu o estoque
+  product        Product?          @relation(fields: [productId], references: [id])
+  measuredMm     Int?
+  defect         String?
+  inspectedAt    DateTime?
+  approvedAt     DateTime?
+  welderPayoutId String?
+  welderPayout   ProductionPayout? @relation("PayoutWelded", fields: [welderPayoutId], references: [id])
+  helperPayoutId String?
+  helperPayout   ProductionPayout? @relation("PayoutHelped", fields: [helperPayoutId], references: [id])
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([status])
+  @@index([markCode])
+  @@index([approvedAt])
+  @@index([welderId, welderPayoutId])
+  @@index([helperId, helperPayoutId])
+}
+
+/// Fechamento do pagamento por produção (só hastes aprovadas). Vira despesa no Financeiro.
+model ProductionPayout {
+  id             String        @id @default(cuid())
+  employeeId     String
+  employee       Employee      @relation(fields: [employeeId], references: [id])
+  welded         Int
+  helped         Int
+  rateCents      Int
+  amountCents    Int
+  financeEntryId String?       @unique
+  financeEntry   FinanceEntry? @relation(fields: [financeEntryId], references: [id])
+  rodsWelded     Rod[]         @relation("PayoutWelded")
+  rodsHelped     Rod[]         @relation("PayoutHelped")
+  createdAt      DateTime      @default(now())
+
+  @@index([employeeId, createdAt])
 }
