@@ -347,6 +347,7 @@
       "specs": {
         "Diâmetro do tubo": "2 3/8″ (60,3 mm)",
         "Comprimento": "2 m",
+        "Conexão": "2 3/8″ padrão",
         "Ponteiras": "Macho e fêmea (CNC)",
         "Indicada para": "Perfuratriz AR60"
       },
@@ -369,6 +370,7 @@
       "specs": {
         "Diâmetro do tubo": "2 3/8″ (60,3 mm)",
         "Comprimento": "3 m",
+        "Conexão": "2 3/8″ padrão",
         "Ponteiras": "Macho e fêmea (CNC)"
       },
       "priceCents": 78000,
@@ -390,6 +392,7 @@
       "specs": {
         "Diâmetro do tubo": "2 3/8″ (60,3 mm)",
         "Comprimento": "4 m",
+        "Conexão": "2 3/8″ padrão",
         "Ponteiras": "Macho e fêmea (CNC)"
       },
       "priceCents": 85000,
@@ -571,14 +574,17 @@
     {
       "sku": "LE-ROSCA-238",
       "slug": "par-ponteiras-haste-2-3-8",
-      "name": "Par de ponteiras para haste 2 3/8″",
+      "name": "Par de ponteiras 2 3/8″ padrão",
       "categorySlug": "conexoes",
-      "shortDesc": "Par de ponteiras (macho + fêmea) para haste de 2 3/8″, em aço 1045 usinado em CNC e temperado.",
-      "description": "Par de ponteiras roscadas (tool joints) para haste de 2 3/8″ (60,3 mm).\n\n- Macho + fêmea\n- Aço 1045, usinado nos nossos tornos CNC\n- Têmpera a óleo",
+      "shortDesc": "Par de ponteiras (macho + fêmea) com rosca 2 3/8″ padrão para haste de tubo 60 mm, em aço 1045 usinado em CNC e temperado.",
+      "description": "Par de ponteiras roscadas (tool joints) com rosca 2 3/8″ padrão, para haste de tubo 2 3/8″ (60,3 mm).\n\n- Macho + fêmea\n- Aço 1045, usinado nos nossos tornos CNC\n- Têmpera a óleo",
       "images": [
-        "/catalogo/ponteiras.webp"
+        "/catalogo/ponteiras-238-conjunto.webp",
+        "/catalogo/ponteiras-238-detalhe.webp",
+        "/catalogo/ponteiras-238-lote.webp"
       ],
       "specs": {
+        "Conexão": "2 3/8″ padrão",
         "Para haste de": "2 3/8″ (60,3 mm)",
         "Fornecimento": "Par (macho + fêmea)",
         "Material": "Aço 1045",
