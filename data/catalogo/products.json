@@ -1,5 +1,5 @@
 {
-  "source": "Catálogo L&E Torneadora fornecido pelo cliente, setembro de 2026. Preços não informados; 0 representa sob consulta. Hastes por diâmetro e comprimento com preços da tabela de outubro de 2026.",
+  "source": "Catálogo L&E Torneadora fornecido pelo cliente, setembro de 2026. Preços praticados em outubro de 2026; 0 representa sob consulta.",
   "categories": [
     {
       "slug": "maquinas",
@@ -46,9 +46,9 @@
   ],
   "products": [
     {
-      "sku": "LE-AR100",
-      "slug": "ar-100",
-      "name": "Perfuratriz AR-100",
+      "sku": "LE-AR60",
+      "slug": "ar60",
+      "name": "Perfuratriz AR60",
       "categorySlug": "maquinas",
       "shortDesc": "Acionamento hidráulico e motor a gasolina. Uma máquina completa para equipar sua operação.",
       "description": "Acionamento hidráulico e motor a gasolina. Uma máquina completa para equipar sua operação. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
@@ -64,9 +64,11 @@
         "Acionamento": "Motor hidráulico OMS 200",
         "Redução": "2:1",
         "Estabilização": "3 patolas",
-        "Instrumentação": "Medidores de pressão"
+        "Instrumentação": "Medidores de pressão",
+        "Fornecimento": "Somente a máquina",
+        "Hastes indicadas": "2 3/8″ × 2 m (LE-HASTE-238-2M)"
       },
-      "priceCents": 0,
+      "priceCents": 7500000,
       "stock": 0,
       "featured": true,
       "active": true
@@ -77,7 +79,7 @@
       "name": "Cabeçote hidráulico 80 m",
       "categorySlug": "cabecotes",
       "shortDesc": "Motor OMS 200, redução 2:1 e torque de 1.500 N·m. Consulte a configuração indicada para sua operação.",
-      "description": "Motor OMS 200, redução 2:1 e torque de 1.500 N·m. Consulte a configuração indicada para sua operação. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "description": "Motor OMS 200, redução 2:1 e torque de 1.500 N·m. Consulte a configuração indicada para sua operação. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.\n\nO preço inclui motor hidráulico, agulha e cabeça d'água. Para o cabeçote completo, com outros acessórios, solicite cotação.",
       "images": [
         "/catalogo/cabecote-80m.webp"
       ],
@@ -86,9 +88,10 @@
         "Motor hidráulico": "OMS 200",
         "Torque": "1.500 N·m",
         "Redução": "2:1",
-        "Rotação máxima": "130 rpm"
+        "Rotação máxima": "130 rpm",
+        "Acompanha": "Motor hidráulico, agulha e cabeça d'água"
       },
-      "priceCents": 0,
+      "priceCents": 1050000,
       "stock": 0,
       "featured": true,
       "active": true
@@ -99,7 +102,7 @@
       "name": "Cabeçote hidráulico 120 m",
       "categorySlug": "cabecotes",
       "shortDesc": "Motor OMS 250, redução 2:1 e torque de 2.500 N·m. Consulte a configuração indicada para sua operação.",
-      "description": "Motor OMS 250, redução 2:1 e torque de 2.500 N·m. Consulte a configuração indicada para sua operação. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "description": "Motor OMS 250, redução 2:1 e torque de 2.500 N·m. Consulte a configuração indicada para sua operação. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.\n\nO preço inclui motor hidráulico, agulha e cabeça d'água. Para o cabeçote completo, com outros acessórios, solicite cotação.",
       "images": [
         "/catalogo/cabecote-120m.webp"
       ],
@@ -107,9 +110,10 @@
         "Capacidade informada": "120 m",
         "Motor hidráulico": "OMS 250",
         "Torque": "2.500 N·m",
-        "Redução": "2:1"
+        "Redução": "2:1",
+        "Acompanha": "Motor hidráulico, agulha e cabeça d'água"
       },
-      "priceCents": 0,
+      "priceCents": 1300000,
       "stock": 0,
       "featured": false,
       "active": true
@@ -120,7 +124,7 @@
       "name": "Cabeçote hidráulico 250 m",
       "categorySlug": "cabecotes",
       "shortDesc": "Motor OMS 400, redução 4:1 e torque de 3.500 N·m. Consulte a configuração indicada para sua operação.",
-      "description": "Motor OMS 400, redução 4:1 e torque de 3.500 N·m. Consulte a configuração indicada para sua operação. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "description": "Motor OMS 400, redução 4:1 e torque de 3.500 N·m. Consulte a configuração indicada para sua operação. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.\n\nO preço inclui motor hidráulico, agulha e cabeça d'água. Para o cabeçote completo, com outros acessórios, solicite cotação.",
       "images": [
         "/catalogo/cabecote-250m.webp"
       ],
@@ -128,9 +132,10 @@
         "Capacidade informada": "250 m",
         "Motor hidráulico": "OMS 400",
         "Torque": "3.500 N·m",
-        "Redução": "4:1"
+        "Redução": "4:1",
+        "Acompanha": "Motor hidráulico, agulha e cabeça d'água"
       },
-      "priceCents": 0,
+      "priceCents": 1700000,
       "stock": 0,
       "featured": false,
       "active": true
@@ -155,8 +160,8 @@
       },
       "priceCents": 0,
       "stock": 0,
-      "featured": true,
-      "active": true
+      "featured": false,
+      "active": false
     },
     {
       "sku": "LE-HASTE-IF",
@@ -179,12 +184,12 @@
       "priceCents": 0,
       "stock": 0,
       "featured": false,
-      "active": true
+      "active": false
     },
     {
       "sku": "LE-API-REGULAR",
       "slug": "ponteira-api-regular",
-      "name": "Ponteira API 2 3/8″ Regular",
+      "name": "Par de ponteiras API 2 3/8″ Regular",
       "categorySlug": "conexoes",
       "shortDesc": "Tool joints em aço 1045, usinados em tornos CNC e tratados com têmpera a óleo.",
       "description": "Tool joints em aço 1045, usinados em tornos CNC e tratados com têmpera a óleo. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
@@ -193,12 +198,13 @@
       ],
       "specs": {
         "Conexão": "API 2 3/8″ Regular",
-        "Diâmetro informado": "2 7/8″",
+        "Para haste de": "2 7/8″ (73,0 mm)",
+        "Fornecimento": "Par (macho + fêmea)",
         "Material": "Aço 1045",
         "Usinagem": "Tornos CNC",
         "Tratamento": "Têmpera a óleo"
       },
-      "priceCents": 0,
+      "priceCents": 40000,
       "stock": 0,
       "featured": false,
       "active": true
@@ -206,7 +212,7 @@
     {
       "sku": "LE-API-IF",
       "slug": "ponteira-api-if",
-      "name": "Ponteira API 2 3/8″ IF",
+      "name": "Par de ponteiras API 2 3/8″ IF",
       "categorySlug": "conexoes",
       "shortDesc": "Tool joints em aço 1045, usinados em tornos CNC e tratados com têmpera a óleo.",
       "description": "Tool joints em aço 1045, usinados em tornos CNC e tratados com têmpera a óleo. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
@@ -215,12 +221,13 @@
       ],
       "specs": {
         "Conexão": "API 2 3/8″ IF",
-        "Diâmetro informado": "3 1/2″",
+        "Para haste de": "3 1/2″ (88,9 mm)",
+        "Fornecimento": "Par (macho + fêmea)",
         "Material": "Aço 1045",
         "Usinagem": "Tornos CNC",
         "Tratamento": "Têmpera a óleo"
       },
-      "priceCents": 0,
+      "priceCents": 50000,
       "stock": 0,
       "featured": false,
       "active": true
@@ -340,9 +347,10 @@
       "specs": {
         "Diâmetro do tubo": "2 3/8″ (60,3 mm)",
         "Comprimento": "2 m",
-        "Ponteiras": "Macho e fêmea (CNC)"
+        "Ponteiras": "Macho e fêmea (CNC)",
+        "Indicada para": "Perfuratriz AR60"
       },
-      "priceCents": 71000,
+      "priceCents": 65000,
       "stock": 0,
       "featured": false,
       "active": true
@@ -363,9 +371,9 @@
         "Comprimento": "3 m",
         "Ponteiras": "Macho e fêmea (CNC)"
       },
-      "priceCents": 84000,
+      "priceCents": 78000,
       "stock": 0,
-      "featured": false,
+      "featured": true,
       "active": true
     },
     {
@@ -384,7 +392,7 @@
         "Comprimento": "4 m",
         "Ponteiras": "Macho e fêmea (CNC)"
       },
-      "priceCents": 97000,
+      "priceCents": 85000,
       "stock": 0,
       "featured": false,
       "active": true
@@ -403,9 +411,10 @@
       "specs": {
         "Diâmetro do tubo": "2 7/8″ (73,0 mm)",
         "Comprimento": "2 m",
+        "Conexão": "API 2 3/8″ Regular",
         "Ponteiras": "Macho e fêmea (CNC)"
       },
-      "priceCents": 92000,
+      "priceCents": 80000,
       "stock": 0,
       "featured": false,
       "active": true
@@ -424,11 +433,12 @@
       "specs": {
         "Diâmetro do tubo": "2 7/8″ (73,0 mm)",
         "Comprimento": "3 m",
+        "Conexão": "API 2 3/8″ Regular",
         "Ponteiras": "Macho e fêmea (CNC)"
       },
-      "priceCents": 108000,
+      "priceCents": 90000,
       "stock": 0,
-      "featured": false,
+      "featured": true,
       "active": true
     },
     {
@@ -445,9 +455,10 @@
       "specs": {
         "Diâmetro do tubo": "2 7/8″ (73,0 mm)",
         "Comprimento": "4 m",
+        "Conexão": "API 2 3/8″ Regular",
         "Ponteiras": "Macho e fêmea (CNC)"
       },
-      "priceCents": 124000,
+      "priceCents": 120000,
       "stock": 0,
       "featured": false,
       "active": true
@@ -466,9 +477,10 @@
       "specs": {
         "Diâmetro do tubo": "3 1/2″ (88,9 mm)",
         "Comprimento": "2 m",
+        "Conexão": "API 2 3/8″ IF",
         "Ponteiras": "Macho e fêmea (CNC)"
       },
-      "priceCents": 119000,
+      "priceCents": 90000,
       "stock": 0,
       "featured": false,
       "active": true
@@ -487,11 +499,12 @@
       "specs": {
         "Diâmetro do tubo": "3 1/2″ (88,9 mm)",
         "Comprimento": "3 m",
+        "Conexão": "API 2 3/8″ IF",
         "Ponteiras": "Macho e fêmea (CNC)"
       },
-      "priceCents": 141000,
+      "priceCents": 120000,
       "stock": 0,
-      "featured": false,
+      "featured": true,
       "active": true
     },
     {
@@ -508,9 +521,71 @@
       "specs": {
         "Diâmetro do tubo": "3 1/2″ (88,9 mm)",
         "Comprimento": "4 m",
+        "Conexão": "API 2 3/8″ IF",
         "Ponteiras": "Macho e fêmea (CNC)"
       },
-      "priceCents": 163000,
+      "priceCents": 150000,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-P80",
+      "slug": "p80",
+      "name": "Perfuratriz P80",
+      "categorySlug": "maquinas",
+      "shortDesc": "Perfuratriz P80 fornecida somente com o maquinário. Trabalha com hastes de 2″ × 1,5 m com rosca quadrada.",
+      "description": "Perfuratriz P80 fabricada pela L&E Torneadora.\n\n- Fornecimento: somente o maquinário\n- Hastes indicadas: 2″ × 1,5 m com rosca quadrada (código LE-HASTE-2Q-15)\n\nConsulte a equipe para a ficha técnica completa, configurações e condições de fornecimento.",
+      "images": [],
+      "specs": {
+        "Fornecimento": "Somente o maquinário",
+        "Hastes indicadas": "2″ × 1,5 m, rosca quadrada (LE-HASTE-2Q-15)"
+      },
+      "priceCents": 5800000,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-HASTE-2Q-15",
+      "slug": "haste-2-rosca-quadrada-1-5m",
+      "name": "Haste 2″ × 1,5 m rosca quadrada",
+      "categorySlug": "hastes",
+      "shortDesc": "Haste de 2″ com 1,5 m e rosca quadrada, indicada para a perfuratriz P80.",
+      "description": "Haste de perfuração de 2″ (60,3 mm) com 1,5 m e rosca quadrada.\n\n- Indicada para a perfuratriz P80\n- Ponteiras macho e fêmea usinadas nos nossos tornos CNC\n- Fabricação própria, com inspeção de solda, alinhamento e rosca",
+      "images": [
+        "/catalogo/hastes.webp",
+        "/catalogo/hastes-conjunto.webp"
+      ],
+      "specs": {
+        "Diâmetro do tubo": "2″ (60,3 mm)",
+        "Comprimento": "1,5 m",
+        "Rosca": "Quadrada",
+        "Indicada para": "Perfuratriz P80"
+      },
+      "priceCents": 58000,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-ROSCA-238",
+      "slug": "par-ponteiras-haste-2-3-8",
+      "name": "Par de ponteiras para haste 2 3/8″",
+      "categorySlug": "conexoes",
+      "shortDesc": "Par de ponteiras (macho + fêmea) para haste de 2 3/8″, em aço 1045 usinado em CNC e temperado.",
+      "description": "Par de ponteiras roscadas (tool joints) para haste de 2 3/8″ (60,3 mm).\n\n- Macho + fêmea\n- Aço 1045, usinado nos nossos tornos CNC\n- Têmpera a óleo",
+      "images": [
+        "/catalogo/ponteiras.webp"
+      ],
+      "specs": {
+        "Para haste de": "2 3/8″ (60,3 mm)",
+        "Fornecimento": "Par (macho + fêmea)",
+        "Material": "Aço 1045",
+        "Usinagem": "Tornos CNC",
+        "Tratamento": "Têmpera a óleo"
+      },
+      "priceCents": 25000,
       "stock": 0,
       "featured": false,
       "active": true

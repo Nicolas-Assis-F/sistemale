@@ -27,6 +27,13 @@ const privateHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // A AR-100 passou a se chamar AR60 (out/2026): links antigos continuam funcionando
+  async redirects() {
+    return [
+      { source: '/vitrine/ar-100', destination: '/vitrine/ar60', permanent: true },
+      { source: '/vitrine/ar-100/:path*', destination: '/vitrine/ar60/:path*', permanent: true },
+    ];
+  },
   async headers() {
     return [
       { source: '/:path*', headers: securityHeaders },

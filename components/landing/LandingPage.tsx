@@ -20,7 +20,7 @@ import { buildWhatsAppUrl } from "@/lib/whatsapp-url";
 
 export async function LandingPage({ products }: { products: CatalogProduct[] }) {
   const media = await getHeroMedia();
-  const machine = products.find((p) => p.sku === "LE-AR100");
+  const machine = products.find((p) => p.sku === "LE-AR60");
   const featured = products.filter((p) => p.featured).slice(0, 4);
   return (
     <>
@@ -72,7 +72,7 @@ export async function LandingPage({ products }: { products: CatalogProduct[] }) 
               <div className="le-machine-photo">
                 <Image
                   src={machine?.images[0] || "/catalogo/ar-100.webp"}
-                  alt="Perfuratriz AR-100 fabricada pela L&E Torneadora"
+                  alt="Perfuratriz AR60 fabricada pela L&E Torneadora"
                   fill
                   loading="eager"
                   sizes="(max-width:767px) calc(100vw - 36px), (max-width:1100px) 48vw, 700px"
@@ -92,13 +92,13 @@ export async function LandingPage({ products }: { products: CatalogProduct[] }) 
                   </strong>
                 </div>
               </div>
-              <Link href="/vitrine/ar-100" className="le-hero-product-link">
+              <Link href="/vitrine/ar60" className="le-hero-product-link">
                 <span>
                   <span className="block text-[11px] uppercase tracking-[.2em] text-le-muted">
                     Conheça a máquina
                   </span>
                   <strong className="mt-1 block font-heading text-sm">
-                    Perfuratriz AR-100
+                    Perfuratriz AR60
                   </strong>
                 </span>
                 <span className="le-card-arrow">

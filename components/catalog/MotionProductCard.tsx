@@ -31,7 +31,7 @@ export function MotionProductCard({ product, onPreview, index = 0, variant = "gr
   const stageRef = useRef<HTMLDivElement>(null);
   const compare = useCompare();
   const inCompare = compare.has(product.slug);
-  const specs = keySpecs(product, 3);
+  const specs = keySpecs(product, 4);
   const href = `/vitrine/${product.slug}`;
   const offer = getProductOffer(product);
   const whatsapp = buildWhatsAppUrl({ sku: product.sku, productName: product.name });
@@ -131,7 +131,7 @@ export function MotionProductCard({ product, onPreview, index = 0, variant = "gr
           <Link href={href} className="le-mcard-title le-mcard-product-link">
             {product.name}
           </Link>
-          <span className="le-mcard-sku">{product.sku}</span>
+          <span className="le-mcard-sku" title="Código do produto">Cód. {product.sku}</span>
         </div>
         <p className="le-mcard-desc">{product.shortDesc}</p>
 

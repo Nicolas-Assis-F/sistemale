@@ -44,7 +44,8 @@ export default async function ProductPage({ params }: Props) {
         Number(a.category.slug === product.category.slug),
     )
     .slice(0, 8);
-  const highlights = keySpecs(product, 4);
+  // Todas as características no topo: o vendedor e o cliente tiram dúvidas sem rolar a página
+  const highlights = keySpecs(product, Object.keys(product.specs).length);
   // Compra online só com preço definido e pagamento ativo; senão fica o orçamento
   const purchasable = product.priceCents >= MIN_CHARGE_CENTS && asaasConfigured();
   const whatsappUrl = buildWhatsAppUrl({ sku: product.sku, productName: product.name });
@@ -83,10 +84,12 @@ export default async function ProductPage({ params }: Props) {
           </p>
         </Entrance>
         <Entrance delay={0.1} className="py-3 lg:sticky lg:top-28">
-          <p className="le-kicker">
-            {product.category.name}{" "}
-            <span className="px-2 text-le-muted">/</span> {product.sku}
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="le-kicker">{product.category.name}</p>
+            <span className="rounded-lg border border-le-line bg-white px-2.5 py-1 font-mono text-xs font-semibold text-le-ink" title="Informe este código no pedido ou no WhatsApp">
+              Cód. {product.sku}
+            </span>
+          </div>
           <h1 className="le-title mt-5">{product.name}</h1>
           <p className="mt-6 text-sm leading-7 text-le-muted">
             {product.shortDesc}

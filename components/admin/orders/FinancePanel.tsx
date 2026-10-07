@@ -297,7 +297,7 @@ function ChargeForm({
       )}
       <label className="block text-xs font-medium text-le-text">
         Descrição (opcional)
-        <input name="description" maxLength={300} placeholder="Ex.: Entrada 50% — Perfuratriz AR-100" className={cn(inputCls, 'mt-1.5')} />
+        <input name="description" maxLength={300} placeholder="Ex.: Entrada 50% — Perfuratriz AR60" className={cn(inputCls, 'mt-1.5')} />
       </label>
       {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>}
       <Button type="submit" loading={pending} className="w-full">

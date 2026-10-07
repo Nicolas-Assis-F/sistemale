@@ -6,7 +6,7 @@ import { CatalogHero } from "@/components/catalog/CatalogHero";
 export const metadata: Metadata = {
   title: "Vitrine de equipamentos",
   description:
-    "Máquinas AR-100, cabeçotes, hastes, conexões e brocas PDC. Filtre por especificação, compare e baixe a ficha técnica.",
+    "Perfuratrizes AR60 e P80, cabeçotes, hastes, conexões e brocas PDC. Filtre por especificação, compare e baixe a ficha técnica.",
   alternates: { canonical: "/vitrine" },
 };
 export default async function VitrinePage({

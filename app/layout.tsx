@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     template: `%s | ${companyName}`,
   },
   description:
-    'L & E Torneadora — Fabricamos todos os equipamentos para poços artesianos: perfuratriz AR-100, cabeçotes hidráulicos, roscas, hastes e brocas PDC. Aparecida de Goiânia – GO.',
+    'L & E Torneadora — Fabricamos todos os equipamentos para poços artesianos: perfuratrizes AR60 e P80, cabeçotes hidráulicos, roscas, hastes e brocas PDC. Aparecida de Goiânia – GO.',
   openGraph: {
     type: 'website',
     locale: 'pt_BR',
