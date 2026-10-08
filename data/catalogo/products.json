@@ -254,17 +254,19 @@
     {
       "sku": "LE-CIR110-M",
       "slug": "martelo-cir110",
-      "name": "Martelo CIR110",
+      "name": "Martelo DTH CIR110",
       "categorySlug": "martelos",
-      "shortDesc": "Martelo de perfuração da linha CIR110. Informe a quantidade para consultar condições de fornecimento.",
-      "description": "Martelo de perfuração da linha CIR110. Informe a quantidade para consultar condições de fornecimento. Consulte nossa equipe para definir a configuração e as condições de fornecimento para sua operação.",
+      "shortDesc": "Martelo de fundo (DTH) da linha CIR110, pronto para trabalhar com bit CIR110.",
+      "description": "Martelo de fundo (DTH) da linha CIR110.\n\n- Usa bit CIR110 (temos o de 130 mm, código LE-CIR110-B130)\n- Vendido avulso ou em conjunto martelo + bit\n\nConsulte o estoque para pronta entrega ou peça condição para revenda.",
       "images": [
         "/catalogo/martelo-cir110.webp"
       ],
       "specs": {
-        "Modelo": "CIR110 Hammer"
+        "Modelo": "CIR110",
+        "Tipo": "Martelo de fundo (DTH)",
+        "Bit compatível": "CIR110 (LE-CIR110-B130)"
       },
-      "priceCents": 0,
+      "priceCents": 347000,
       "stock": 0,
       "featured": false,
       "active": true
@@ -308,8 +310,8 @@
       },
       "priceCents": 0,
       "stock": 0,
-      "featured": true,
-      "active": true
+      "featured": false,
+      "active": false
     },
     {
       "sku": "LE-PDC5",
@@ -331,7 +333,7 @@
       "priceCents": 0,
       "stock": 0,
       "featured": false,
-      "active": true
+      "active": false
     },
     {
       "sku": "LE-HASTE-238-2M",
@@ -592,6 +594,117 @@
         "Tratamento": "Têmpera a óleo"
       },
       "priceCents": 25000,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-CIR110-B130",
+      "slug": "bit-cir110-130mm",
+      "name": "Bit CIR110 · 130 mm",
+      "categorySlug": "martelos",
+      "shortDesc": "Bit de botões de metal duro, 130 mm, para martelo CIR110.",
+      "description": "Bit de 130 mm da linha CIR110, com botões de metal duro.\n\n- Para o martelo DTH CIR110 (LE-CIR110-M)\n- Combine martelo + bit e leve o conjunto completo",
+      "images": [
+        "/catalogo/bit-cir110.webp"
+      ],
+      "specs": {
+        "Modelo": "CIR110",
+        "Diâmetro": "130 mm",
+        "Tipo": "Bit de botões de metal duro",
+        "Martelo compatível": "CIR110 (LE-CIR110-M)"
+      },
+      "priceCents": 250000,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-PDC3-139",
+      "slug": "broca-pdc-3-asas-139mm",
+      "name": "Broca PDC 3 asas · 139 mm",
+      "categorySlug": "brocas-pdc",
+      "shortDesc": "Três lâminas, cortadores PDC 1308 e proteção de calibre em carbeto. Diâmetro de 139 mm.",
+      "description": "Três lâminas, cortadores PDC 1308 e proteção de calibre em carbeto.\n\n- Diâmetro: 139 mm\n- Conexão API 2 3/8″ REG fêmea\n\nConsulte o estoque para pronta entrega ou peça condição para revenda.",
+      "images": [
+        "/catalogo/pdc-concava.webp"
+      ],
+      "specs": {
+        "Diâmetro": "139 mm",
+        "Conexão": "API 2 3/8″ REG, fêmea",
+        "Lâminas": "3",
+        "Cortadores": "PDC 1308",
+        "Proteção de calibre": "Carbeto",
+        "Sob cada lâmina": "1 cortador PDC 1304"
+      },
+      "priceCents": 220000,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-PDC3-152",
+      "slug": "broca-pdc-3-asas-152mm",
+      "name": "Broca PDC 3 asas · 152 mm",
+      "categorySlug": "brocas-pdc",
+      "shortDesc": "Três lâminas, cortadores PDC 1308 e proteção de calibre em carbeto. Diâmetro de 152 mm.",
+      "description": "Três lâminas, cortadores PDC 1308 e proteção de calibre em carbeto.\n\n- Diâmetro: 152 mm\n- Conexão API 2 3/8″ REG fêmea\n\nConsulte o estoque para pronta entrega ou peça condição para revenda.",
+      "images": [
+        "/catalogo/pdc-concava.webp"
+      ],
+      "specs": {
+        "Diâmetro": "152 mm",
+        "Conexão": "API 2 3/8″ REG, fêmea",
+        "Lâminas": "3",
+        "Cortadores": "PDC 1308",
+        "Proteção de calibre": "Carbeto",
+        "Sob cada lâmina": "1 cortador PDC 1304"
+      },
+      "priceCents": 250000,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-PDC5-127",
+      "slug": "broca-pdc-5-laminas-127mm",
+      "name": "Broca PDC 5 lâminas · 127 mm",
+      "categorySlug": "brocas-pdc",
+      "shortDesc": "Perfil de ângulo de arco com cinco lâminas longas e cortadores planos ou esféricos. Diâmetro de 127 mm.",
+      "description": "Perfil de ângulo de arco com cinco lâminas longas e cortadores planos ou esféricos.\n\n- Diâmetro: 127 mm\n- Conexão API 2 3/8″ REG fêmea\n\nConsulte o estoque para pronta entrega ou peça condição para revenda.",
+      "images": [
+        "/catalogo/pdc-arqueada.webp"
+      ],
+      "specs": {
+        "Diâmetro": "127 mm",
+        "Conexão": "API 2 3/8″ REG, fêmea",
+        "Lâminas": "5 longas",
+        "Cortadores por lâmina": "PDC 1308, planos ou esféricos",
+        "Proteção de calibre": "Carbeto"
+      },
+      "priceCents": 520000,
+      "stock": 0,
+      "featured": false,
+      "active": true
+    },
+    {
+      "sku": "LE-PDC5-152",
+      "slug": "broca-pdc-5-laminas-152mm",
+      "name": "Broca PDC 5 lâminas · 152 mm",
+      "categorySlug": "brocas-pdc",
+      "shortDesc": "Perfil de ângulo de arco com cinco lâminas longas e cortadores planos ou esféricos. Diâmetro de 152 mm.",
+      "description": "Perfil de ângulo de arco com cinco lâminas longas e cortadores planos ou esféricos.\n\n- Diâmetro: 152 mm\n- Conexão API 2 3/8″ REG fêmea\n\nConsulte o estoque para pronta entrega ou peça condição para revenda.",
+      "images": [
+        "/catalogo/pdc-arqueada.webp"
+      ],
+      "specs": {
+        "Diâmetro": "152 mm",
+        "Conexão": "API 2 3/8″ REG, fêmea",
+        "Lâminas": "5 longas",
+        "Cortadores por lâmina": "PDC 1308, planos ou esféricos",
+        "Proteção de calibre": "Carbeto"
+      },
+      "priceCents": 550000,
       "stock": 0,
       "featured": false,
       "active": true
