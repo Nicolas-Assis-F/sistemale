@@ -28,7 +28,25 @@ if (!campaignId) {
   process.exit(1);
 }
 
-const prisma = new PrismaClient();
+// O Prisma Postgres derruba conexões paradas durante as pausas: pool com folga e nova tentativa.
+function datasourceUrl() {
+  const url = new URL(process.env.DATABASE_URL ?? 'postgres://localhost');
+  for (const [k, v] of Object.entries({ connection_limit: '2', pool_timeout: '60', connect_timeout: '60' })) if (!url.searchParams.has(k)) url.searchParams.set(k, v);
+  return url.toString();
+}
+const prisma = new PrismaClient({ datasourceUrl: datasourceUrl() });
+async function db<T>(what: string, run: () => Promise<T>, attempts = 6): Promise<T> {
+  for (let i = 1; ; i++) {
+    try {
+      return await run();
+    } catch (e) {
+      if (i >= attempts) throw e;
+      console.log(`${clock()} banco não respondeu (${what}), tentando de novo em ${i * 5} s…`);
+      await prisma.$disconnect().catch(() => {});
+      await new Promise((r) => setTimeout(r, i * 5000));
+    }
+  }
+}
 let stopping = false;
 process.on('SIGINT', () => {
   if (stopping) process.exit(130);
@@ -60,9 +78,9 @@ async function send(phone: string, message: string): Promise<string | null> {
 
 async function main() {
   console.log(`→ Banco: ${new URL(process.env.DATABASE_URL ?? 'postgres://?').hostname || '(sem DATABASE_URL)'}`);
-  const campaign = await prisma.leadCampaign.findUnique({ where: { id: campaignId }, select: { name: true } });
+  const campaign = await db('campanha', () => prisma.leadCampaign.findUnique({ where: { id: campaignId }, select: { name: true } }));
   if (!campaign) throw new Error(`Campanha ${campaignId} não encontrada neste banco`);
-  const pending = await prisma.leadDispatch.count({ where: { campaignId, status: 'PENDENTE' } });
+  const pending = await db('fila', () => prisma.leadDispatch.count({ where: { campaignId, status: 'PENDENTE' } }));
   console.log(`Campanha "${campaign.name}": ${pending} na fila${dryRun ? ' (TESTE: nada será enviado)' : ''}`);
 
   let sentNow = 0;
@@ -72,22 +90,22 @@ async function main() {
     if (!dryRun) {
       const h = hourNow();
       if (h < HOURS[0] || h >= HOURS[1]) { console.log(`${clock()} fora do horário (${HOURS[0]}h–${HOURS[1]}h). Rode de novo amanhã.`); break; }
-      const today = await prisma.leadDispatch.count({ where: { sentAt: { gte: startOfToday() } } });
+      const today = await db('limite do dia', () => prisma.leadDispatch.count({ where: { sentAt: { gte: startOfToday() } } }));
       if (today >= perDay) { console.log(`${clock()} limite do dia atingido (${today}/${perDay}). Rode de novo amanhã.`); break; }
     } else if (sentNow >= perDay) break;
 
-    const d = await prisma.leadDispatch.findFirst({
+    const d = await db('próximo da fila', () => prisma.leadDispatch.findFirst({
       where: { campaignId, status: 'PENDENTE', id: { notIn: [...skippedInTest] } },
       orderBy: { createdAt: 'asc' },
       include: { lead: { select: { name: true, phone: true, lastOutboundAt: true } } },
-    });
+    }));
     if (!d) { console.log('Fila vazia: campanha concluída.'); break; }
 
     const recent = d.lead.lastOutboundAt && Date.now() - d.lead.lastOutboundAt.getTime() < RECENT_TALK_DAYS * 86_400_000;
     if (recent || !/^\d{12,13}$/.test(d.lead.phone)) {
       console.log(`${clock()} pulando ${d.lead.name}: ${recent ? 'você falou com o contato há menos de 2 dias' : 'telefone inválido'}`);
       if (dryRun) skippedInTest.add(d.id);
-      else await prisma.leadDispatch.update({ where: { id: d.id }, data: { status: 'PULADO' } });
+      else await db('pular', () => prisma.leadDispatch.update({ where: { id: d.id }, data: { status: 'PULADO' } }));
       continue;
     }
 
@@ -108,11 +126,19 @@ async function main() {
     }
     fails = 0;
     sentNow++;
-    await prisma.leadDispatch.update({ where: { id: d.id }, data: { status: 'ENVIADO', sentAt: new Date() } });
+    const sentAt = new Date();
+    try {
+      // Já saiu pelo WhatsApp: insiste bastante para não reenviar ao rodar de novo.
+      await db('marcar enviado', () => prisma.leadDispatch.update({ where: { id: d.id }, data: { status: 'ENVIADO', sentAt } }), 20);
+    } catch (e) {
+      console.log(`${clock()} ENVIADO para ${d.lead.name} mas não consegui gravar no portal; parei para não repetir. Marque no portal e rode de novo.`);
+      throw e;
+    }
     console.log(`${clock()} ✓ ${sentNow} · ${d.lead.name}`);
 
     const pause = sentNow % BREAK_EVERY === 0 ? rand(BREAK_S) : rand(GAP_S);
     if (sentNow % BREAK_EVERY === 0) console.log(`${clock()} pausa de ${Math.round(pause / 60)} min`);
+    await prisma.$disconnect().catch(() => {}); // a próxima consulta abre uma conexão nova
     await wait(pause);
   }
   console.log(`${dryRun ? 'Sairiam' : 'Enviadas'} ${sentNow} mensagem(ns) nesta rodada.`);
