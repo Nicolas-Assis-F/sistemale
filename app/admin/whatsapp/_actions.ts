@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { requireAdmin } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { parseCurrencyToCents } from '@/lib/format';
-import { NOT_PROSPECT_KINDS, SEGMENTS, normalizePhone, renderTemplate } from '@/lib/leads/rules';
+import { NEGOTIATING_STAGES, NOT_PROSPECT_KINDS, greetingName, SEGMENTS, normalizePhone, renderTemplate } from '@/lib/leads/rules';
 
 function back(path: string, message: string, kind: 'ok' | 'erro' = 'ok'): never {
   redirect(`${path}?${kind}=${encodeURIComponent(message)}`);
@@ -114,12 +114,13 @@ export async function createCampaign(formData: FormData) {
   const parsed = z.object({
     name: z.string().trim().min(3, 'Dê um nome para a campanha'),
     segment: z.string().refine((s) => s === 'todos' || s in SEGMENTS, 'Escolha o produto'),
-    template: z.string().max(1000).optional().transform((v) => v?.trim() || ''),
+    template: z.string().max(3000).optional().transform((v) => v?.trim() || ''),
     temperatures: z.array(z.enum(['QUENTE', 'MORNO', 'FRIO', 'SEM'])).min(1, 'Marque pelo menos um nível de interesse'),
     includeCustomers: z.string().optional().transform((v) => v === 'on'),
     onlyUnsaved: z.string().optional().transform((v) => v === 'on'),
+    includeNegotiating: z.string().optional().transform((v) => v === 'on'),
     cooldownDays: z.string().optional().transform((v) => Math.min(Math.max(Number(v) || 0, 0), 365)),
-    limit: z.string().optional().transform((v) => Math.min(Math.max(Number(v) || 30, 1), 200)),
+    limit: z.string().optional().transform((v) => Math.min(Math.max(Number(v) || 100, 1), 500)),
   }).safeParse({ ...Object.fromEntries(formData), temperatures: formData.getAll('temperatures').map(String) });
   if (!parsed.success) back(CAMPAIGN_PATH, firstError(parsed.error), 'erro');
   const f = parsed.data;
@@ -135,20 +136,22 @@ export async function createCampaign(formData: FormData) {
         { OR: [{ temperature: { in: temps } }, ...(f.temperatures.includes('SEM') ? [{ temperature: null }] : [])] },
         f.includeCustomers ? {} : { isCustomer: false },
         f.onlyUnsaved ? { savedName: null } : {},
+        // Quem pediu preço ou está negociando recebe conversa sua, não promoção genérica.
+        f.includeNegotiating ? {} : { OR: [{ stage: null }, { stage: { notIn: NEGOTIATING_STAGES } }] },
         f.cooldownDays ? { dispatches: { none: { createdAt: { gte: since }, status: { not: 'PULADO' } } } } : {},
       ],
     },
     // Quem falou mais recentemente primeiro: maior chance de resposta.
     orderBy: [{ temperature: 'asc' }, { lastMessageAt: { sort: 'desc', nulls: 'last' } }],
     take: f.limit,
-    select: { id: true, name: true },
+    select: { id: true, name: true, pushName: true },
   });
   if (leads.length === 0) back(CAMPAIGN_PATH, 'Nenhum contato com esses filtros', 'erro');
   const campaign = await prisma.leadCampaign.create({
     data: {
       name: f.name, template,
-      filter: { segment: f.segment, temperatures: f.temperatures, includeCustomers: f.includeCustomers, onlyUnsaved: f.onlyUnsaved, cooldownDays: f.cooldownDays, limit: f.limit },
-      dispatches: { create: leads.map((l) => ({ leadId: l.id, message: renderTemplate(template, l.name) })) },
+      filter: { segment: f.segment, temperatures: f.temperatures, includeCustomers: f.includeCustomers, onlyUnsaved: f.onlyUnsaved, includeNegotiating: f.includeNegotiating, cooldownDays: f.cooldownDays, limit: f.limit },
+      dispatches: { create: leads.map((l) => ({ leadId: l.id, message: renderTemplate(template, greetingName(l)) })) },
     },
   });
   refresh();

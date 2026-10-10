@@ -27,6 +27,8 @@ export const KIND_LABELS: Record<string, string> = {
 };
 /** Tipos que não entram em campanha de venda. */
 export const NOT_PROSPECT_KINDS = ['fornecedor', 'transportadora', 'interno', 'concorrente', 'parceiro'];
+/** Etapas que ficam fora de campanha, a não ser que se marque o contrário. */
+export const NEGOTIATING_STAGES = ['pediu_preco', 'orcamento_enviado', 'negociando'];
 
 export const STAGE_LABELS: Record<string, string> = {
   sem_resposta: 'Sem resposta', conversando: 'Conversando', pediu_preco: 'Pediu preço',
@@ -38,16 +40,52 @@ export const TEMPERATURE_LABELS = { QUENTE: 'Quente', MORNO: 'Morno', FRIO: 'Fri
 export type Temperature = keyof typeof TEMPERATURE_LABELS;
 
 /** Primeiro nome para a saudação; descarta palavras de produto que o Nicolas usa no nome salvo. */
-const NOT_A_NAME = /^(haste|hastes|rosca|cabe[cç]ote|maquina|máquina|po[cç]o|po[cç]os|perfura\w*|compra|broca|sr|seu|cliente|\d.*)$/i;
+const NOT_A_NAME = new RegExp('^(' + [
+  'haste', 'hastes', 'rosca', 'roscas', 'cabe[cç]\\w*', 'u?m?a?m[aá]quina', 'm[aá]quinas', 'po[cç]os?', 'pocos?', 'perfura\\w*', 'artesian\\w*',
+  'semi', 'tubo', 'pol', 'compra', 'vende', 'brocas?', 'pdc', 'mesa', 'torre', 'ponteira\\w*', 'adaptador\\w*', 'pe[cç]as?', 'martelo', 'bit',
+  'compressor', 'pist[aã]o', 'pescador', 'torno', 'tornearia', 'usinagem', 'hidr[aá]ulic\\w*', 'el[eé]tric\\w*', 'elwtrici', 'mec[aâ]nic\\w*',
+  'sondagem', 'estrutura', 'eixo', 'velocidades?', 'liga', 'bomba', 'frete', 'montar', 'fazer', 'esp', 'folgado', 'invejada',
+  'face', 'facebook', 'insta', 'instagram', 'msg', 'mensage\\w*', 'perfil', 'indicado', 'nome', 'sem', 'solu[cç]\\w*', 'm[aã]e',
+  'irm[aã]os', 'bombas', 'execu[cç]\\w*', 'drilling', 'tools', 'strong', 'hand', 'furg', 'weg', 'sondage\\w*', 'parana', 'vidalpo\\w*', 'hidrofendas',
+  'mini', 'com', 'de', 'da', 'por', 'do', 'das', 'dos', 'em', 'para', 'pra', 'um', 'uma', 'sr', 'seu', 'dona', 'cliente',
+].join('|').replaceAll('\\w', '\\p{L}') + ')$', 'iu');
 export function firstName(name: string): string {
-  const word = name.replace(/[^\p{L}\s'-]/gu, ' ').split(/\s+/).find((w) => w.length > 1 && !NOT_A_NAME.test(w));
+  const word = name.replace(/\(indicad[^)]*\)/gi, ' ').replace(/[^\p{L}\s]/gu, ' ').split(/\s+/).find((w) => w.length > 2 && w.length <= 12 && !NOT_A_NAME.test(w));
   if (!word) return 'tudo bem';
   return word[0].toUpperCase() + word.slice(1).toLowerCase();
 }
 
-export function renderTemplate(template: string, name: string): string {
-  return template.replaceAll('{nome}', firstName(name));
+/** Versões inteiras da mensagem: blocos separados por uma linha com "---". */
+export function templateVersions(template: string): string[] {
+  const versions = template.split(/^\s*---\s*$/m).map((v) => v.trim()).filter(Boolean);
+  return versions.length ? versions : [template.trim()];
 }
+
+/**
+ * Mensagem de cada contato. Sorteia uma das versões (separadas por "---") e, dentro dela,
+ * um trecho de cada [opção a|opção b]; assim nenhum disparo sai com o texto idêntico.
+ */
+/** Nome da saudação: o salvo na agenda; se ele só tiver produto, o do perfil do WhatsApp. */
+export function greetingName(lead: { name: string; pushName?: string | null }): string {
+  const saved = firstName(lead.name);
+  return saved === 'tudo bem' && lead.pushName ? lead.pushName : lead.name;
+}
+
+export function renderTemplate(template: string, name: string, random: () => number = Math.random): string {
+  const pick = <T,>(xs: T[]) => xs[Math.min(Math.floor(random() * xs.length), xs.length - 1)];
+  return pick(templateVersions(template))
+    .replace(/\[([^[\]]*\|[^[\]]*)\]/g, (_, opts: string) => pick(opts.split('|')).trim())
+    .replaceAll('{nome}', firstName(name));
+}
+
+/** Promoção de hastes em 5 versões, com trechos variáveis, para disparo automático. */
+export const PROMO_HASTES_TEMPLATE = [
+  '[Fala|Opa|E aí], {nome}! Aqui é o Nicolas, da L&E Torneadora, de Aparecida de Goiânia. Estamos com promoção nas hastes de fábrica: 2 3/8″, 2 7/8″ e 3 1/2″, de 2 a 4 m. Qual bitola você usa? [Te mando o preço agora.|Já te passo o valor.]',
+  '[Fala|Opa], {nome}! Nicolas da L&E Torneadora [aqui|falando]. Tá precisando de haste? Estamos com promoção [essa semana|esse mês]. Me fala a bitola e a quantidade que eu [já te passo o valor|te mando a cotação].',
+  '[Fala|Bom dia|Opa], {nome}! Nicolas da L&E Torneadora aqui. Liberamos uma promoção nas hastes e [lembrei de você|resolvi te avisar]. Ainda tá furando com qual bitola? Te faço uma cotação sem compromisso.',
+  '[Fala|E aí], {nome}! Aqui é o Nicolas, da L&E Torneadora, de Aparecida de Goiânia. Fabricamos hastes, roscas, cabeçotes e perfuratrizes para poço, e [estamos com|entrou] promoção nas hastes. Me conta qual máquina e bitola você usa que eu monto uma cotação pra você.',
+  '[Opa|Fala], {nome}! Nicolas da L&E Torneadora. Haste direto da fábrica com preço de promoção: tubo SCH 80 e rosca usinada em CNC, [2 3/8″, 2 7/8″ e 3 1/2″|de 2 3/8″ até 3 1/2″]. [Quer uma cotação?|Posso te mandar os valores?]',
+].join('\n---\n');
 
 /** Telefone só com dígitos e DDI 55 quando vier sem. */
 export function normalizePhone(raw: string): string {

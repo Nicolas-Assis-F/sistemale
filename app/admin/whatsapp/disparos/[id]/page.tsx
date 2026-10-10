@@ -31,6 +31,13 @@ export default async function CampaignPage({ params, searchParams }: { params: P
         </div>
       </LeadsNav>
 
+      {pending.length > 0 && (
+        <Panel title="Envio automático" hint="Roda no seu PC com a bridge do WhatsApp ligada: 50–60 s entre mensagens, pausa de 3–5 min a cada 10, até 100 por dia, das 8h às 19h. Feche o terminal (Ctrl+C) para parar.">
+          <code className="block overflow-x-auto rounded-xl bg-le-ink px-4 py-3 text-xs text-white">CRM_ENV=.env.vercel npm run crm:dispatch -- {campaign.id}</code>
+          <p className="mt-2 text-[11px] text-le-muted">Para ver o que sairia sem enviar nada, acrescente --teste no fim.</p>
+        </Panel>
+      )}
+
       <Panel title={`Na fila (${pending.length})`}>
         {pending.length === 0 ? <p className="text-sm text-le-muted">Fila concluída.</p> : (
           <ul className="divide-y divide-le-line/60">

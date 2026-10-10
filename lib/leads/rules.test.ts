@@ -1,15 +1,33 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { awaitingReply, firstName, nextDispatchState, normalizePhone, renderTemplate, whatsappLink } from './rules';
+import { PROMO_HASTES_TEMPLATE, awaitingReply, firstName, nextDispatchState, normalizePhone, renderTemplate, templateVersions, whatsappLink } from './rules';
 
 const t = (s: string) => new Date(`2026-10-${s}T12:00:00-03:00`);
 
 test('primeiro nome ignora o produto salvo no nome', () => {
-  assert.equal(firstName('Haste 2 7/8 Face'), 'Face');
+  assert.equal(firstName('Haste 2 7/8 Face'), 'tudo bem');
+  assert.equal(firstName('Maquina 100m Facebook'), 'tudo bem');
+  assert.equal(firstName('Compra Maquina Valdivino'), 'Valdivino');
   assert.equal(firstName('Rosca Ivomar'), 'Ivomar');
   assert.equal(firstName('ILMARA Morais'), 'Ilmara');
   assert.equal(firstName('Maquina 100m'), 'tudo bem');
   assert.equal(renderTemplate('Fala, {nome}!', 'Izaldo Cabecote 15k'), 'Fala, Izaldo!');
+  assert.equal(firstName('Compra Umaquina'), 'tudo bem');
+  assert.equal(firstName('Cabeçote 150m Com Mesa'), 'tudo bem');
+  assert.equal(firstName('José Cavalcante Alencar Cabeçes/ponteiras'), 'José');
+  assert.equal(firstName('Sapuka Poço'), 'Sapuka');
+  assert.equal(firstName('🦍 (indicado por Cleiton de Brasília)'), 'tudo bem');
+});
+
+test('mensagem varia entre versões e trechos', () => {
+  const tpl = '[Oi|Fala], {nome}! A\n---\nOpa {nome}, B';
+  assert.equal(templateVersions(tpl).length, 2);
+  assert.equal(renderTemplate(tpl, 'Rosca Ivomar', () => 0), 'Oi, Ivomar! A');
+  assert.equal(renderTemplate(tpl, 'Rosca Ivomar', () => 0.99), 'Opa Ivomar, B');
+  assert.equal(templateVersions(PROMO_HASTES_TEMPLATE).length, 5);
+  const seen = new Set(Array.from({ length: 50 }, () => renderTemplate(PROMO_HASTES_TEMPLATE, 'Ilmara')));
+  assert.ok(seen.size > 10);
+  for (const m of seen) assert.ok(!/[[\]|{}]/.test(m), m);
 });
 
 test('telefone e link do WhatsApp', () => {

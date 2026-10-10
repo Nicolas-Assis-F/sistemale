@@ -17,9 +17,9 @@ export default async function CampaignsPage({ searchParams }: { searchParams: Pr
   return (
     <div className="le-admin-page">
       <LeadsNav active="/admin/whatsapp/disparos" title="Disparos" flash={flash}
-        description="Monte a fila por produto e nível de interesse. Cada mensagem abre no seu WhatsApp já escrita e você aperta enviar: nada sai sozinho, então o número não corre risco de bloqueio. As respostas aparecem aqui depois do npm run crm:sync." />
+        description="Monte a fila por produto e nível de interesse. Envie um por um pelo botão da fila ou deixe o envio automático rodando no seu PC (o comando está na página da campanha). As respostas aparecem aqui depois do npm run crm:sync." />
 
-      <Panel title="Nova campanha" hint={`Enviados hoje: ${sentToday}. Mantenha até 30–40 mensagens novas por dia e personalize as dos clientes que já compraram.`}>
+      <Panel title="Nova campanha" hint={`Enviados hoje: ${sentToday}. O envio automático para em 100 por dia; comece pelos quentes e mornos.`}>
         <form action={createCampaign} className="grid gap-3 sm:grid-cols-2">
           <Field label="Nome da campanha"><input name="name" required className={fieldClass} placeholder="Haste 2 7/8 — outubro" /></Field>
           <TemplateFields />
@@ -34,9 +34,10 @@ export default async function CampaignsPage({ searchParams }: { searchParams: Pr
           <div className="flex flex-wrap gap-4 text-sm sm:col-span-2">
             <label className="inline-flex items-center gap-2"><input type="checkbox" name="includeCustomers" className="size-4 accent-le-blue" /> Incluir quem já comprou</label>
             <label className="inline-flex items-center gap-2"><input type="checkbox" name="onlyUnsaved" className="size-4 accent-le-blue" /> Só contatos não salvos</label>
+            <label className="inline-flex items-center gap-2"><input type="checkbox" name="includeNegotiating" className="size-4 accent-le-blue" /> Incluir quem pediu preço ou está negociando</label>
           </div>
           <Field label="Não repetir quem recebeu disparo nos últimos (dias)"><input name="cooldownDays" type="number" min={0} max={365} defaultValue={14} className={fieldClass} /></Field>
-          <Field label="Máximo de contatos na fila"><input name="limit" type="number" min={1} max={200} defaultValue={30} className={fieldClass} /></Field>
+          <Field label="Máximo de contatos na fila"><input name="limit" type="number" min={1} max={500} defaultValue={100} className={fieldClass} /></Field>
           <SubmitButton className="sm:col-span-2">Montar fila</SubmitButton>
         </form>
       </Panel>

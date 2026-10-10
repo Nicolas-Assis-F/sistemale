@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { fieldClass } from '@/components/admin/production/ProductionNav';
-import { SEGMENTS, SEGMENT_CODES, renderTemplate } from '@/lib/leads/rules';
+import { PROMO_HASTES_TEMPLATE, SEGMENTS, SEGMENT_CODES, renderTemplate, templateVersions } from '@/lib/leads/rules';
 
 /** Abre o WhatsApp com a mensagem pronta e marca o disparo como enviado. Quem aperta "enviar" é você. */
 export function OpenAndMark({ href, onSent }: { href: string; onSent: () => Promise<void> }) {
@@ -38,8 +38,12 @@ export function TemplateFields() {
       </label>
       <label className="block space-y-1.5 sm:col-span-2">
         <span className="text-xs font-medium text-le-muted">Mensagem ({'{nome}'} = primeiro nome)</span>
-        <textarea name="template" value={template} onChange={(e) => setTemplate(e.target.value)} rows={4} maxLength={1000} className={`${fieldClass} h-auto py-2`} />
-        <span className="block text-[11px] text-le-muted">Prévia: {renderTemplate(template, 'Ilmara Morais')}</span>
+        <textarea name="template" value={template} onChange={(e) => setTemplate(e.target.value)} rows={template.includes('---') ? 12 : 4} maxLength={3000} className={`${fieldClass} h-auto py-2`} />
+        <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-le-muted">
+          <button type="button" className="font-medium text-le-blue hover:underline" onClick={() => setTemplate(PROMO_HASTES_TEMPLATE)}>Usar promoção de hastes (5 versões)</button>
+          <span>Uma linha com --- separa versões; [Fala|Opa] sorteia um trecho. Cada contato recebe uma combinação.</span>
+        </span>
+        <span className="block text-[11px] text-le-muted">Prévia{templateVersions(template).length > 1 ? ` (1 de ${templateVersions(template).length} versões)` : ''}: {renderTemplate(template, 'Ilmara Morais', () => 0)}</span>
       </label>
     </>
   );
