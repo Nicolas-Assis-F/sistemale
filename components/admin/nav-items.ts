@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Package, Tag, ShoppingCart, FileText, Wrench, Images,
-  MessageSquare, ClipboardList, Users, HardHat, BadgePercent, Landmark, Workflow, Calculator, Factory,
+  MessageSquare, ClipboardList, Users, HardHat, BadgePercent, Landmark, Workflow, Calculator, Factory, MessageCircle,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -30,6 +30,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       { href: '/admin/pedidos', icon: ClipboardList, label: 'Pedidos', badgeKey: 'inFabrication' },
       { href: '/admin/producao', icon: Factory, label: 'Produção de hastes' },
       { href: '/admin/clientes', icon: Users, label: 'Clientes' },
+      { href: '/admin/whatsapp', icon: MessageCircle, label: 'Clientes do WhatsApp' },
       { href: '/admin/funcionarios', icon: HardHat, label: 'Funcionários' },
       { href: '/admin/comissoes', icon: BadgePercent, label: 'Comissões', badgeKey: 'commissionsDue' },
       { href: '/admin/custos', icon: Calculator, label: 'Custos e preços' },

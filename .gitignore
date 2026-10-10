@@ -55,3 +55,6 @@ next-env.d.ts
 # Vídeos opcionais da home: fornecer na implantação, até 4 MB por arquivo.
 /public/media/hero.mp4
 /public/media/hero.webm
+
+# Leitura das conversas do WhatsApp (dados pessoais de clientes): nunca versionar.
+/data/crm/

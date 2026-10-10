@@ -932,3 +932,116 @@ model ProductionPayout {
 
   @@index([employeeId, createdAt])
 }
+
+// ─── Clientes do WhatsApp (CRM) ──────────────────────────────────────────────
+// Leads vêm da leitura das conversas (scripts/crm-import.ts) e a atividade é
+// atualizada pela bridge local (npm run crm:sync). O envio é sempre manual:
+// o painel abre o WhatsApp com a mensagem pronta; nada é disparado em massa.
+
+enum LeadTemperature {
+  QUENTE
+  MORNO
+  FRIO
+}
+
+enum LeadDispatchStatus {
+  PENDENTE // na fila, ainda não abriu o WhatsApp
+  ENVIADO // mensagem saiu (marcado no painel ou visto pela sincronização)
+  RESPONDEU // o contato escreveu depois do envio
+  PULADO
+}
+
+model Lead {
+  id             String           @id @default(cuid())
+  phone          String           @unique // só dígitos, com DDI (5562...)
+  name           String // nome usado no painel
+  savedName      String? // como está salvo na agenda (null = não salvo)
+  pushName       String? // nome que a pessoa usa no WhatsApp
+  suggestedName  String? // nome sugerido para salvar na agenda
+  kind           String? // poceiro, revenda, empresa_perfuracao, cliente_final...
+  isCustomer     Boolean          @default(false)
+  city           String?
+  temperature    LeadTemperature?
+  stage          String? // novo, cotando, negociando, fechado, pos_venda, perdido
+  segments       String[] // haste_2_7_8, cabecote, maquina...
+  equipment      String? // o que o cliente usa: "haste 3 1/2 x 2,20 m, martelo DTH"
+  interests      String[]
+  objections     String?
+  summary        String?
+  nextStep       String?
+  pendingOrder   String?
+  balanceNote    String? // saldo em aberto segundo a conversa
+  notes          String? // anotações manuais (não são sobrescritas pela importação)
+  source         String           @default("whatsapp") // whatsapp | grupo | agenda | manual
+  lastInboundAt  DateTime?
+  lastOutboundAt DateTime?
+  lastMessage    String?
+  lastMessageAt  DateTime?
+  purchases      LeadPurchase[]
+  receivables    LeadReceivable[]
+  dispatches     LeadDispatch[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([temperature])
+  @@index([isCustomer])
+  @@index([lastInboundAt])
+}
+
+model LeadPurchase {
+  id          String    @id @default(cuid())
+  leadId      String
+  lead        Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  item        String
+  qty         String?
+  amountCents Int?
+  date        DateTime?
+  note        String?
+  source      String    @default("whatsapp") // whatsapp = importado (substituído a cada importação) | manual
+  createdAt   DateTime  @default(now())
+
+  @@index([leadId, date])
+}
+
+/// Parcela a receber combinada pelo WhatsApp (ainda fora do Financeiro).
+model LeadReceivable {
+  id          String    @id @default(cuid())
+  leadId      String
+  lead        Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  description String
+  amountCents Int
+  dueDate     DateTime?
+  paidAt      DateTime?
+  source      String    @default("whatsapp")
+  createdAt   DateTime  @default(now())
+
+  @@index([leadId])
+  @@index([paidAt, dueDate])
+}
+
+model LeadCampaign {
+  id         String         @id @default(cuid())
+  name       String
+  template   String // {nome} vira o primeiro nome do contato
+  filter     Json? // filtros usados para montar a fila
+  dispatches LeadDispatch[]
+  createdAt  DateTime       @default(now())
+}
+
+model LeadDispatch {
+  id         String             @id @default(cuid())
+  leadId     String
+  lead       Lead               @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  campaignId String?
+  campaign   LeadCampaign?      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  message    String
+  status     LeadDispatchStatus @default(PENDENTE)
+  sentAt     DateTime?
+  repliedAt  DateTime?
+  reply      String?
+  createdAt  DateTime           @default(now())
+
+  @@unique([campaignId, leadId])
+  @@index([status])
+  @@index([leadId, createdAt])
+}
